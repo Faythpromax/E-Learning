@@ -1,9 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import '../auth.css';
+import { useNavigate } from "react-router-dom";
+import "../auth.css";
 
 function RegisterRolePage() {
   const navigate = useNavigate();
 
+  const handleRoleChange = () => {
+    const role = document.getElementById("register-role-select").value;
+
+    if (role === "teacher") {
+      navigate("/register/teacher");
+    } else {
+      navigate("/register/student");
+    }
+  };
   return (
     <div className="auth-page">
       <div className="auth-bg" />
@@ -15,18 +24,18 @@ function RegisterRolePage() {
             <span className="hp-logo-text">E-Learning</span>
           </div>
 
-          <div className="hp-auth-btns" style={{ marginLeft: 'auto' }}>
+          <div className="hp-auth-btns" style={{ marginLeft: "auto" }}>
             <button
               id="btn-home-register"
               className="hp-btn hp-btn-outline"
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
             >
               Trang chủ
             </button>
             <button
               id="btn-login-from-register"
               className="hp-btn hp-btn-solid"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate("/login")}
             >
               Đăng nhập
             </button>
@@ -37,38 +46,33 @@ function RegisterRolePage() {
       <div className="register1-page-body">
         <div className="auth-container register1-container">
           <div className="auth-card register1-card">
-            <h1 className="auth-title">Tạo tài khoản<br />E-learning</h1>
-            <p className="auth-subtitle">Chọn vai trò của bạn để bắt đầu đăng ký</p>
+            <h1 className="auth-title">
+              Tạo tài khoản
+              <br />
+              E-learning
+            </h1>
+            <p className="auth-subtitle">
+              Chọn vai trò của bạn để bắt đầu đăng ký
+            </p>
 
-            <div className="auth-field" style={{ marginTop: '0.5rem' }}>
-              <label className="auth-label" htmlFor="register-role-select">Vai trò của bạn</label>
+            <div className="auth-field" style={{ marginTop: "0.5rem" }}>
+              <label className="auth-label" htmlFor="register-role-select">
+                Vai trò của bạn
+              </label>
               <select
                 id="register-role-select"
                 className="auth-select"
                 defaultValue="student"
-                onChange={(event) => {
-                  const role = event.target.value;
-                  if (role === 'teacher') {
-                    navigate('/register/teacher');
-                    return;
-                  }
-                  if (role === 'admin') {
-                    navigate('/admin/login');
-                    return;
-                  }
-                  navigate('/register/student');
-                }}
               >
                 <option value="student">Tôi là học sinh</option>
                 <option value="teacher">Tôi là giáo viên</option>
-                <option value="admin">Tôi là quản trị viên</option>
               </select>
             </div>
 
             <button
               id="btn-register-continue"
               className="auth-btn auth-btn-primary"
-              onClick={() => navigate('/register/student')}
+              onClick={handleRoleChange}
             >
               Tiếp tục →
             </button>
@@ -78,7 +82,9 @@ function RegisterRolePage() {
             <div className="r1-visual-shape" />
             <div className="r1-visual-content">
               <div className="r1-visual-icon">🚀</div>
-              <h2 className="r1-visual-title">Bắt đầu hành trình học tập của bạn</h2>
+              <h2 className="r1-visual-title">
+                Bắt đầu hành trình học tập của bạn
+              </h2>
               <ul className="r1-visual-list">
                 <li>✅ Đăng ký miễn phí, học ngay hôm nay</li>
                 <li>✅ Hơn 500+ khóa học chất lượng</li>

@@ -14,6 +14,10 @@ import FeedbackPage from '../../features/admin/pages/FeedbackPage';
 import SettingsPage from '../../features/admin/pages/SettingsPage';
 import EditUserPage from '../../features/admin/pages/EditUserPage';
 import StudentDashboardPage from '../../features/student/pages/StudentDashboardPage';
+import StudentGradesPage from '../../features/student/pages/StudentGradesPage';
+import StudentSupportPage from '../../features/student/pages/StudentSupportPage';
+import StudentSettingsPage from '../../features/student/pages/StudentSettingsPage';
+import StudentClassDetailPage from '../../features/student/pages/StudentClassDetailPage';
 import TeacherDashboardPage from '../../features/teacher/pages/TeacherDashboardPage';
 
 export function AppRoutes() {
@@ -38,6 +42,10 @@ export function AppRoutes() {
       <Route path="/admin/users/edit/:id" element={<EditUserPage />} />
 
       <Route path="/student/dashboard" element={<StudentDashboardPage />} />
+      <Route path="/student/grades" element={<StudentGradesPage />} />
+      <Route path="/student/support" element={<StudentSupportPage />} />
+      <Route path="/student/settings" element={<StudentSettingsPage />} />
+      <Route path="/student/classes/:classId" element={<StudentClassDetailPage />} />
       <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
     </Routes>
   );

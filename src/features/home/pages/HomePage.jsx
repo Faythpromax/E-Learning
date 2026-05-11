@@ -15,7 +15,7 @@ function HomePage() {
 
           <nav className="hp-nav">
             <a href="#about" className="hp-nav-link">Giới thiệu</a>
-            <a href="#news" className="hp-nav-link">Tính năng</a>
+            <a href="#feature" className="hp-nav-link">Tính năng</a>
             <a href="#contact" className="hp-nav-link">Liên hệ</a>
           </nav>
 

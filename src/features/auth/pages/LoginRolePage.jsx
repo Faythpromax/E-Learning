@@ -4,6 +4,16 @@ import '../auth.css';
 function LoginRolePage() {
   const navigate = useNavigate();
 
+  const handleRoleChange = () => {
+    const role = document.getElementById('role-select').value;
+
+    if (role === 'teacher') {
+      navigate('/login/teacher');
+    } else {
+      navigate('/login/student');
+    }
+  };
+
   return (
     <div className="auth-page">
       <div className="auth-bg" />
@@ -42,26 +52,13 @@ function LoginRolePage() {
                 id="role-select"
                 className="auth-select"
                 defaultValue="student"
-                onChange={(event) => {
-                  const role = event.target.value;
-                  if (role === 'teacher') {
-                    navigate('/login/teacher');
-                    return;
-                  }
-                //   if (role === 'admin') {
-                //     navigate('/admin/login');
-                //     return;
-                //   }
-                  navigate('/login/student');
-                }}
               >
                 <option value="student">Tôi là học sinh</option>
                 <option value="teacher">Tôi là giáo viên</option>
-                {/* <option value="admin">Tôi là quản trị viên</option> */}
               </select>
             </div>
 
-            <button id="btn-continue" className="auth-btn auth-btn-primary" onClick={() => navigate('/login/student')}>
+            <button id="btn-continue" className="auth-btn auth-btn-primary" onClick={handleRoleChange}>
               Tiếp tục →
             </button>
           </div>

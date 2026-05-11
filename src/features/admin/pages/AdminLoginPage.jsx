@@ -4,7 +4,22 @@ function AdminLoginPage() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    navigate('/admin/dashboard');
+    const Email = document.querySelector('input[placeholder="Email"]').value;
+    const Password = document.querySelector('input[placeholder="Mật khẩu"]').value;
+
+    const mockEmail = 'NHV123@gmail.com';
+    const mockPassword = '123';
+
+    if (!Email || !Password) {
+      alert('Vui lòng nhập đầy đủ thông tin.');
+      return;
+    }
+
+    if (Email === mockEmail && Password === mockPassword) {
+      navigate('/admin/dashboard');
+    } else {
+      alert('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
+    }
   };
 
   return (
@@ -16,8 +31,8 @@ function AdminLoginPage() {
         <h1 style={{ fontSize: '1.6rem', marginBottom: '8px', color: '#0f1f3d' }}>Đăng nhập quản trị viên</h1>
         <p style={{ color: '#6b7280', lineHeight: 1.6, marginBottom: '24px' }}>Khu vực quản trị hoạt động riêng cho role Admin.</p>
         <div style={{ display: 'grid', gap: '12px' }}>
-          <input type="email" placeholder="Email admin" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} />
-          <input type="password" placeholder="Mật khẩu" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} />
+          <input type="email" placeholder="Email" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} required />
+          <input type="password" placeholder="Mật khẩu" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} required />
           <button
             type="button"
             onClick={handleLogin}
