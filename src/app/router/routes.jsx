@@ -46,7 +46,9 @@ export function AppRoutes() {
       <Route path="/student/support" element={<StudentSupportPage />} />
       <Route path="/student/settings" element={<StudentSettingsPage />} />
       <Route path="/student/classes/:classId" element={<StudentClassDetailPage />} />
+
       <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+      
     </Routes>
   );
 }

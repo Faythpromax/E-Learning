@@ -1,12 +1,72 @@
-function TeacherDashboardPage() {
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiPlus } from 'react-icons/fi';
+import TeacherLayout from '../../../components/teacher/TeacherLayout';
+import ClassCard from '../../../components/teacher/ClassCard';
+import AssignmentCard from '../../../components/teacher/AssignmentCard';
+
+const TeacherDashboardPage = () => {
+  const navigate = useNavigate();
+  
+  const mockClasses = [
+    {
+      id: 1,
+      name: 'Tiếng Anh 5A3',
+      teacher: 'Nguyễn Văn An',
+      color: '#4ec28a',
+      avatar: 'N',
+    },
+    {
+      id: 2,
+      name: 'Tiếng Anh 4A2',
+      teacher: 'Nguyễn Văn An',
+      color: '#c04ac0',
+      avatar: 'N',
+    },
+  ];
+
+  const mockAssignments = [
+    {
+      id: 1,
+      title: 'Ôn tập từ vựng',
+    },
+  ];
+
+  const handleCreateClass = () => {
+    // TODO: Navigate to create class page or open a modal
+    // navigate('/teacher/create-class');
+    console.log('Create class clicked');
+  };
+
   return (
-    <div style={{ minHeight: '100vh', padding: '24px', background: '#f6f9ff' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto', background: '#fff', borderRadius: '20px', padding: '24px', boxShadow: '0 24px 80px rgba(0, 100, 200, 0.12)' }}>
-        <h1 style={{ marginTop: 0, color: '#0f1f3d' }}>Teacher Dashboard</h1>
-        <p style={{ color: '#6b7280' }}>Module cho giáo viên sẽ được phát triển riêng.</p>
+    <TeacherLayout pageTitle="Màn hình chính">
+      {/* Recent Classes Section */}
+      <div className="dashboard-section">
+        <div className="dashboard-section-header">
+          <h2 className="dashboard-section-title">Các lớp học gần đây</h2>
+          <button className="create-class-btn" onClick={handleCreateClass}>
+            <FiPlus className="btn-icon" />
+            Tạo lớp học
+          </button>
+        </div>
+        <div className="dashboard-grid">
+          {mockClasses.map((classItem) => (
+            <ClassCard key={classItem.id} classData={classItem} />
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* Recent Assignments Section */}
+      <div className="dashboard-section">
+        <h2 className="dashboard-section-title">Bài tập gần đây</h2>
+        <div className="dashboard-list">
+          {mockAssignments.map((assignment) => (
+            <AssignmentCard key={assignment.id} assignment={assignment} />
+          ))}
+        </div>
+      </div>
+    </TeacherLayout>
   );
-}
+};
 
 export default TeacherDashboardPage;
