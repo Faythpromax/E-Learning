@@ -3,7 +3,7 @@ import StudentSidebar from './StudentSidebar';
 import StudentHeader from './StudentHeader';
 import './student.css';
 
-const StudentLayout = ({ children, pageTitle }) => {
+const StudentLayout = ({ children, pageTitle, pageSubtitle }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
@@ -12,6 +12,7 @@ const StudentLayout = ({ children, pageTitle }) => {
       <div className="student-main">
         <StudentHeader 
           title={pageTitle} 
+          subtitle={pageSubtitle}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
         />
         <div className="student-content">

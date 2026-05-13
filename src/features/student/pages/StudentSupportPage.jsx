@@ -5,7 +5,7 @@ const StudentSupportPage = () => {
   return (
     <StudentLayout pageTitle="Trợ giúp">
       <div className="dashboard-section">
-        <h3 className="dashboard-section-title">Trợ giúp</h3>
+        {/* <h3 className="dashboard-section-title">Trợ giúp</h3> */}
         <div
           style={{
             background: 'white',

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const ClassCard = ({ classData, onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);

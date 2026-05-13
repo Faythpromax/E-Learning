@@ -10,9 +10,10 @@ import {
   FiMenu,
 } from 'react-icons/fi';
 
-const StudentHeader = ({ title, onMenuClick }) => {
+const StudentHeader = ({ title, subtitle, onMenuClick }) => {
   const navigate = useNavigate();
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const subtitleText = subtitle || 'Chào mừng trở lại! Tiếp tục hành trình học tập của bạn.';
 
   const handleLogout = () => {
     navigate('/');
@@ -32,7 +33,7 @@ const StudentHeader = ({ title, onMenuClick }) => {
           <FiMenu />
         </button> */}
         <h2 className="student-header-title">{title}</h2>
-        <p>Chào mừng trở lại, tiếp tục hành trình học tập của bạn!</p>
+        <p>{subtitleText}</p>
       </div>
 
       {/* Center: Search */}
