@@ -1,0 +1,164 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
+import { useAuth } from '../../../contexts/AuthContext';
+
+const RegisterStudentPage = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    school: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (formData.password !== formData.password_confirmation) {
+      setError('Mat khau xac nhan khong khop');
+      return;
+    }
+
+    setLoading(true);
+
+    const result = await register({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      password_confirmation: formData.password_confirmation,
+      role: 'student',
+      school: formData.school,
+    });
+
+    if (result.success) {
+      navigate('/student/dashboard');
+    } else {
+      setError(result.message || 'Dang ky that bai');
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <button
+          onClick={() => navigate('/register')}
+          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6"
+        >
+          <FiArrowLeft /> Quay lai
+        </button>
+
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Dang ky Hoc sinh</h1>
+          <p className="text-gray-500">Tao tai khoan hoc sinh moi</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ho va ten</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Nguyen Van A"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="email@example.com"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Truong hoc</label>
+            <input
+              type="text"
+              name="school"
+              value={formData.school}
+              onChange={handleChange}
+              placeholder="Ten truong hoc"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mat khau</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="********"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Xac nhan mat khau</label>
+            <input
+              type="password"
+              name="password_confirmation"
+              value={formData.password_confirmation}
+              onChange={handleChange}
+              placeholder="********"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 mt-6"
+          >
+            {loading ? 'Dang xu ly...' : 'Dang ky'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-500">
+            Da co tai khoan?{' '}
+            <button
+              onClick={() => navigate('/login/student')}
+              className="text-purple-600 hover:underline font-medium"
+            >
+              Dang nhap
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RegisterStudentPage;

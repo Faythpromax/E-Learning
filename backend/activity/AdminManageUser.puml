@@ -1,0 +1,9 @@
+@startuml admin quản lý user
+start
+:Xem danh sách user;
+:Chọn hành động: Tạo / Sửa / Xóa / Gán quyền;
+:Thực hiện hành động;
+:Lưu thay đổi;
+:Hiển thị kết quả;
+stop
+@enduml

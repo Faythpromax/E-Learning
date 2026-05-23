@@ -1,0 +1,874 @@
+@startuml class_diagram
+left to right direction
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+scale 1.5
+title E-Learning System - Class Diagram
+
+!define ABSTRACT abstract
+!define INTERFACE interface
+
+' ============================================
+' BACKEND - MODELS (Laravel Eloquent Models)
+' ============================================
+package "Backend::Models" {
+  class User {
+    -id: int
+    -name: string
+    -email: string
+    -password: string
+    -xp: int
+    -level: int
+    -email_verified_at: datetime
+    -created_at: datetime
+    -updated_at: datetime
+    +tests(): HasMany
+    +attempts(): HasMany
+    +questionProgress(): HasMany
+  }
+
+  class Test {
+    -id: int
+    -title: string
+    -description: string
+    -duration_minutes: int
+    -is_published: boolean
+    -settings: array
+    -created_at: datetime
+    -updated_at: datetime
+    +questions(): BelongsToMany
+    +attempts(): HasMany
+  }
+
+  class Question {
+    -id: int
+    -type: string
+    -content: string
+    -data: array
+    -explanation: string
+    -created_at: datetime
+    -updated_at: datetime
+    +tests(): BelongsToMany
+    +answers(): HasMany
+    +progresses(): HasMany
+  }
+
+  class TestAttempt {
+    -id: int
+    -test_id: int
+    -user_id: int
+    -started_at: datetime
+    -finished_at: datetime
+    -score: decimal
+    -status: string
+    -metadata: array
+    -created_at: datetime
+    -updated_at: datetime
+    +test(): BelongsTo
+    +user(): BelongsTo
+    +answers(): HasMany
+  }
+
+  class TestAnswer {
+    -id: int
+    -test_attempt_id: int
+    -question_id: int
+    -answer: array
+    -is_correct: boolean
+    -score: decimal
+    -metadata: array
+    -created_at: datetime
+    -updated_at: datetime
+    +attempt(): BelongsTo
+    +question(): BelongsTo
+  }
+
+  class QuestionProgress {
+    -id: int
+    -question_id: int
+    -user_id: int
+    -status: string
+    -attempts: int
+    -last_answer: array
+    -last_viewed_at: datetime
+    -last_attempt_at: datetime
+    -is_correct: boolean
+    -data: array
+    -created_at: datetime
+    -updated_at: datetime
+    +question(): BelongsTo
+    +user(): BelongsTo
+  }
+}
+
+' ============================================
+' BACKEND - SERVICES
+' ============================================
+package "Backend::Services" {
+  class GamificationService {
+    +XP_PER_CORRECT: int = 10
+    +XP_PER_PERFECT_DAY: int = 100
+    +XP_PER_STREAK: int = 5
+    +LEVEL_THRESHOLDS: array
+    +addXP(userId: int, xpPoints: int): array
+    +calculateLevel(xp: int): int
+    +checkAndAwardBadges(userId: int, questionAnswered: bool): array
+    +awardBadge(userId: int, code: string, name: string): Badge
+  }
+
+  class AdaptiveLearningService {
+    +analyzeWeakAreas(userId: int): Collection
+    +getNextRecommendedQuestion(userId: int, limit: int): Collection
+    +calculateQuestionFrequency(userId: int, questionId: int): float
+  }
+
+  class NotificationService {
+    +notifyStudentNewTest(userId: int, testId: int): void
+    +notifyTeacherTestCompleted(testId: int, userId: int): void
+    +notifyStudentTestDue(userId: int, testId: int, dueDate: datetime): void
+    +sendNotification(userId: int, message: string): void
+  }
+
+  class TestService {
+    +createTest(data: array): Test
+    +updateTest(testId: int, data: array): Test
+    +publishTest(testId: int): Test
+    +getTestStatistics(testId: int): array
+    +calculateTestScore(attemptId: int): decimal
+  }
+
+  class QuestionService {
+    +createQuestion(data: array): Question
+    +updateQuestion(questionId: int, data: array): Question
+    +deleteQuestion(questionId: int): boolean
+    +validateQuestion(data: array): boolean
+  }
+
+  class PracticeService {
+    +getPracticeQuestions(userId: int, limit: int): Collection
+    +recordPracticeAnswer(userId: int, questionId: int, answer: array): QuestionProgress
+    +getStudentPracticeStats(userId: int): array
+  }
+
+  class ReviewAnswerService {
+    +getAttemptReview(attemptId: int): array
+    +getDetailedAnswerReview(answerId: int): array
+    +getProgressStatistics(userId: int): array
+  }
+
+  class AutoSubmitTestService {
+    +checkExpiredAttempts(): void
+    +autoSubmitAttempt(attemptId: int): TestAttempt
+    +isTimeExpired(attemptId: int): boolean
+  }
+
+  class AntiCheatDetectionService {
+    +detectTabSwitch(attemptId: int): boolean
+    +detectCopyAttempt(attemptId: int): boolean
+    +recordUserBehavior(attemptId: int, behavior: array): void
+    +flagSuspiciousActivity(attemptId: int): void
+  }
+
+  class ProgressChartService {
+    +getPracticeProgress(userId: int, days: int): array
+    +getTestPerformance(userId: int, days: int): array
+    +getOverallStatistics(userId: int): array
+  }
+
+  class DashboardTeacherService {
+    +getTopStudents(classId: int, limit: int): Collection
+    +getQuestionStatistics(testId: int): array
+    +getClassPerformance(classId: int): array
+    +getDashboardStats(): array
+  }
+
+  class AISuggestQuestionService {
+    +suggestQuestionsForWeakAreas(userId: int, limit: int): Collection
+    +suggestDifficultyProgression(userId: int): array
+  }
+
+  class RandomQuestionService {
+    +shuffleTestQuestions(testId: int): Collection
+    +shuffleAnswerOptions(questionId: int): array
+  }
+}
+
+' ============================================
+' BACKEND - RELATIONSHIPS
+' ============================================
+User "1" -- "*" TestAttempt
+User "1" -- "*" QuestionProgress
+Test "1" -- "*" TestAttempt
+Test "*" -- "*" Question
+Question "1" -- "*" TestAnswer
+Question "1" -- "*" QuestionProgress
+TestAttempt "1" -- "*" TestAnswer
+TestAttempt "*" -- "1" User
+
+' ============================================
+' FRONTEND - LAYOUT COMPONENTS (React)
+' ============================================
+package "Frontend::Components::Layout" {
+  class StudentLayout {
+    -children: ReactNode
+    -pageTitle: string
+    -pageSubtitle: string
+    -sidebarOpen: boolean
+    +setSidebarOpen(state: boolean): void
+  }
+
+  class AdminLayout {
+    -children: ReactNode
+    -title: string
+  }
+
+  class TeacherLayout {
+    -children: ReactNode
+    -pageTitle: string
+    -pageSubtitle: string
+  }
+}
+
+' ============================================
+' FRONTEND - HEADER & SIDEBAR (React)
+' ============================================
+package "Frontend::Components::Navigation" {
+  class StudentHeader {
+    -title: string
+    -subtitle: string
+    -onMenuClick(): void
+  }
+
+  class AdminHeader {
+    -title: string
+  }
+
+  class TeacherHeader {
+    -title: string
+  }
+
+  class StudentSidebar {
+    -isOpen: boolean
+    -menuItems: array
+  }
+
+  class AdminSidebar {
+    -menuItems: array
+  }
+
+  class TeacherSidebar {
+    -menuItems: array
+  }
+}
+
+' ============================================
+' FRONTEND - CARD COMPONENTS (React)
+' ============================================
+package "Frontend::Components::Cards" {
+  class ClassCard {
+    -name: string
+    -teacher: string
+    -color: string
+    -menuOptions: array
+  }
+
+  class TestCard {
+    -title: string
+    -duration: number
+    -questionCount: number
+    -onStart(): void
+  }
+
+  class ExerciseCard {
+    -title: string
+    -description: string
+    -dueDate: date
+    -onSubmit(): void
+  }
+
+  class StatCard {
+    -label: string
+    -value: number|string
+    -icon: string
+  }
+
+  class AnnouncementCard {
+    -title: string
+    -content: string
+    -date: datetime
+  }
+
+  class AssignmentCard {
+    -title: string
+    -dueDate: date
+    -status: string
+  }
+}
+
+' ============================================
+' FRONTEND - PAGE COMPONENTS (React)
+' ============================================
+package "Frontend::Pages::Student" {
+  class StudentDashboardPage {
+    -recentClasses: ClassCard[]
+    -recentAssignments: AssignmentCard[]
+    +loadRecentClasses(): void
+    +loadRecentAssignments(): void
+  }
+
+  class StudentClassDetailPage {
+    -classId: number
+    -tabs: string[] = [Overview, Exercises, Tests, Students]
+    -selectedTab: string
+  }
+
+  class StudentGradesPage {
+    -grades: array
+    +calculateGPA(): number
+  }
+
+  class StudentSettingsPage {
+    -profile: object
+    +updateProfile(data: object): void
+  }
+
+  class StudentSupportPage {
+    -faqs: array
+    -contactInfo: object
+  }
+}
+
+package "Frontend::Pages::Admin" {
+  class AdminDashboardPage {
+    -teacherCount: number = 25
+    -studentCount: number = 320
+    -stats: StatCard[]
+  }
+
+  class AdminLoginPage {
+    -email: string
+    -password: string
+    +login(): void
+  }
+
+  class StudentListPage {
+    -students: User[]
+    +searchStudents(query: string): User[]
+  }
+
+  class TeacherListPage {
+    -teachers: User[]
+    +searchTeachers(query: string): User[]
+  }
+
+  class EditUserPage {
+    -userId: number
+    -userData: object
+    +saveChanges(): void
+  }
+
+  class SettingsPage {
+    -settings: object
+    +updateSettings(data: object): void
+  }
+}
+
+package "Frontend::Pages::Teacher" {
+  class TeacherDashboardPage {
+    -classes: ClassCard[]
+    -stats: StatCard[]
+  }
+}
+
+package "Frontend::Pages::Auth" {
+  class LoginRolePage {
+    -roles: string[] = [Student, Teacher, Admin]
+    +selectRole(role: string): void
+  }
+
+  class RegisterRolePage {
+    -roles: string[] = [Student, Teacher]
+    +selectRole(role: string): void
+  }
+
+  class LoginStudentPage {
+    -email: string
+    -password: string
+    +login(): void
+  }
+
+  class LoginTeacherPage {
+    -email: string
+    -password: string
+    +login(): void
+  }
+
+  class RegisterStudentPage {
+    -name: string
+    -email: string
+    -password: string
+    +register(): void
+  }
+
+  class RegisterTeacherPage {
+    -name: string
+    -email: string
+    -password: string
+    -institution: string
+    +register(): void
+  }
+}
+
+package "Frontend::Pages::Home" {
+  class HomePage {
+    -features: array
+    +scrollToFeature(featureId: string): void
+  }
+}
+
+' ============================================
+' FRONTEND - RELATIONSHIPS
+' ============================================
+StudentLayout -- StudentHeader
+StudentLayout -- StudentSidebar
+AdminLayout -- AdminHeader
+AdminLayout -- AdminSidebar
+TeacherLayout -- TeacherHeader
+TeacherLayout -- TeacherSidebar
+
+StudentDashboardPage -- StudentLayout
+StudentClassDetailPage -- StudentLayout
+StudentGradesPage -- StudentLayout
+StudentSettingsPage -- StudentLayout
+StudentSupportPage -- StudentLayout
+
+AdminDashboardPage -- AdminLayout
+StudentListPage -- AdminLayout
+TeacherListPage -- AdminLayout
+EditUserPage -- AdminLayout
+SettingsPage -- AdminLayout
+
+TeacherDashboardPage -- TeacherLayout
+
+' ============================================
+' SERVICE RELATIONSHIPS
+' ============================================
+GamificationService -- User
+AdaptiveLearningService -- QuestionProgress
+AdaptiveLearningService -- Question
+TestService -- Test
+QuestionService -- Question
+PracticeService -- Question
+PracticeService -- QuestionProgress
+ReviewAnswerService -- TestAttempt
+ReviewAnswerService -- TestAnswer
+AutoSubmitTestService -- TestAttempt
+AntiCheatDetectionService -- TestAttempt
+ProgressChartService -- TestAttempt
+ProgressChartService -- QuestionProgress
+DashboardTeacherService -- Test
+AISuggestQuestionService -- Question
+RandomQuestionService -- Test
+
+@enduml
+    -class_id: int
+    -user_id: int
+    -role: string
+    -joined_at: datetime
+    +getUser()
+    +getClass()
+  }
+
+  class ClassMaterial {
+    -id: int
+    -class_id: int
+    -title: string
+    -file_path: string
+    -uploaded_by: int
+    -uploaded_at: datetime
+    +download()
+    +delete()
+  }
+
+  class ClassTest {
+    -id: int
+    -class_id: int
+    -test_id: int
+    -assigned_date: datetime
+    -due_date: datetime
+    +getTest()
+    +getClass()
+  }
+
+  class Subject {
+    -id: int
+    -name: string
+    -description: string
+    -created_at: datetime
+    +getQuestions()
+  }
+}
+
+package Controllers {
+  class AuthController {
+    +login()
+    +logout()
+    +register()
+    +verifyEmail()
+  }
+
+  class PracticeController {
+    -practiceService: PracticeService
+    +index()
+    +getQuestion()
+    +submitAnswer()
+    +getProgress()
+  }
+
+  class QuestionController {
+    -questionService: QuestionService
+    +index()
+    +show(id)
+    +store(data)
+    +update(id, data)
+    +destroy(id)
+    +search(query)
+  }
+
+  class TestController {
+    -testService: TestService
+    +index()
+    +show(id)
+    +store(data)
+    +start(testId)
+    +submit(testId, answers)
+    +getResults(testId)
+  }
+
+  class ClassController {
+    -classService: ClassService
+    +index()
+    +show(id)
+    +store(data)
+    +update(id, data)
+    +destroy(id)
+    +addStudent(classId, userId)
+    +removeStudent(classId, userId)
+    +uploadMaterial(classId, file)
+  }
+}
+
+package Services {
+  class PracticeService {
+    -questionRepository: QuestionRepository
+    -progressRepository: QuestionProgressRepository
+    -scoringFactory: ScoringFactory
+    +getRandomQuestion(subject, difficulty)
+    +submitAnswer(userId, questionId, answer)
+    +getUserProgress(userId)
+    +updateProgress(userId, questionId, isCorrect)
+  }
+
+  class QuestionService {
+    -questionRepository: QuestionRepository
+    +getAll(filters)
+    +find(id)
+    +create(data)
+    +update(id, data)
+    +delete(id)
+    +search(query)
+    +validate(data)
+  }
+
+  class TestService {
+    -testRepository: TestRepository
+    -attemptRepository: TestAttemptRepository
+    +searchTests(query)
+    +startTest(userId, testId)
+    +submitTest(userId, testId, answers)
+    +getTestResults(attemptId)
+    +calculateScore(attempt)
+  }
+
+  class ClassService {
+    -classRepository: ClassRepository
+    +getAll()
+    +find(id)
+    +create(data)
+    +update(id, data)
+    +delete(id)
+    +addStudent(classId, userId)
+    +removeStudent(classId, userId)
+    +getClassStudents(classId)
+  }
+
+  class AdaptiveLearningService {
+    +suggestNextQuestion(userId)
+    +adjustDifficulty(userId, performance)
+    +getRecommendations(userId)
+  }
+
+  class AISuggestQuestionService {
+    +suggestQuestions(userId, topic)
+    +rankQuestions(questions)
+  }
+
+  class AntiCheatDetectionService {
+    +detectAnomalies(attemptId)
+    +flagSuspiciousActivity(attemptId)
+    +reportCheating(attemptId)
+  }
+
+  class AuthService {
+    +authenticate(email, password)
+    +authorize(user, action)
+    +generateToken(user)
+  }
+
+  class AutoSubmitTestService {
+    +scheduleAutoSubmit(attemptId, duration)
+    +autoSubmitTest(attemptId)
+  }
+
+  class GamificationService {
+    +calculatePoints(userId, action)
+    +awardBadge(userId, badge)
+    +getLeaderboard()
+  }
+
+  class ImportQuestionService {
+    +importFromFile(file)
+    +parseQuestions(data)
+    +validateImport()
+  }
+
+  class NotificationService {
+    +sendNotification(userId, message)
+    +sendEmail(email, subject, body)
+    +broadcastMessage(classId, message)
+  }
+
+  class ProgressChartService {
+    +generateChart(userId)
+    +getProgressData(userId)
+    +exportChart(userId, format)
+  }
+
+  class RandomQuestionService {
+    +getRandomQuestions(count, filters)
+    +generateRandomTest(config)
+  }
+
+  class ReviewAnswerService {
+    +getReview(attemptId)
+    +getAnswerExplanation(questionId)
+    +getDetailedFeedback(attemptId)
+  }
+
+  class DashboardTeacherService {
+    +getStudentProgress(classId)
+    +getClassStatistics(classId)
+    +generateReport(classId)
+  }
+}
+
+package Repositories {
+  interface QuestionRepositoryInterface {
+    +getAll()
+    +search(query)
+    +getRandom()
+    +find(id)
+    +create(data)
+    +update(id, data)
+    +delete(id)
+  }
+
+  class QuestionRepository {
+    +getAll()
+    +search(query)
+    +getRandom()
+    +find(id)
+    +create(data)
+    +update(id, data)
+    +delete(id)
+  }
+
+  interface QuestionProgressRepositoryInterface {
+    +saveOrUpdate(data)
+    +getByUserId(userId)
+  }
+
+  class QuestionProgressRepository {
+    +saveOrUpdate(data)
+    +getByUserId(userId)
+  }
+
+  interface TestRepositoryInterface {
+    +search(query)
+    +find(id)
+    +findAttempt(userId, testId)
+    +createAttempt(data)
+    +saveAnswer(data)
+    +updateAttempt(id, data)
+  }
+
+  class TestRepository {
+    +search(query)
+    +find(id)
+    +findAttempt(userId, testId)
+    +createAttempt(data)
+    +saveAnswer(data)
+    +updateAttempt(id, data)
+  }
+
+  interface ClassRepositoryInterface {
+    +getAll()
+    +find(id)
+    +create(data)
+    +update(id, data)
+    +delete(id)
+  }
+
+  class ClassRepository {
+    +getAll()
+    +find(id)
+    +create(data)
+    +update(id, data)
+    +delete(id)
+    +getStudents(classId)
+  }
+}
+
+package Strategies {
+  interface ScoringStrategyInterface {
+    +check(question, answer): bool
+    +score(question, answer): float
+  }
+
+  class MCQStrategy {
+    +check(question, answer): bool
+    +score(question, answer): float
+  }
+
+  class FillBlankStrategy {
+    +check(question, answer): bool
+    +score(question, answer): float
+  }
+
+  class EssayStrategy {
+    +check(question, answer): bool
+    +score(question, answer): float
+  }
+
+  class ScoringFactory {
+    +make(type): ScoringStrategyInterface
+  }
+}
+
+package UI {
+  class PracticeScreen {
+    -currentQuestion: Question
+    -userAnswer: string
+    -progress: number
+    +displayQuestion()
+    +submitAnswer()
+    +showFeedback()
+    +nextQuestion()
+  }
+
+  class TestScreen {
+    -currentTest: Test
+    -answers: map
+    -timer: number
+    +displayTest()
+    +displayQuestion()
+    +submitAnswer()
+    +submitTest()
+    +updateTimer()
+  }
+
+  class Dashboard {
+    +displayStats()
+    +displayCharts()
+    +showClasses()
+  }
+}
+
+' ===== Model Relationships =====
+User "1" -- "*" ClassUser
+User "1" -- "*" TestAttempt
+User "1" -- "*" QuestionProgress
+User "1" -- "*" ClassModel : teaches
+User "1" -- "*" Question : creates
+
+ClassModel "1" -- "*" ClassUser
+ClassModel "1" -- "*" ClassTest
+ClassModel "1" -- "*" ClassMaterial
+
+Question "1" -- "*" QuestionProgress
+Question "1" -- "*" TestAnswer
+Question "*" -- "*" Test
+
+Test "1" -- "*" TestAttempt
+Test "1" -- "*" ClassTest
+
+TestAttempt "1" -- "*" TestAnswer
+
+Subject "1" -- "*" Question
+
+' ===== Controller - Service Relationships =====
+PracticeController --> PracticeService
+QuestionController --> QuestionService
+TestController --> TestService
+ClassController --> ClassService
+
+' ===== Service - Repository Relationships =====
+PracticeService --> QuestionRepositoryInterface
+PracticeService --> QuestionProgressRepositoryInterface
+PracticeService --> ScoringFactory
+QuestionService --> QuestionRepositoryInterface
+TestService --> TestRepositoryInterface
+ClassService --> ClassRepositoryInterface
+
+' ===== Service Dependencies =====
+PracticeService --> AdaptiveLearningService
+PracticeService --> AISuggestQuestionService
+TestService --> AutoSubmitTestService
+TestService --> AntiCheatDetectionService
+TestService --> ReviewAnswerService
+QuestionService --> ImportQuestionService
+ClassService --> DashboardTeacherService
+User --> NotificationService
+User --> GamificationService
+
+' ===== Repository Implementations =====
+QuestionRepository ..|> QuestionRepositoryInterface
+QuestionProgressRepository ..|> QuestionProgressRepositoryInterface
+TestRepository ..|> TestRepositoryInterface
+ClassRepository ..|> ClassRepositoryInterface
+
+' ===== Strategy Pattern =====
+ScoringFactory --> ScoringStrategyInterface
+MCQStrategy ..|> ScoringStrategyInterface
+FillBlankStrategy ..|> ScoringStrategyInterface
+EssayStrategy ..|> ScoringStrategyInterface
+
+' ===== UI - Service Relationships =====
+PracticeScreen --> PracticeService
+TestScreen --> TestService
+Dashboard --> DashboardTeacherService
+Dashboard --> ProgressChartService
+
+@enduml
+TestRepositoryImpl ..|> ITestRepository
+UserRepositoryImpl ..|> IUserRepository
+
+ScoringFactory --> ScoringStrategyInterface
+McqStrategy ..|> ScoringStrategyInterface
+FillBlankStrategy ..|> ScoringStrategyInterface
+MatchingStrategy ..|> ScoringStrategyInterface
+TableFillStrategy ..|> ScoringStrategyInterface
+
+QuestionService --> ScoringFactory
+TestService --> ScoringFactory

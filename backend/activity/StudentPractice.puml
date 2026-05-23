@@ -1,0 +1,17 @@
+@startuml học sinh luyện tập
+start
+:Chọn chế độ Practice;
+repeat
+  :Hệ thống lấy câu hỏi;
+  :Hiển thị câu hỏi;
+  :Học sinh nhập câu trả lời;
+  :Submit;
+  if (Đáp án đúng?) then (Yes)
+    :Hiển thị "Đúng";
+  else (No)
+    :Hiển thị "Sai" + giải thích;
+  endif
+  :Lưu tiến trình;
+repeat while (Tiếp tục câu tiếp theo?)
+stop
+@enduml

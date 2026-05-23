@@ -1,0 +1,9 @@
+@startuml giảng viên upload tài liệu
+start
+:Chọn lớp;
+:Upload tài liệu;
+:Nhập tiêu đề / mô tả;
+:Lưu tài liệu;
+:Thông báo thành công;
+stop
+@enduml

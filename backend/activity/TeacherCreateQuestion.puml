@@ -1,0 +1,21 @@
+@startuml giảng viên tạo câu hỏi
+title Giảng viên tạo câu hỏi
+
+start
+
+repeat
+    :Nhập thông tin câu hỏi;
+    :Submit;
+    :Validate dữ liệu;
+
+    if (Hợp lệ?) then (No)
+        :Hiển thị lỗi;
+    endif
+
+repeat while (Chưa hợp lệ?)
+
+:Lưu câu hỏi;
+:Thông báo thành công;
+
+stop
+@enduml

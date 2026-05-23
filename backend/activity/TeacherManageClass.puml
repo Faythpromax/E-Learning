@@ -1,0 +1,14 @@
+@startuml giảng viên quản lý lớp
+start
+:Chọn lớp;
+:Chọn hành động: Thêm học sinh / Xóa học sinh;
+if (Hành động là Add?) then (Yes)
+  :Nhập học sinh;
+  :Lưu;
+else (No)
+  :Chọn học sinh;
+  :Xóa;
+endif
+:Cập nhật danh sách lớp;
+stop
+@enduml

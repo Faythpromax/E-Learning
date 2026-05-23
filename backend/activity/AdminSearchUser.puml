@@ -1,0 +1,15 @@
+@startuml admin tìm kiếm user
+start
+:Nhập từ khóa (name/email/role);
+:Gửi yêu cầu tìm kiếm;
+:Hệ thống truy vấn;
+:Hiển thị danh sách user;
+if (Có tiếp tục tìm?) then (Yes)
+  :Nhập từ khóa (name/email/role);
+  :Gửi yêu cầu tìm kiếm;
+  :Hệ thống truy vấn;
+  :Hiển thị danh sách user;
+else (No)
+  stop
+endif
+@enduml

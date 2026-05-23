@@ -1,0 +1,11 @@
+@startuml giảng viên tạo bài test
+start
+:Nhập thông tin test;
+:Lưu test;
+:Thêm câu hỏi vào test;
+:Sắp xếp thứ tự;
+:Thiết lập thời gian;
+:Thiết lập số lần làm;
+:Lưu hoàn tất;
+stop
+@enduml
