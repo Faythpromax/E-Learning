@@ -5,7 +5,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$PROJECT_ROOT = "d:\Ai Tee\doan"
+$PROJECT_ROOT = Get-Location
 $BACKEND_DIR = "$PROJECT_ROOT\backend"
 $FRONTEND_DIR = "$PROJECT_ROOT\frontend"
 $PID_FILE = "$PROJECT_ROOT\.pids.txt"

@@ -395,9 +395,6 @@
 }
 
 .l1-visual-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
   font-size: 0.9rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
@@ -405,11 +402,6 @@
   padding: 0.6rem 1.1rem;
   border-radius: 10px;
   backdrop-filter: blur(6px);
-}
-
-.auth-check-icon {
-  color: #22c55e;
-  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -606,9 +598,6 @@
 }
 
 .r1-visual-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
   font-size: 0.9rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);

@@ -1,98 +1,48 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft } from 'react-icons/fi';
-import { useAuth } from '../../../contexts/AuthContext';
 
-const AdminLoginPage = () => {
+function AdminLoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const handleLogin = () => {
+    const Email = document.querySelector('input[placeholder="Email"]').value;
+    const Password = document.querySelector('input[placeholder="Mật khẩu"]').value;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const mockEmail = 'NHV123@gmail.com';
+    const mockPassword = '123';
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const result = await login(formData.email, formData.password);
-
-    if (result.success) {
-      navigate('/admin/dashboard');
-    } else {
-      setError(result.message || 'Dang nhap that bai');
+    if (!Email || !Password) {
+      alert('Vui lòng nhập đầy đủ thông tin.');
+      return;
     }
 
-    setLoading(false);
+    if (Email === mockEmail && Password === mockPassword) {
+      navigate('/admin/dashboard');
+    } else {
+      alert('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-        <button
-          onClick={() => navigate('/login')}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <FiArrowLeft /> Quay lai
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: '24px', background: '#f6f9ff' }}>
+      <div style={{ width: '100%', maxWidth: '420px', background: '#fff', borderRadius: '20px', padding: '32px', boxShadow: '0 24px 80px rgba(0, 100, 200, 0.12)' }}>
+        <button onClick={() => navigate('/')} style={{ border: 'none', background: 'none', color: '#0084FF', fontWeight: 600, cursor: 'pointer', marginBottom: '16px', padding: 0 }}>
+          ← Quay về trang chủ
         </button>
-
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Dang nhap Quan tri vien</h1>
-          <p className="text-gray-500">Nhap thong tin tai khoan quan tri</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="admin@example.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mat khau</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="********"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-              required
-            />
-          </div>
-
+        <h1 style={{ fontSize: '1.6rem', marginBottom: '8px', color: '#0f1f3d' }}>Đăng nhập quản trị viên</h1>
+        <p style={{ color: '#6b7280', lineHeight: 1.6, marginBottom: '24px' }}>Khu vực quản trị hoạt động riêng cho role Admin.</p>
+        <div style={{ display: 'grid', gap: '12px' }}>
+          <input type="email" placeholder="Email" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} required />
+          <input type="password" placeholder="Mật khẩu" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} required />
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:opacity-50"
-          >
-            {loading ? 'Dang xu ly...' : 'Dang nhap'}
+            type="button"
+            onClick={handleLogin}
+            style={{ padding: '12px 14px', border: 'none', borderRadius: '12px', background: 'linear-gradient(135deg, #0084FF, #0070d9)', color: '#fff', fontWeight: 700 }}>
+            Đăng Nhập
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default AdminLoginPage;

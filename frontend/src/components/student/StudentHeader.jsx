@@ -7,17 +7,16 @@ import {
   FiSettings,
   FiLogOut,
   FiChevronDown,
+  FiMenu,
 } from 'react-icons/fi';
-import { useAuth } from '../../contexts/AuthContext';
 
 const StudentHeader = ({ title, subtitle, onMenuClick }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const subtitleText = subtitle || 'Chào mừng trở lại! Tiếp tục hành trình học tập của bạn.';
 
   const handleLogout = () => {
-    logout();
+    navigate('/');
     setAccountDropdownOpen(false);
   };
 
@@ -26,28 +25,13 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
     setAccountDropdownOpen(false);
   };
 
-  const getRoleLabel = (role) => {
-    switch (role) {
-      case 'student':
-        return 'Học sinh';
-      case 'teacher':
-        return 'Giáo viên';
-      case 'admin':
-        return 'Quản trị viên';
-      default:
-        return role;
-    }
-  };
-
-  const getUserInitial = (name) => {
-    if (!name) return 'U';
-    return name.charAt(0).toUpperCase();
-  };
-
   return (
     <header className="student-header">
       {/* Left: Menu & Title */}
       <div className="student-header-left">
+        {/* <button className="student-menu-btn" onClick={onMenuClick}>
+          <FiMenu />
+        </button> */}
         <h2 className="student-header-title">{title}</h2>
         <p>{subtitleText}</p>
       </div>
@@ -77,11 +61,8 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
             className="student-account-btn"
             onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
           >
-            <div className="student-avatar">{getUserInitial(user?.name)}</div>
-            <div className="student-account-info">
-              <span className="student-account-name">{user?.name || 'User'}</span>
-              <span className="student-account-role">{getRoleLabel(user?.role)}</span>
-            </div>
+            <div className="student-avatar">S</div>
+            <span className="student-account-name">Student</span>
             <FiChevronDown
               className={`account-chevron ${
                 accountDropdownOpen ? 'open' : ''

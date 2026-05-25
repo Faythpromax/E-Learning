@@ -1,110 +1,125 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft } from 'react-icons/fi';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../auth.css";
 
-const LoginStudentPage = () => {
+function LoginStudentPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [formData, setFormData] = useState({ contact: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  const handleSubmit = (event) => {
+    const Email = document.querySelector(
+      'input[placeholder="Nhập email hoặc số điện thoại"]',
+    ).value;
+    const Password = document.querySelector(
+      'input[placeholder="Nhập mật khẩu"]',
+    ).value;
 
-    const result = await login(formData.email, formData.password);
+    const mockEmail = "student1@gmail.com";
+    const mockPassword = "123";
 
-    if (result.success) {
-      navigate('/student/dashboard');
-    } else {
-      setError(result.message || 'Dang nhap that bai');
+    if (!Email || !Password) {
+      alert("Vui lòng nhập đầy đủ thông tin.");
+      return;
     }
-
-    setLoading(false);
+    if (Email === mockEmail && Password === mockPassword) {
+      navigate("/student/dashboard");
+    } else {
+      alert("Email hoặc mật khẩu không đúng. Vui lòng thử lại.");
+    }
+    event.preventDefault();
+    alert(`Đăng nhập học sinh: ${formData.contact}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-        <button
-          onClick={() => navigate('/login')}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <FiArrowLeft /> Quay lai
-        </button>
+    <div className="auth-page auth-page--centered">
+      <div className="auth-bg" />
 
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Dang nhap Hoc sinh</h1>
-          <p className="text-gray-500">Nhap thong tin tai khoan cua ban</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="email@example.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mat khau</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="********"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              required
-            />
-          </div>
-
+      <div className="auth-container">
+        <div className="auth-card">
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50"
+            id="btn-change-role-student"
+            className="auth-back-link"
+            onClick={() => navigate("/login")}
           >
-            {loading ? 'Dang xu ly...' : 'Dang nhap'}
+            ← Thay đổi vai trò
           </button>
-        </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-500">
-            Chua co tai khoan?{' '}
+          <h1 className="auth-title" style={{ marginTop: "0.75rem" }}>
+            Học sinh đăng nhập
+          </h1>
+          <p className="auth-subtitle">
+            Chào mừng trở lại! Nhập thông tin tài khoản của bạn.
+          </p>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <div className="auth-input-wrap">
+                <input
+                  id="student-contact"
+                  type="text"
+                  name="contact"
+                  className="auth-input"
+                  placeholder="Nhập email hoặc số điện thoại"
+                  value={formData.contact}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <div className="auth-input-wrap">
+                <input
+                  id="student-password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  className="auth-input"
+                  placeholder="Nhập mật khẩu"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Hiện/ẩn mật khẩu"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+            </div>
+
+            <div className="auth-label-row">
+              <a href="#" className="auth-forgot">
+                Quên mật khẩu?
+              </a>
+            </div>
+
             <button
-              onClick={() => navigate('/register/student')}
-              className="text-purple-600 hover:underline font-medium"
+              id="btn-login-student"
+              type="submit"
+              className="auth-btn auth-btn-primary"
             >
-              Dang ky
+              Đăng nhập
             </button>
+          </form>
+
+          <p className="auth-footer-text">
+            Bạn chưa có tài khoản?{" "}
+            <a href="#" className="auth-link">
+              Đăng ký ngay
+            </a>
           </p>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default LoginStudentPage;

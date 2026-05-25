@@ -1,164 +1,159 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft } from 'react-icons/fi';
-import { useAuth } from '../../../contexts/AuthContext';
+import '../auth.css';
 
-const RegisterStudentPage = () => {
+function RegisterStudentPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
-
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
+    grade: '',
+    school: '',
+    dob: '',
+    address: '',
     email: '',
     password: '',
-    password_confirmation: '',
-    school: '',
+    confirmPassword: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (formData.password !== formData.password_confirmation) {
-      setError('Mat khau xac nhan khong khop');
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert('Mật khẩu xác nhận không khớp!');
       return;
     }
-
-    setLoading(true);
-
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      password_confirmation: formData.password_confirmation,
-      role: 'student',
-      school: formData.school,
-    });
-
-    if (result.success) {
-      navigate('/student/dashboard');
-    } else {
-      setError(result.message || 'Dang ky that bai');
-    }
-
-    setLoading(false);
+    alert(`Đăng ký học sinh thành công: ${formData.email}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-        <button
-          onClick={() => navigate('/register')}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <FiArrowLeft /> Quay lai
-        </button>
+    <div className="auth-page auth-page--centered">
+      <div className="auth-bg" />
 
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Dang ky Hoc sinh</h1>
-          <p className="text-gray-500">Tao tai khoan hoc sinh moi</p>
-        </div>
+      <div className="auth-container reg-container">
+        <div className="auth-card reg-card">
+          <button
+            id="btn-change-role-register-student"
+            className="auth-back-link"
+            onClick={() => navigate('/register')}
+          >
+            ← Thay đổi vai trò
+          </button>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
+          <h1 className="reg-title">Bạn đang đăng ký dưới vai trò học sinh</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ho va ten</label>
+          <form onSubmit={handleSubmit} className="reg-form">
+            <p className="reg-section-label">Thông tin cá nhân</p>
+
             <input
+              id="student-fullname"
               type="text"
-              name="name"
-              value={formData.name}
+              name="fullName"
+              className="reg-input"
+              placeholder="Họ tên"
+              value={formData.fullName}
               onChange={handleChange}
-              placeholder="Nguyen Van A"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               required
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <div className="reg-row">
+              <input
+                id="student-grade"
+                type="text"
+                name="grade"
+                className="reg-input"
+                placeholder="Lớp"
+                value={formData.grade}
+                onChange={handleChange}
+              />
+              <input
+                id="student-school"
+                type="text"
+                name="school"
+                className="reg-input"
+                placeholder="Trường"
+                value={formData.school}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="reg-row">
+              <input
+                id="student-dob"
+                type="date"
+                name="dob"
+                className="reg-input"
+                placeholder="Ngày sinh"
+                value={formData.dob}
+                onChange={handleChange}
+              />
+              <input
+                id="student-address"
+                type="text"
+                name="address"
+                className="reg-input"
+                placeholder="Địa chỉ"
+                value={formData.address}
+                onChange={handleChange}
+              />
+            </div>
+
+            <p className="reg-section-label">Thông tin tài khoản</p>
+
             <input
+              id="student-email"
               type="email"
               name="email"
+              className="reg-input"
+              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="email@example.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               required
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Truong hoc</label>
             <input
-              type="text"
-              name="school"
-              value={formData.school}
-              onChange={handleChange}
-              placeholder="Ten truong hoc"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mat khau</label>
-            <input
+              id="student-password"
               type="password"
               name="password"
+              className="reg-input"
+              placeholder="Mật khẩu"
               value={formData.password}
               onChange={handleChange}
-              placeholder="********"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               required
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Xac nhan mat khau</label>
             <input
+              id="student-confirm-password"
               type="password"
-              name="password_confirmation"
-              value={formData.password_confirmation}
+              name="confirmPassword"
+              className="reg-input"
+              placeholder="Xác nhận mật khẩu"
+              value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="********"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               required
             />
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 mt-6"
-          >
-            {loading ? 'Dang xu ly...' : 'Dang ky'}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-gray-500">
-            Da co tai khoan?{' '}
-            <button
-              onClick={() => navigate('/login/student')}
-              className="text-purple-600 hover:underline font-medium"
-            >
-              Dang nhap
+            <button id="btn-register-student" type="submit" className="reg-btn">
+              Đăng ký
             </button>
+          </form>
+
+          <p className="auth-footer-text">
+            Đã có tài khoản?{' '}
+            <a
+              href="#"
+              className="auth-link"
+              onClick={(event) => { event.preventDefault(); navigate('/login/student'); }}
+            >
+              Đăng nhập ngay
+            </a>
           </p>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default RegisterStudentPage;

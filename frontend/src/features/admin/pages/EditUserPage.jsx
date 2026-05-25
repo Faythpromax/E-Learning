@@ -1,109 +1,76 @@
-import { useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft } from 'react-icons/fi';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import userApi from '../../../api/userApi';
+import '../../../components/admin/admin.css';
 
 const EditUserPage = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      await userApi.updateUser(id, formData);
-      alert('Cap nhat thanh cong!');
-      navigate(-1);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Cap nhat that bai');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Thường sẽ call API lấy chi tiết user theo ID, mock cứng dữ liệu
+  const isStudent = id?.startsWith('S');
 
   return (
-    <AdminLayout pageTitle="Chinh sua nguoi dung">
-      <div className="max-w-xl">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6"
-        >
-          <FiArrowLeft /> Quay lai
-        </button>
+    <AdminLayout title={`Sửa thông tin ${isStudent ? 'học sinh' : 'giáo viên'}`}>
+      <div className="admin-form-card">
+        <div className="admin-form-header">
+          Sửa thông tin {isStudent ? 'học sinh' : 'giáo viên'}
+        </div>
+        <div className="admin-form-body">
+          <div className="admin-form-group">
+            <label className="admin-form-label">Họ và tên:</label>
+            <input type="text" className="admin-form-input" defaultValue="Nguyễn Văn A" />
+          </div>
+          
+          <div className="admin-form-group">
+            <label className="admin-form-label">Email:</label>
+            <input type="email" className="admin-form-input" defaultValue="nguyenvana@gmail.com" />
+          </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-6">Chinh sua thong tin</h2>
-
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-              {error}
+          <div className="admin-form-group">
+            <label className="admin-form-label">Trường:</label>
+            <div style={{ display: 'flex', flex: 1, maxWidth: '400px', gap: '16px', alignItems: 'center' }}>
+              <input type="text" className="admin-form-input" style={{ maxWidth: 'none', flex: 2 }} defaultValue={isStudent ? "Tiểu học Trưng Trắc" : "THPT Chuyên Hà Nội"} />
+              {isStudent && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                  <label className="admin-form-label" style={{ width: 'auto', marginBottom: 0 }}>Lớp:</label>
+                  <input type="text" className="admin-form-input" style={{ maxWidth: 'none', flex: 1 }} defaultValue="5A3" />
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ho va ten</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+          <div className="admin-form-group">
+            <label className="admin-form-label">Ngày sinh:</label>
+            <input type="text" className="admin-form-input" defaultValue="15/04/1985" />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+          <div className="admin-form-group">
+            <label className="admin-form-label">Địa chỉ:</label>
+            <input type="text" className="admin-form-input" defaultValue="Hà Nội" />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vai tro</label>
-              <select
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="student">Hoc sinh</option>
-                <option value="teacher">Giao vien</option>
-                <option value="admin">Quan tri vien</option>
-              </select>
-            </div>
+          <div className="admin-form-group">
+            <label className="admin-form-label">Số điện thoại:</label>
+            <input type="text" className="admin-form-input" defaultValue="0987654321" />
+          </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Huy
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? 'Dang xu ly...' : 'Luu thay doi'}
-              </button>
-            </div>
-          </form>
+          <div className="admin-form-group">
+            <label className="admin-form-label">Quyền:</label>
+            <select className="admin-form-select" defaultValue={isStudent ? "Học sinh" : "Giáo viên"}>
+              <option value="Giáo viên">Giáo viên</option>
+              <option value="Học sinh">Học sinh</option>
+            </select>
+          </div>
+
+          <div className="admin-form-actions">
+            <button className="admin-btn-cancel" onClick={() => navigate(-1)}>
+              Hủy
+            </button>
+            <button className="admin-btn-submit">
+              Sửa
+            </button>
+          </div>
         </div>
       </div>
     </AdminLayout>

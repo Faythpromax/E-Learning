@@ -138,9 +138,7 @@
 .hp-hero-content { flex: 1; }
 
 .hp-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+  display: inline-block;
   background: #e8f2ff;
   color: #0084FF;
   font-size: 0.82rem;

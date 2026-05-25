@@ -1,73 +1,85 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUser, FiUsers } from 'react-icons/fi';
+import '../auth.css';
 
-const LoginRolePage = () => {
+function LoginRolePage() {
   const navigate = useNavigate();
 
+  const handleRoleChange = () => {
+    const role = document.getElementById('role-select').value;
+
+    if (role === 'teacher') {
+      navigate('/login/teacher');
+    } else {
+      navigate('/login/student');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Chao mung den</h1>
-          <p className="text-gray-500">Chon vai tro cua ban de dang nhap</p>
-        </div>
+    <div className="auth-page">
+      <div className="auth-bg" />
 
-        <div className="space-y-4">
-          <button
-            onClick={() => navigate('/login/student')}
-            className="w-full p-4 border-2 border-purple-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all flex items-center gap-4 group"
-          >
-            <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-              <FiUser className="text-purple-600 text-2xl" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-800">Hoc sinh</h3>
-              <p className="text-sm text-gray-500">Dang nhap voi tai khoan hoc sinh</p>
-            </div>
-          </button>
+      <header className="hp-header">
+        <div className="hp-header-inner">
+          <div className="hp-logo">
+            <span className="hp-logo-icon">📚</span>
+            <span className="hp-logo-text">E-Learning</span>
+          </div>
 
-          <button
-            onClick={() => navigate('/login/teacher')}
-            className="w-full p-4 border-2 border-green-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all flex items-center gap-4 group"
-          >
-            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
-              <FiUsers className="text-green-600 text-2xl" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-800">Giao vien</h3>
-              <p className="text-sm text-gray-500">Dang nhap voi tai khoan giao vien</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => navigate('/admin/login')}
-            className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-gray-500 hover:bg-gray-50 transition-all flex items-center gap-4 group"
-          >
-            <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-              <FiUser className="text-gray-600 text-2xl" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-800">Quan tri vien</h3>
-              <p className="text-sm text-gray-500">Dang nhap voi tai khoan quan tri</p>
-            </div>
-          </button>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-gray-500">
-            Chua co tai khoan?{' '}
+          <div className="hp-auth-btns" style={{ marginLeft: 'auto' }}>
             <button
-              onClick={() => navigate('/register')}
-              className="text-blue-600 hover:underline font-medium"
+              id="btn-home"
+              className="hp-btn hp-btn-outline"
+              onClick={() => navigate('/')}
             >
-              Dang ky ngay
+              Trang chủ
             </button>
-          </p>
+            <button id="btn-register-login1" className="hp-btn hp-btn-solid" onClick={() => navigate('/register')}>
+              Đăng ký
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="login1-page-body">
+        <div className="auth-container login1-container">
+          <div className="auth-card login1-card">
+            <h1 className="auth-title">Chào mừng đến với<br />hệ thống E-learning</h1>
+            <p className="auth-subtitle">Chọn vai trò của bạn để tiếp tục</p>
+
+            <div className="auth-field" style={{ marginTop: '0.5rem' }}>
+              <label className="auth-label" htmlFor="role-select">Vai trò của bạn</label>
+              <select
+                id="role-select"
+                className="auth-select"
+                defaultValue="student"
+              >
+                <option value="student">Tôi là học sinh</option>
+                <option value="teacher">Tôi là giáo viên</option>
+              </select>
+            </div>
+
+            <button id="btn-continue" className="auth-btn auth-btn-primary" onClick={handleRoleChange}>
+              Tiếp tục →
+            </button>
+          </div>
+
+          <div className="login1-visual">
+            <div className="l1-visual-shape" />
+            <div className="l1-visual-content">
+              <div className="l1-visual-icon">🎓</div>
+              <h2 className="l1-visual-title">Bắt đầu hành trình học tập của bạn</h2>
+              <ul className="l1-visual-list">
+                <li>✅ Hơn 500+ khóa học chất lượng</li>
+                <li>✅ Giáo viên chuyên nghiệp</li>
+                <li>✅ Chứng chỉ được công nhận</li>
+                <li>✅ Học mọi lúc, mọi nơi</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default LoginRolePage;

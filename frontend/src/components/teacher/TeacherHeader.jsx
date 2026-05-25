@@ -7,16 +7,15 @@ import {
   FiSettings,
   FiLogOut,
   FiChevronDown,
+  FiMenu,
 } from 'react-icons/fi';
-import { useAuth } from '../../contexts/AuthContext';
 
 const TeacherHeader = ({ title, onMenuClick }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   const handleLogout = () => {
-    logout();
+    navigate('/');
     setAccountDropdownOpen(false);
   };
 
@@ -25,28 +24,13 @@ const TeacherHeader = ({ title, onMenuClick }) => {
     setAccountDropdownOpen(false);
   };
 
-  const getRoleLabel = (role) => {
-    switch (role) {
-      case 'student':
-        return 'Học sinh';
-      case 'teacher':
-        return 'Giáo viên';
-      case 'admin':
-        return 'Quản trị viên';
-      default:
-        return role;
-    }
-  };
-
-  const getUserInitial = (name) => {
-    if (!name) return 'U';
-    return name.charAt(0).toUpperCase();
-  };
-
   return (
     <header className="teacher-header">
       {/* Left: Menu & Title */}
       <div className="teacher-header-left">
+        {/* <button className="teacher-menu-btn" onClick={onMenuClick}>
+          <FiMenu />
+        </button> */}
         <h2 className="teacher-header-title">{title}</h2>
         <p>Chào mừng trở lại, tiếp tục hành trình giảng dạy của bạn!</p>
       </div>
@@ -76,11 +60,8 @@ const TeacherHeader = ({ title, onMenuClick }) => {
             className="teacher-account-btn"
             onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
           >
-            <div className="teacher-avatar">{getUserInitial(user?.name)}</div>
-            <div className="teacher-account-info">
-              <span className="teacher-account-name">{user?.name || 'User'}</span>
-              <span className="teacher-account-role">{getRoleLabel(user?.role)}</span>
-            </div>
+            <div className="teacher-avatar">T</div>
+            <span className="teacher-account-name">Teacher</span>
             <FiChevronDown
               className={`account-chevron ${
                 accountDropdownOpen ? 'open' : ''

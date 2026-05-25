@@ -184,19 +184,6 @@
   font-size: 14px;
 }
 
-.admin-user-details {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-
-.admin-user-role {
-  font-size: 11px;
-  color: #0084ff;
-  font-weight: 500;
-}
-
 /* Dropdown */
 .admin-dropdown {
   position: absolute;
