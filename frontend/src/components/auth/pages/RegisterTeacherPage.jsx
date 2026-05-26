@@ -4,12 +4,12 @@ import { authService } from '../../../services/authService';
 import '../../../features/auth/auth.css';
 
 /**
- * Component RegisterStudentPage - Xử lý đăng ký cho Học sinh
+ * Component RegisterTeacherPage - Xử lý đăng ký cho Giáo viên
  */
-function RegisterStudentPage() {
+function RegisterTeacherPage() {
   const navigate = useNavigate();
   
-  // 1. Tạo các state tương ứng với form đăng ký
+  // 1. Quản lý State cho form đăng ký
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -25,7 +25,7 @@ function RegisterStudentPage() {
     setError('');
     setSuccess('');
 
-    // Kiểm tra mật khẩu và mật khẩu xác nhận không khớp
+    // Kiểm tra mật khẩu xác nhận
     if (password !== password_confirmation) {
       setError('Mật khẩu xác nhận không khớp!');
       return;
@@ -33,17 +33,17 @@ function RegisterStudentPage() {
 
     setLoading(true);
     try {
-      // Gọi hàm register từ authService (với role là student)
-      await authService.register(name, email, phone, password, password_confirmation, 'student');
+      // Gọi hàm register từ authService với vai trò là teacher
+      await authService.register(name, email, phone, password, password_confirmation, 'teacher');
       
-      setSuccess('Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...');
+      setSuccess('Đăng ký giáo viên thành công! Đang chuyển hướng...');
       
       // Chuyển hướng sau 2 giây
       setTimeout(() => {
-        navigate('/login/student');
+        navigate('/login/teacher');
       }, 2000);
     } catch (err) {
-      // Bắt thông điệp lỗi từ Laravel
+      // Xử lý lỗi từ backend
       if (err.response && err.response.status === 422) {
         const validationErrors = err.response.data.errors;
         const firstErrorKey = Object.keys(validationErrors)[0];
@@ -63,16 +63,16 @@ function RegisterStudentPage() {
       <div className="auth-container reg-container">
         <div className="auth-card reg-card">
           <button
-            id="btn-change-role-register-student"
+            id="btn-change-role-register-teacher"
             className="auth-back-link"
             onClick={() => navigate('/register')}
           >
             ← Thay đổi vai trò
           </button>
 
-          <h1 className="reg-title">Bạn đang đăng ký dưới vai trò học sinh</h1>
+          <h1 className="reg-title">Bạn đang đăng ký dưới vai trò giáo viên</h1>
 
-          {/* Hiển thị thông báo lỗi hoặc thành công */}
+          {/* Thông báo lỗi/thành công */}
           {error && <div className="auth-alert auth-alert-error" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
           {success && <div className="auth-alert auth-alert-success" style={{ color: 'green', marginBottom: '1rem', textAlign: 'center' }}>{success}</div>}
 
@@ -80,31 +80,28 @@ function RegisterStudentPage() {
             <p className="reg-section-label">Thông tin tài khoản</p>
 
             <input
-              id="student-fullname"
+              id="teacher-fullname"
               type="text"
-              name="name"
               className="reg-input"
-              placeholder="Họ tên"
+              placeholder="Họ tên đầy đủ"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
 
             <input
-              id="student-email"
+              id="teacher-email"
               type="email"
-              name="email"
               className="reg-input"
-              placeholder="Email"
+              placeholder="Email công tác"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
 
             <input
-              id="student-phone"
+              id="teacher-phone"
               type="text"
-              name="phone"
               className="reg-input"
               placeholder="Số điện thoại"
               value={phone}
@@ -113,9 +110,8 @@ function RegisterStudentPage() {
             />
 
             <input
-              id="student-password"
+              id="teacher-password"
               type="password"
-              name="password"
               className="reg-input"
               placeholder="Mật khẩu"
               value={password}
@@ -124,9 +120,8 @@ function RegisterStudentPage() {
             />
 
             <input
-              id="student-confirm-password"
+              id="teacher-confirm-password"
               type="password"
-              name="password_confirmation"
               className="reg-input"
               placeholder="Xác nhận mật khẩu"
               value={password_confirmation}
@@ -135,12 +130,12 @@ function RegisterStudentPage() {
             />
 
             <button 
-              id="btn-register-student" 
+              id="btn-register-teacher" 
               type="submit" 
               className="reg-btn"
               disabled={loading}
             >
-              {loading ? 'Đang xử lý...' : 'Đăng ký'}
+              {loading ? 'Đang xử lý...' : 'Đăng ký giáo viên'}
             </button>
           </form>
 
@@ -149,7 +144,7 @@ function RegisterStudentPage() {
             <a
               href="#"
               className="auth-link"
-              onClick={(event) => { event.preventDefault(); navigate('/login/student'); }}
+              onClick={(event) => { event.preventDefault(); navigate('/login/teacher'); }}
             >
               Đăng nhập ngay
             </a>
@@ -160,4 +155,4 @@ function RegisterStudentPage() {
   );
 }
 
-export default RegisterStudentPage;
+export default RegisterTeacherPage;
