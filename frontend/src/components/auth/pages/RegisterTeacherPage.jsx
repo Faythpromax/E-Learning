@@ -42,16 +42,25 @@ function RegisterTeacherPage() {
       setTimeout(() => {
         navigate('/login/teacher');
       }, 2000);
-    } catch (err) {
-      // Xử lý lỗi từ backend
-      if (err.response && err.response.status === 422) {
-        const validationErrors = err.response.data.errors;
-        const firstErrorKey = Object.keys(validationErrors)[0];
-        setError(validationErrors[firstErrorKey][0]);
-      } else {
-        setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
-      }
-    } finally {
+    } catch (error) {
+    console.log(error.response?.data);
+
+    const responseData = error.response?.data;
+
+    // Nếu có validation errors
+    if (responseData?.errors) {
+        const firstError = Object.values(responseData.errors)[0][0];
+        setError(firstError);
+    }
+    // Nếu chỉ có message
+    else if (responseData?.message) {
+        setError(responseData.message);
+    }
+    // fallback
+    else {
+        setError("Đăng ký thất bại.");
+    }
+} finally {
       setLoading(false);
     }
   };

@@ -20,7 +20,8 @@ class AuthController extends Controller
 
         $result = $this->authService->login(
             $credentials['email'],
-            $credentials['password']
+            $credentials['password'],
+            $credentials['role']
         );
 
         if (!$result['success']) {

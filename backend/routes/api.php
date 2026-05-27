@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Test Taking
     Route::post('/tests/{id}/start', [TestController::class, 'start']);
     Route::post('/tests/{id}/submit', [TestController::class, 'submit']);
+    Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']); // Add this line
 
     // Test Results
     Route::get('/tests/attempts', [TestController::class, 'myAttempts']);

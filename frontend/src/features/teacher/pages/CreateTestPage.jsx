@@ -33,7 +33,7 @@ export function CreateTestPage() {
 
   const fetchData = async () => {
     try {
-      const questionsRes = await questionApi.getAll();
+      const questionsRes = await questionApi.getQuestions();
       setAvailableQuestions(questionsRes.data || []);
 
       if (isEditing) {
@@ -139,14 +139,15 @@ export function CreateTestPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
+  <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 py-10 px-4">
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-4xl font-extrabold text-gray-800 mb-8">
         {isEditing ? 'Chinh sua bai kiem tra' : 'Tao bai kiem tra moi'}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <h2 className="text-lg font-semibold mb-4">Thong tin co ban</h2>
           
           <div className="grid grid-cols-2 gap-4">
@@ -262,7 +263,7 @@ export function CreateTestPage() {
         </div>
 
         {/* Question Selection */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
               Chon cau hoi ({formData.question_ids.length} da chon)
@@ -290,8 +291,8 @@ export function CreateTestPage() {
                   key={question.id}
                   className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md'
+                      : 'border-gray-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-1'
                   }`}
                   onClick={() => handleToggleQuestion(question.id)}
                 >
@@ -357,6 +358,7 @@ export function CreateTestPage() {
         </div>
       </form>
     </div>
+  </div>
   );
 }
 

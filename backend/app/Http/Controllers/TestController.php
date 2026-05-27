@@ -172,6 +172,35 @@ class TestController extends Controller
         ]);
     }
 
+    public function allAttempts(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        
+        try {
+            $test = $this->testService->getTestById($id);
+            
+            // Only creator or admin can view all attempts
+            if ($test->created_by !== $user->id && $user->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'You do not have permission to view attempts for this test.',
+                ], 403);
+            }
+
+            $attempts = $this->testService->getAllAttemptsForTest($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => $attempts,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Test not found.',
+            ], 404);
+        }
+    }
+
     public function myAttempts(Request $request): JsonResponse
     {
         $user = $request->user();

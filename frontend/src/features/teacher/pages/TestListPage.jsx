@@ -8,6 +8,11 @@ export function TeacherTestListPage() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  
+  // State cho tim kiem va loc
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     fetchTests();
@@ -60,6 +65,18 @@ export function TeacherTestListPage() {
     return `${minutes} phut`;
   };
 
+  // Logic loc du lieu
+  const filteredTests = tests.filter(test => {
+    const matchesSearch = test.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         test.test_code.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSubject = subjectFilter === '' || test.subject_id?.toString() === subjectFilter;
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && test.is_active) || 
+                         (statusFilter === 'inactive' && !test.is_active);
+    
+    return matchesSearch && matchesSubject && matchesStatus;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -79,6 +96,43 @@ export function TeacherTestListPage() {
           <FiPlus />
           Tao bai kiem tra moi
         </button>
+      </div>
+
+      {/* Bo loc va Tim kiem */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-center">
+        <div className="flex-1 min-w-[200px] relative">
+          <input
+            type="text"
+            placeholder="Tim kiem tieu de hoac ma..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+          <FiSearch className="absolute left-3 top-3 text-gray-400" />
+        </div>
+        
+        <select
+          value={subjectFilter}
+          onChange={(e) => setSubjectFilter(e.target.value)}
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Tat ca mon hoc</option>
+          <option value="1">Toan</option>
+          <option value="2">Tieng Viet</option>
+          <option value="3">Tieng Anh</option>
+          <option value="4">Khoa hoc</option>
+          <option value="5">Lich su</option>
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">Tat ca trang thai</option>
+          <option value="active">Dang hoat dong</option>
+          <option value="inactive">Khong hoat dong</option>
+        </select>
       </div>
 
       {tests.length === 0 ? (
@@ -123,7 +177,7 @@ export function TeacherTestListPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {tests.map((test) => (
+              {filteredTests.map((test) => (
                 <tr key={test.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{test.title}</div>

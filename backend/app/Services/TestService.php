@@ -190,6 +190,11 @@ class TestService
         ];
     }
 
+    public function getAllAttemptsForTest(int $testId): Collection
+    {
+        return $this->testRepository->getAttemptsByTestId($testId);
+    }
+
     public function getResults(int $attemptId): array
     {
         $attempt = TestAttempt::with([

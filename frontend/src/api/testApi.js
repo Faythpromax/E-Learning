@@ -62,6 +62,11 @@ export const testApi = {
     return response.data;
   },
 
+  getAllTestAttempts: async (testId) => {
+    const response = await apiClient.get(`/tests/${testId}/attempts`);
+    return response.data;
+  },
+
   getTestReview: async (attemptId) => {
     const response = await apiClient.get(`/tests/attempts/${attemptId}/review`);
     return response.data;

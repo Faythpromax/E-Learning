@@ -19,6 +19,8 @@ import StudentSupportPage from '../../features/student/pages/StudentSupportPage'
 import StudentSettingsPage from '../../features/student/pages/StudentSettingsPage';
 import StudentClassDetailPage from '../../features/student/pages/StudentClassDetailPage';
 import TeacherDashboardPage from '../../features/teacher/pages/TeacherDashboardPage';
+import ProtectedRoute from "../../components/auth/ProtectedRoute";
+import CreateTestPage from "../../features/teacher/pages/CreateTestPage";
 
 export function AppRoutes() {
   return (
@@ -34,20 +36,49 @@ export function AppRoutes() {
       <Route path="/register/teacher" element={<RegisterTeacherPage />} />
 
       <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+      <Route
+          path="/admin/dashboard"
+          element={
+              <ProtectedRoute role="admin">
+                  <AdminDashboardPage />
+              </ProtectedRoute>
+          }
+      />
       <Route path="/admin/teachers" element={<TeacherListPage />} />
       <Route path="/admin/students" element={<StudentListPage />} />
       <Route path="/admin/feedback" element={<FeedbackPage />} />
       <Route path="/admin/settings" element={<SettingsPage />} />
       <Route path="/admin/users/edit/:id" element={<EditUserPage />} />
 
-      <Route path="/student/dashboard" element={<StudentDashboardPage />} />
+      <Route
+          path="/student/dashboard"
+          element={
+              <ProtectedRoute role="student">
+                  <StudentDashboardPage />
+              </ProtectedRoute>
+          }
+      />
       <Route path="/student/grades" element={<StudentGradesPage />} />
       <Route path="/student/support" element={<StudentSupportPage />} />
       <Route path="/student/settings" element={<StudentSettingsPage />} />
       <Route path="/student/classes/:classId" element={<StudentClassDetailPage />} />
 
-      <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+      <Route
+          path="/teacher/dashboard"
+          element={
+              <ProtectedRoute role="teacher">
+                  <TeacherDashboardPage />
+              </ProtectedRoute>
+          }
+      />
+      <Route
+          path="/teacher/tests/create"
+          element={
+              <ProtectedRoute role="teacher">
+                  <CreateTestPage />
+              </ProtectedRoute>
+          }
+      />
       
     </Routes>
   );

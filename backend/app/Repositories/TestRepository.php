@@ -66,6 +66,14 @@ class TestRepository implements TestRepositoryInterface
         return $query->orderBy('started_at', 'desc')->get();
     }
 
+    public function getAttemptsByTestId(int $testId): Collection
+    {
+        return TestAttempt::where('test_id', $testId)
+            ->with(['user', 'test.subject'])
+            ->orderBy('submitted_at', 'desc')
+            ->get();
+    }
+
     public function getTestWithQuestions(int $id): Model
     {
         return Test::with([
