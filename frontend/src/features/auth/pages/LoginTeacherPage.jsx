@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../auth.css";
+import { useAuth } from "../../../context/AuthContext";
 
 function LoginTeacherPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ contact: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -11,25 +13,22 @@ function LoginTeacherPage() {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = (event) => {
-    const Email = document.querySelector('input[placeholder="Nhập email hoặc số điện thoại"]',).value;
-    const Password = document.querySelector('input[placeholder="Nhập mật khẩu"]',).value;
+  const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    const mockEmail = "teacher1@gmail.com";
-    const mockPassword = "123";
+  const result = await login(
+    formData.contact,
+    formData.password,
+    "teacher"
+  );
 
-    if (!Email || !Password) {
-      alert("Vui lòng nhập đầy đủ thông tin.");
-      return;
-    }
-    if (Email === mockEmail && Password === mockPassword) {
-      navigate("/teacher/dashboard");
-    } else {
-      alert("Email hoặc mật khẩu không đúng. Vui lòng thử lại.");
-    }
-    event.preventDefault();
-    alert(`Đăng nhập giáo viên: ${formData.contact}`);
-  };
+  if (result.success) {
+    alert("Đăng nhập thành công!");
+    navigate("/teacher/dashboard");
+  } else {
+    alert(result.message);
+  }
+};
 
   return (
     <div className="auth-page auth-page--centered">

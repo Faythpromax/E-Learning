@@ -4,23 +4,24 @@ export const authService = {
     /**
      * Logic Đăng Nhập Hệ Thống (Đã khớp với AuthController Backend)
      */
-    async login(email, password) {
-        const response = await api.post('/login', { email, password });
-        
-        // Backend trả về cấu trúc: response.data = { success: true, data: { token: "...", user: {...} } }
-        const serverResponse = response.data;
+    async login(email, password, role) {
+    const response = await api.post('/login', { 
+        email, 
+        password,
+        role
+    });
+    
+    const serverResponse = response.data;
 
-        if (serverResponse.success && serverResponse.data?.token) {
-            // Lưu token và user từ trong object 'data' của backend vào localStorage
-            localStorage.setItem('token', serverResponse.data.token);
-            localStorage.setItem('user', JSON.stringify(serverResponse.data.user));
-        } else {
-            // Trường hợp backend trả về success = false
-            throw new Error(serverResponse.message || "Đăng nhập thất bại.");
-        }
-        
-        return serverResponse.data; // Trả về object { user, token } cho UI dùng
-    },
+    if (serverResponse.success && serverResponse.data?.token) {
+        localStorage.setItem('token', serverResponse.data.token);
+        localStorage.setItem('user', JSON.stringify(serverResponse.data.user));
+    } else {
+        throw new Error(serverResponse.message || "Đăng nhập thất bại.");
+    }
+    
+    return serverResponse.data;
+},
 
     /**
      * Logic Đăng Ký Tài Khoản Học Sinh

@@ -20,17 +20,22 @@ function LoginTeacherPage() {
     setLoading(true);
 
     try {
-      // Gọi API đăng nhập
-      const data = await authService.login(email, password);
+  const data = await authService.login(
+    email,
+    password,
+    "teacher"
+  );
 
-      // Kiểm tra vai trò giáo viên
-      if (data.user && data.user.role === "teacher") {
-        navigate("/teacher/dashboard");
-      } else {
-        await authService.logout();
-        setError("Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản giáo viên.");
-      }
-    } catch (err) {
+  if (data.user && data.user.role === "teacher") {
+    navigate("/teacher/dashboard");
+  } else {
+    await authService.logout();
+
+    setError(
+      "Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản giáo viên."
+    );
+  }
+} catch (err) {
       if (err.response) {
         if (err.response.status === 422) {
           const validationErrors = err.response.data.errors;

@@ -29,25 +29,30 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const response = await apiClient.post('/login', { email, password });
-      const { user: userData, token } = response.data.data;
+  const login = async (email, password, role = 'teacher') => {
+  try {
+    const response = await apiClient.post('/login', {
+      email,
+      password,
+      role,
+    });
 
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_user', JSON.stringify(userData));
+    const { user: userData, token } = response.data.data;
 
-      setUser(userData);
-      setIsAuthenticated(true);
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('auth_user', JSON.stringify(userData));
 
-      return { success: true, user: userData };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Login failed',
-      };
-    }
-  };
+    setUser(userData);
+    setIsAuthenticated(true);
+
+    return { success: true, user: userData };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Login failed',
+    };
+  }
+};
 
   const register = async (data) => {
     try {
