@@ -33,7 +33,7 @@ export const classService = {
 
     // Tham gia lớp học (Học sinh)
     async join(code) {
-        const response = await api.post('/classes/join', { code });
+        const response = await api.post('/classes/join', { class_code: code });
         return response.data;
     }
 };

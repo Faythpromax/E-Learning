@@ -24,7 +24,7 @@ function LoginStudentPage() {
 
     try {
       // Gọi API đăng nhập từ authService
-      const data = await authService.login(email, password);
+      const data = await authService.login(email, password, "student");
 
       // 4. Kiểm tra vai trò sau khi đăng nhập thành công
       if (data.user && data.user.role === "student") {

@@ -9,7 +9,7 @@ function StudentDashboardPage() {
 
     useEffect(() => {
         // Gọi API lấy profile chi tiết của user đang đăng nhập (được bảo vệ bởi auth:sanctum)
-        api.get('/user-profile') 
+        api.get('/me') 
             .then(response => {
                 setStudentInfo(response.data);
                 setLoading(false);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import StudentLayout from '../../../components/student/StudentLayout';
+import StudentStats from '../../../components/student/StudentStats';
 import ClassCard from '../../../components/student/ClassCard';
 import AssignmentCard from '../../../components/student/AssignmentCard';
 import { classService } from '../../../services/classService';
@@ -8,6 +9,7 @@ import { testService } from '../../../services/testService';
 const StudentDashboardPage = () => {
   const [classes, setClasses] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [stats, setStats] = useState({ classes: 0, tests: 0, completed: 0, averageGrade: null, recent: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,12 +19,40 @@ const StudentDashboardPage = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [classesData, testsData] = await Promise.all([
+      const [classesData, testsData, attemptsData] = await Promise.all([
         classService.getAll(),
-        testService.getAvailable()
+        testService.getAvailable(),
+        testService.getMyAttempts()
       ]);
-      setClasses(classesData.data || []);
-      setAssignments(testsData.data || []);
+
+      const classesList = classesData.data || [];
+      const availableTests = testsData.data || [];
+      const attempts = attemptsData.data || [];
+
+      setClasses(classesList);
+      setAssignments(availableTests);
+
+      // Compute stats
+      const classesCount = classesList.length;
+      const testsCount = availableTests.length;
+
+      const submittedAttempts = attempts.filter(a => a.score !== null && a.score !== undefined);
+      const avgPercent = submittedAttempts.length > 0
+        ? submittedAttempts.reduce((s, a) => s + (Number(a.score) || 0), 0) / submittedAttempts.length
+        : null;
+      const completedCount = attempts.filter(a => a.status === 'submitted').length;
+
+      const recentAttempt = attempts.length > 0
+        ? attempts.slice().sort((a, b) => new Date(b.submitted_at || b.started_at) - new Date(a.submitted_at || a.started_at))[0]
+        : null;
+
+      setStats({
+        classes: classesCount,
+        tests: testsCount,
+        completed: completedCount,
+        averageGrade: avgPercent, // percentage 0-100
+        recent: recentAttempt,
+      });
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu dashboard:", error);
     } finally {
@@ -36,6 +66,7 @@ const StudentDashboardPage = () => {
         <div style={{ padding: '20px', textAlign: 'center' }}>Đang tải dữ liệu...</div>
       ) : (
         <>
+          <StudentStats stats={stats} />
           {/* Recent Classes Section */}
           <div className="dashboard-section">
             <h2 className="dashboard-section-title">Các lớp học của tôi</h2>

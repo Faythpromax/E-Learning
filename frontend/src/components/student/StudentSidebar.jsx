@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FiHome,
@@ -12,17 +12,9 @@ import {
 const StudentSidebar = ({ isOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [classesOpen, setClassesOpen] = useState(true);
-
-  const mockClasses = [
-    { id: 1, name: "Tiếng Anh 5A3" },
-    { id: 2, name: "Lịch Sử 5A3" },
-    { id: 3, name: "Toán 5A3" },
-  ];
-
   const isActive = (path) => location.pathname === path;
-  const isClassActive = (classId) =>
-    location.pathname === `/student/classes/${classId}`;
+  const isClassesActive = location.pathname.startsWith('/student/classes');
+  const isTestActive = location.pathname.startsWith('/student/tests');
 
   return (
     <div className={`student-sidebar ${isOpen ? "open" : "closed"}`}>
@@ -46,34 +38,21 @@ const StudentSidebar = ({ isOpen }) => {
         </div>
 
         {/* Classes */}
-        <div className="nav-item-group">
-          <div
-            className="nav-item"
-            onClick={() => setClassesOpen(!classesOpen)}
-          >
-            <FiBookOpen className="nav-icon" />
-            <span className="nav-text">Lớp học của tôi</span>
-            <FiChevronDown
-              className={`nav-chevron ${classesOpen ? "open" : ""}`}
-            />
-          </div>
+        <div
+          className={`nav-item ${isClassesActive ? "active" : ""}`}
+          onClick={() => navigate('/student/classes')}
+        >
+          <FiBookOpen className="nav-icon" />
+          <span className="nav-text">Lớp học của tôi</span>
+        </div>
 
-          {/* Classes Dropdown */}
-          {classesOpen && (
-            <div className="nav-dropdown">
-              {mockClasses.map((cls) => (
-                <div
-                  key={cls.id}
-                  className={`nav-dropdown-item ${
-                    isClassActive(cls.id) ? "active" : ""
-                  }`}
-                  onClick={() => navigate(`/student/classes/${cls.id}`)}
-                >
-                  {cls.name}
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Exams */}
+        <div
+          className={`nav-item ${isTestActive ? "active" : ""}`}
+          onClick={() => navigate('/student/tests')}
+        >
+          <FiBookOpen className="nav-icon" />
+          <span className="nav-text">Bài kiểm tra</span>
         </div>
 
         {/* Grades */}

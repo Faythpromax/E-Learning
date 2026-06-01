@@ -14,7 +14,7 @@ function LoginStudentPage() {
 
         try {
             // 1. Gọi hàm login từ authService đã cấu hình ở bước trước
-            const data = await authService.login(email, password);
+            const data = await authService.login(email, password, 'student');
             
             // 2. Kiểm tra vai trò trả về từ Laravel Backend
             if (data.user.role === 'student') {

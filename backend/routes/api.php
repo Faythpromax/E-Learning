@@ -8,7 +8,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -33,20 +33,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tests', [TestController::class, 'index']);
     Route::get('/tests/available', [TestController::class, 'available']);
     Route::get('/tests/access/{code}', [TestController::class, 'accessByCode']);
-    Route::get('/tests/{id}', [TestController::class, 'show']);
-    Route::post('/tests', [TestController::class, 'store']);
-    Route::put('/tests/{id}', [TestController::class, 'update']);
-    Route::delete('/tests/{id}', [TestController::class, 'destroy']);
-
-    // Test Taking
-    Route::post('/tests/{id}/start', [TestController::class, 'start']);
-    Route::post('/tests/{id}/submit', [TestController::class, 'submit']);
-    Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']); // Add this line
 
     // Test Results
     Route::get('/tests/attempts', [TestController::class, 'myAttempts']);
     Route::get('/tests/attempts/{attemptId}', [TestController::class, 'results']);
     Route::get('/tests/attempts/{attemptId}/review', [TestController::class, 'review']);
+
+    // Test Taking
+    Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']);
+    Route::post('/tests/{id}/start', [TestController::class, 'start']);
+    Route::post('/tests/{id}/submit', [TestController::class, 'submit']);
+
+    Route::get('/tests/{id}', [TestController::class, 'show'])->whereNumber('id');
+    Route::post('/tests', [TestController::class, 'store']);
+    Route::put('/tests/{id}', [TestController::class, 'update'])->whereNumber('id');
+    Route::delete('/tests/{id}', [TestController::class, 'destroy'])->whereNumber('id');
 
     // Classes
     Route::get('/classes', [ClassController::class, 'index']);

@@ -18,6 +18,7 @@ import StudentGradesPage from '../../features/student/pages/StudentGradesPage';
 import StudentSupportPage from '../../features/student/pages/StudentSupportPage';
 import StudentSettingsPage from '../../features/student/pages/StudentSettingsPage';
 import StudentClassDetailPage from '../../features/student/pages/StudentClassDetailPage';
+import StudentClassListPage from '../../features/student/pages/StudentClassListPage';
 import TestListPage from '../../features/student/pages/TestListPage';
 import TestSessionPage from '../../features/student/pages/TestSessionPage';
 import TestResultPage from '../../features/student/pages/TestResultPage';
@@ -127,6 +128,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentSettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/classes"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentClassListPage />
             </ProtectedRoute>
           }
         />

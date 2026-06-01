@@ -38,24 +38,39 @@ export function TestListPage() {
   };
 
   const formatDuration = (minutes) => {
-    if (!minutes) return 'Khong gioi han';
+    if (!minutes) return 'Không giới hạn';
     if (minutes >= 60) return `${Math.floor(minutes / 60)}h ${minutes % 60}p`;
-    return `${minutes} phut`;
+    return `${minutes} phút`;
+  };
+
+  const findAttemptForTest = (testId) => {
+    return attempts.find((attempt) => attempt.test_id === testId);
   };
 
   const getStatusBadge = (test) => {
-    if (!test.expires_at) return null;
+    const attempt = findAttemptForTest(test.id);
+    if (attempt?.status === 'submitted') {
+      return <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Done</span>;
+    }
+    if (attempt?.status === 'in_progress') {
+      return <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">In progress</span>;
+    }
+
+    if (!test.expires_at) {
+      return <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Not done</span>;
+    }
+
     const expires = new Date(test.expires_at);
     const now = new Date();
     const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
     
     if (daysLeft < 0) {
-      return <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Het han</span>;
+      return <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">Expired</span>;
     }
     if (daysLeft <= 3) {
-      return <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Con {daysLeft} ngay</span>;
+      return <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Con {daysLeft} ngày</span>;
     }
-    return null;
+    return <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Not done</span>;
   };
 
   if (loading) {
@@ -121,18 +136,22 @@ export function TestListPage() {
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
                         <FiFileText />
-                        {test.questions?.length || test.test_questions?.length || 0} cau hoi
+                        {test.questions?.length || test.test_questions?.length || 0} câu hỏi
                       </span>
                       <span className="flex items-center gap-1">
                         <FiClock />
                         {formatDuration(test.duration)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        {findAttemptForTest(test.id) ? 'Status:' : 'Status:'}
+                        {findAttemptForTest(test.id)?.status === 'submitted' ? 'Done' : findAttemptForTest(test.id)?.status === 'in_progress' ? 'In progress' : 'Not done'}
                       </span>
                     </div>
 
                     {/* Test code info */}
                     {(test.access_type === 'public_code' || test.access_type === 'both') && (
                       <div className="mt-3 text-sm">
-                        <span className="text-gray-500">Ma truy cap: </span>
+                        <span className="text-gray-500">Mã truy cập: </span>
                         <code className="bg-gray-100 px-2 py-1 rounded font-mono text-blue-600">
                           {test.test_code}
                         </code>

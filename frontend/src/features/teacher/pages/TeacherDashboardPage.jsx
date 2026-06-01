@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiTrendingUp, FiBookOpen, FiClock } from 'react-icons/fi';
+import { useAuth } from '../../../contexts/AuthContext';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import ClassCard from '../../../components/teacher/ClassCard';
 import AssignmentCard from '../../../components/teacher/AssignmentCard';
 import { testApi } from '../../../api/testApi';
-import { classService } from '../../../services/classService';
+import { classApi } from '../../../api/classApi';
+import { userApi } from '../../../api/userApi';
+import { questionApi } from '../../../api/questionApi';
 
 const TeacherDashboardPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [classes, setClasses] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [stats, setStats] = useState({
@@ -26,28 +30,27 @@ const TeacherDashboardPage = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [testsRes, classesRes] = await Promise.all([
+      const [testsRes, classesRes, studentsRes, questionsRes] = await Promise.all([
         testApi.getTests(),
-        classService.getAll()
+        classApi.getClasses(),
+        userApi.getStudents(),
+        questionApi.getQuestions(),
       ]);
-      
+
       const tests = testsRes.data || [];
       const classesData = classesRes.data || [];
-      
-      // Calculate stats
-      const totalQuestions = tests.reduce((sum, test) => sum + (test.questions?.length || 0), 0);
-      
-      // For totalStudents and totalSubmissions, we need to fetch more data,
-      // but let's use estimates for now
+      const students = studentsRes.data || [];
+      const questions = questionsRes.data || [];
+
       setStats({
         totalTests: tests.length,
-        totalQuestions: totalQuestions,
-        totalStudents: classesData.length * 10, // Estimate
-        totalSubmissions: tests.length * 5 // Estimate
+        totalQuestions: questions.length,
+        totalStudents: students.length,
+        totalSubmissions: tests.reduce((sum, test) => sum + (test.attempts?.length || 0), 0),
       });
-      
+
       setClasses(classesData);
-      setAssignments(tests.slice(0, 5)); // Recent 5 tests
+      setAssignments(tests.slice(0, 5));
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -74,6 +77,24 @@ const TeacherDashboardPage = () => {
         </div>
       ) : (
         <>
+          {/* Welcome */}
+          <div className="mb-8 rounded-3xl bg-white p-8 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Xin chào</p>
+                <h1 className="text-3xl font-bold text-gray-900">{user?.name || 'Giáo viên'}</h1>
+                <p className="text-gray-500 mt-2">Tổng quan nhanh về lớp, học sinh và đề thi.</p>
+              </div>
+              <div className="inline-flex items-center gap-3 rounded-2xl bg-blue-50 px-5 py-4">
+                <FiUsers className="text-blue-600 text-2xl" />
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-blue-600">Tổng học sinh</p>
+                  <p className="text-2xl font-semibold text-blue-900">{stats.totalStudents}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">

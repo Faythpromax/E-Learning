@@ -18,7 +18,7 @@ function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const data = await authService.login(email, password);
+      const data = await authService.login(email, password, "admin");
 
       // Kiểm tra vai trò admin
       if (data.user && data.user.role === "admin") {

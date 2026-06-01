@@ -28,8 +28,12 @@ class ClassModel extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'class_users')
-            ->withPivot('role');
+        return $this->belongsToMany(
+            User::class,
+            'class_users',
+            'class_id',
+            'user_id'
+        )->withPivot('role');
     }
 
     public function students(): BelongsToMany
@@ -49,6 +53,11 @@ class ClassModel extends Model
 
     public function tests(): BelongsToMany
     {
-        return $this->belongsToMany(Test::class, 'class_tests');
+        return $this->belongsToMany(
+            Test::class,
+            'class_tests',
+            'class_id',
+            'test_id'
+        );
     }
 }
