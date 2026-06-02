@@ -36,24 +36,21 @@ function LoginStudentPage() {
         setError("Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản học sinh.");
       }
     } catch (err) {
-      // 3. Xử lý logic lỗi dựa trên mã lỗi HTTP từ Laravel
-      if (err.response) {
-        const status = err.response.status;
-        
-        if (status === 422) {
-          // Lỗi Validation (Dữ liệu đầu vào không hợp lệ)
-          const validationErrors = err.response.data.errors;
-          const firstErrorKey = Object.keys(validationErrors)[0];
-          setError(validationErrors[firstErrorKey][0]);
-        } else if (status === 401) {
-          // Lỗi Unauthorized (Sai tài khoản hoặc mật khẩu)
-          setError(err.response.data.message || "Tài khoản hoặc mật khẩu không chính xác.");
+      if (err.response && err.response.status === 422) {
+        const validationErrors = err.response.data.errors;
+        const firstErrorKey = Object.keys(validationErrors)[0];
+        setError(validationErrors[firstErrorKey][0]);
+      } else if (err.response && err.response.status === 401) {
+        // Bắt lỗi sai mật khẩu (invalid credentials) hoặc lỗi do authService ném ra khi sai role
+        const msg = err.response.data.message;
+        if (msg === "invalid credentials" || msg === "Invalid credentials") {
+          setError("Mật khẩu nhập vào không chính xác. Vui lòng thử lại.");
         } else {
-          // Các lỗi hệ thống khác
-          setError("Đăng nhập thất bại. Vui lòng thử lại sau.");
+          setError(msg || "Tài khoản hoặc mật khẩu không đúng.");
         }
       } else {
-        setError("Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng.");
+        // Trường hợp bị sai Role do code bốc từ authService.js ném ra bằng lệnh `throw new Error(...)`
+        setError(err.message || "Đăng nhập thất bại.");
       }
     } finally {
       setLoading(false);

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -25,10 +25,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Nếu Backend trả về lỗi 401 Unauthorized
         if (error.response && error.response.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login'; 
+            // KIỂM TRA: Nếu đường dẫn hiện tại KHÔNG PHẢI là các trang đăng nhập thì mới đá về /login
+            const currentPath = window.location.pathname;
+            if (!currentPath.includes('/login')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login'; 
+            }
         }
         return Promise.reject(error);
     }

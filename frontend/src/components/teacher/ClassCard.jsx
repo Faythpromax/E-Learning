@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import './ClassCard.css';
 
 const ClassCard = ({ classData, onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="class-card">
@@ -22,14 +24,14 @@ const ClassCard = ({ classData, onNavigate }) => {
       {/* Card Footer with Menu */}
       <div className="class-card-footer">
         <button
-          className="class-card-menu"
+          className="class-card-menu-btn"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           <FiMoreVertical />
         </button>
         {menuOpen && (
           <div className="class-card-menu-dropdown">
-            <button>Xem chi tiết</button>
+            <button onClick={() => navigate(`/teacher/classes/${classData.id}`)}>Xem chi tiết</button>
             <button>Xóa</button>
           </div>
         )}

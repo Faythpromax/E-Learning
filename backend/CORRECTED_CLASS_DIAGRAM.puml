@@ -1,0 +1,569 @@
+@startuml corrected_class_diagram
+left to right direction
+skinparam linetype ortho
+skinparam packageStyle rectangle
+scale 1.5
+title E-Learning System - CORRECTED Class Diagram
+
+' ============================================
+' BACKEND - MODELS (CORRECTED)
+' ============================================
+package "Backend::Models" {
+  
+  ' User Model - CORRECTED FIELDS
+  class User {
+    -id: int
+    -name: string
+    -email: string
+    -password: string
+    -phone: string
+    -role: string
+    -school: string
+    -avatar: string
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +feedbacks(): HasMany
+    +announcements(): HasMany
+    +createdQuestions(): HasMany
+    +createdTests(): HasMany
+    +testAttempts(): HasMany
+    +questionProgress(): HasMany
+    +isAdmin(): bool
+    +isTeacher(): bool
+    +isStudent(): bool
+  }
+
+  ' Subject Model - NOW INCLUDED
+  class Subject {
+    -id: int
+    -name: string
+    -class_level: int
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +questions(): HasMany
+    +tests(): HasMany
+  }
+
+  ' Question Model - CORRECTED FIELDS
+  class Question {
+    -id: int
+    -subject_id: int
+    -type: string
+    -content: string
+    -media_image: string
+    -media_audio: string
+    -data: array
+    -explanation: string
+    -created_by: int
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +subject(): BelongsTo
+    +creator(): BelongsTo
+    +testQuestions(): HasMany
+    +testAnswers(): HasMany
+    +progress(): HasMany
+  }
+
+  ' Test Model - CORRECTED FIELDS
+  class Test {
+    -id: int
+    -title: string
+    -subject_id: int
+    -created_by: int
+    -test_code: string
+    -access_type: string
+    -is_active: boolean
+    -expires_at: datetime
+    -max_attempts: int
+    -duration: int
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +subject(): BelongsTo
+    +creator(): BelongsTo
+    +testQuestions(): HasMany
+    +testAttempts(): HasMany
+    +classMappings(): HasMany
+  }
+
+  ' TestQuestion Model - NOW INCLUDED
+  class TestQuestion {
+    -id: int
+    -test_id: int
+    -question_id: int
+    -order_index: int
+    -score: decimal
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +test(): BelongsTo
+    +question(): BelongsTo
+  }
+
+  ' TestAttempt Model - CORRECTED FIELDS
+  class TestAttempt {
+    -id: int
+    -test_id: int
+    -user_id: int
+    -attempt_no: int
+    -started_at: datetime
+    -submitted_at: datetime
+    -expired_at: datetime
+    -score: float
+    -status: string
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +test(): BelongsTo
+    +user(): BelongsTo
+    +testAnswers(): HasMany
+    +isExpired(): bool
+    +isInProgress(): bool
+  }
+
+  ' TestAnswer Model - CORRECTED FIELDS
+  class TestAnswer {
+    -id: int
+    -attempt_id: int
+    -question_id: int
+    -answer: array
+    -is_correct: boolean
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +attempt(): BelongsTo
+    +question(): BelongsTo
+  }
+
+  ' QuestionProgress Model - CORRECTED FIELDS
+  class QuestionProgress {
+    -id: int
+    -question_id: int
+    -user_id: int
+    -is_correct: boolean
+    -last_answer: array
+    -attempt_count: int
+    -last_attempt_at: datetime
+    --
+    +question(): BelongsTo
+    +user(): BelongsTo
+  }
+
+  ' ClassModel - NOW INCLUDED
+  class ClassModel {
+    -id: int
+    -name: string
+    -class_code: string
+    -description: string
+    -created_by: int
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +creator(): BelongsTo
+    +classUsers(): HasMany
+    +students(): BelongsToMany
+    +teachers(): BelongsToMany
+    +materials(): HasMany
+    +classTests(): HasMany
+  }
+
+  ' ClassUser Model - NOW INCLUDED
+  class ClassUser {
+    -id: int
+    -class_id: int
+    -user_id: int
+    -role: string
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +class(): BelongsTo
+    +user(): BelongsTo
+  }
+
+  ' ClassTest Model - NOW INCLUDED
+  class ClassTest {
+    -id: int
+    -class_id: int
+    -test_id: int
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +class(): BelongsTo
+    +test(): BelongsTo
+  }
+
+  ' ClassMaterial Model - NOW INCLUDED
+  class ClassMaterial {
+    -id: int
+    -class_id: int
+    -title: string
+    -description: string
+    -file_url: string
+    -type: string
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +class(): BelongsTo
+  }
+
+  ' Announcement Model - NOW INCLUDED
+  class Announcement {
+    -id: int
+    -title: string
+    -content: string
+    -target_role: string
+    -author_id: int
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +author(): BelongsTo
+    +isForAll(): bool
+    +isForStudents(): bool
+    +isForTeachers(): bool
+  }
+
+  ' Feedback Model - NOW INCLUDED
+  class Feedback {
+    -id: int
+    -user_id: int
+    -type: string
+    -subject: string
+    -message: string
+    -status: string
+    -admin_reply: string
+    -created_at: datetime
+    -updated_at: datetime
+    --
+    +user(): BelongsTo
+    +isPending(): bool
+    +isReplied(): bool
+  }
+}
+
+' ============================================
+' BACKEND - REPOSITORY PATTERN (NOW SHOWN)
+' ============================================
+package "Backend::Repositories" {
+  
+  interface RepositoryInterface {
+    +getAll(): Collection
+    +getById(id): mixed
+    +create(data): Model
+    +update(id, data): Model
+    +delete(id): bool
+  }
+
+  class TestRepository {
+    -testRepository: TestRepository
+    --
+    +getAll(filters): Collection
+    +getById(id): Test
+    +getByCode(code): Test
+    +getAvailableTestsForUser(userId): Collection
+    +getTestWithQuestions(testId): Test
+    +createTest(data): Test
+    +getAttempts(userId, testId): Collection
+    +getActiveAttempt(userId, testId): TestAttempt
+  }
+
+  class QuestionRepository {
+    --
+    +getAll(filters): Collection
+    +getById(id): Question
+    +getBySubject(subjectId): Collection
+    +getByCreator(userId): Collection
+    +getRandomQuestions(limit, subjectId): Collection
+    +create(data): Question
+    +update(id, data): Question
+  }
+
+  class ClassRepository {
+    --
+    +getAll(filters): Collection
+    +getById(id): ClassModel
+    +create(data): ClassModel
+    +update(id, data): ClassModel
+  }
+
+  RepositoryInterface <|.. TestRepository
+  RepositoryInterface <|.. QuestionRepository
+  RepositoryInterface <|.. ClassRepository
+}
+
+' ============================================
+' BACKEND - STRATEGY PATTERN (NOW SHOWN)
+' ============================================
+package "Backend::Strategies::Scoring" {
+  
+  interface ScoringStrategyInterface {
+    +calculateScore(questionData, answer): float
+    +isCorrect(questionData, answer): bool
+    +getCorrectAnswer(questionData): mixed
+  }
+
+  class McqStrategy {
+    --
+    +calculateScore(questionData, answer): float
+    +isCorrect(questionData, answer): bool
+    +getCorrectAnswer(questionData): mixed
+  }
+
+  class FillBlankStrategy {
+    --
+    +calculateScore(questionData, answer): float
+    +isCorrect(questionData, answer): bool
+    +getCorrectAnswer(questionData): mixed
+  }
+
+  class MatchingStrategy {
+    --
+    +calculateScore(questionData, answer): float
+    +isCorrect(questionData, answer): bool
+    +getCorrectAnswer(questionData): mixed
+  }
+
+  class TableFillStrategy {
+    --
+    +calculateScore(questionData, answer): float
+    +isCorrect(questionData, answer): bool
+    +getCorrectAnswer(questionData): mixed
+  }
+
+  class ScoringStrategyFactory {
+    -strategies: array
+    --
+    +calculateScore(type, questionData, answer): float
+    +isCorrect(type, questionData, answer): bool
+    +getCorrectAnswer(type, questionData): mixed
+  }
+
+  ScoringStrategyInterface <|.. McqStrategy
+  ScoringStrategyInterface <|.. FillBlankStrategy
+  ScoringStrategyInterface <|.. MatchingStrategy
+  ScoringStrategyInterface <|.. TableFillStrategy
+
+  ScoringStrategyFactory o-- ScoringStrategyInterface
+}
+
+' ============================================
+' BACKEND - SERVICES
+' ============================================
+package "Backend::Services" {
+  
+  class TestService {
+    -testRepository: TestRepository
+    -scoringFactory: ScoringStrategyFactory
+    --
+    +getTestById(id): Test
+    +createTest(userId, data): Test
+    +updateTest(id, data): Test
+    +deleteTest(id): bool
+    +canAccessTest(userId, testId): array
+    +startTest(userId, testId): array
+    +submitTest(attemptId): TestAttempt
+    +getTestStatistics(testId): array
+  }
+
+  class QuestionService {
+    -questionRepository: QuestionRepository
+    -scoringFactory: ScoringStrategyFactory
+    --
+    +getQuestion(id): Question
+    +getAllQuestions(filters): Collection
+    +createQuestion(data, creatorId): Question
+    +updateQuestion(id, data): Question
+    +deleteQuestion(id): bool
+    +checkAnswer(questionId, answer): array
+    +validateQuestionData(type, data): void
+  }
+
+  class PracticeService {
+    -questionRepository: QuestionRepository
+    -scoringFactory: ScoringStrategyFactory
+    --
+    +getRandomQuestions(limit, subjectId): Collection
+    +submitAnswer(userId, questionId, answer): array
+    +getProgress(userId): array
+    +updateProgress(userId, questionId, isCorrect, answer): void
+  }
+
+  class ClassService {
+    --
+    +getAllClasses(filters, userId): Collection
+    +getClassDetail(classId): ClassModel
+    +createClass(userId, data): ClassModel
+    +updateClass(id, data): ClassModel
+    +canManageClass(userId, classId): bool
+    +addMember(classId, userId): void
+    +removeMember(classId, userId): void
+  }
+
+  class UserService {
+    --
+    +getUsers(filters): Collection
+    +getUser(id): User
+    +getTeachers(): Collection
+    +getStudents(): Collection
+    +updateUser(id, data): array
+    +deleteUser(id): array
+  }
+
+  class GamificationService {
+    --
+    +addXP(userId, points): array
+    +calculateLevel(xp): int
+    +checkAndAwardBadges(userId, answered): array
+  }
+
+  class AdaptiveLearningService {
+    --
+    +analyzeWeakAreas(userId): Collection
+    +getNextRecommendedQuestion(userId): Question
+  }
+
+  class NotificationService {
+    --
+    +notifyStudentNewTest(userId, testId): void
+    +notifyTeacherTestCompleted(testId, userId): void
+  }
+
+  class AuthService {
+    --
+    +login(email, password): array
+    +register(data): array
+    +logout(user): void
+    +me(user): User
+  }
+}
+
+' ============================================
+' BACKEND - CONTROLLERS
+' ============================================
+package "Backend::Controllers" {
+  
+  class TestController {
+    -testService: TestService
+    --
+    +index(): JsonResponse
+    +show(id): JsonResponse
+    +store(request): JsonResponse
+    +update(id, request): JsonResponse
+    +destroy(id): JsonResponse
+    +available(): JsonResponse
+    +accessByCode(code): JsonResponse
+    +submitTest(request): JsonResponse
+  }
+
+  class QuestionController {
+    -questionService: QuestionService
+    --
+    +index(): JsonResponse
+    +show(id): JsonResponse
+    +store(request): JsonResponse
+    +update(id, request): JsonResponse
+    +destroy(id): JsonResponse
+    +checkAnswer(id, request): JsonResponse
+  }
+
+  class PracticeController {
+    -practiceService: PracticeService
+    --
+    +getQuestion(id): JsonResponse
+    +getRandomQuestions(request): JsonResponse
+    +submitAnswer(request): JsonResponse
+    +getProgress(): JsonResponse
+  }
+
+  class ClassController {
+    -classService: ClassService
+    --
+    +index(): JsonResponse
+    +show(classId): JsonResponse
+    +store(request): JsonResponse
+    +update(classId, request): JsonResponse
+    +destroy(classId): JsonResponse
+    +addMember(request, classId): JsonResponse
+  }
+
+  class UserController {
+    -userService: UserService
+    --
+    +index(): JsonResponse
+    +show(id): JsonResponse
+    +update(id, request): JsonResponse
+    +destroy(id): JsonResponse
+    +teachers(): JsonResponse
+    +students(): JsonResponse
+  }
+
+  class AuthController {
+    -authService: AuthService
+    --
+    +login(request): JsonResponse
+    +register(request): JsonResponse
+    +logout(): JsonResponse
+    +me(): JsonResponse
+  }
+}
+
+' ============================================
+' RELATIONSHIPS - CORRECTED
+' ============================================
+
+' User Relationships
+User "1" -- "*" TestAttempt: has
+User "1" -- "*" QuestionProgress: tracks
+User "1" -- "*" Announcement: writes
+User "1" -- "*" Feedback: submits
+User "1" -- "*" ClassUser: enrolls
+User "1" -- "*" Test: creates
+User "1" -- "*" Question: creates
+
+' Subject Relationships
+Subject "1" -- "*" Question: categorizes
+Subject "1" -- "*" Test: categorizes
+
+' Question Relationships
+Question "1" -- "*" TestQuestion: included_in
+Question "1" -- "*" TestAnswer: answered_in
+Question "1" -- "*" QuestionProgress: tracks
+
+' Test Relationships
+Test "1" -- "*" TestQuestion: contains
+Test "1" -- "*" TestAttempt: taken
+Test "1" -- "*" ClassTest: assigned_to
+
+' TestQuestion Relationships
+TestQuestion "*" -- "1" Question
+
+' TestAttempt Relationships
+TestAttempt "1" -- "*" TestAnswer: records
+
+' ClassModel Relationships
+ClassModel "1" -- "*" ClassUser: contains
+ClassModel "1" -- "*" ClassMaterial: has
+ClassModel "1" -- "*" ClassTest: has
+
+' ClassTest Relationships
+ClassTest "*" -- "1" Test
+
+' Service Dependencies
+TestService o-- TestRepository: uses
+TestService o-- ScoringStrategyFactory: uses
+QuestionService o-- QuestionRepository: uses
+QuestionService o-- ScoringStrategyFactory: uses
+PracticeService o-- QuestionRepository: uses
+PracticeService o-- ScoringStrategyFactory: uses
+
+' Controller Dependencies
+TestController --> TestService
+QuestionController --> QuestionService
+PracticeController --> PracticeService
+ClassController --> ClassService
+UserController --> UserService
+AuthController --> AuthService
+
+@enduml

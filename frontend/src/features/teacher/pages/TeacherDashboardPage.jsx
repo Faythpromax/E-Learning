@@ -9,6 +9,7 @@ import { testApi } from '../../../api/testApi';
 import { classApi } from '../../../api/classApi';
 import { userApi } from '../../../api/userApi';
 import { questionApi } from '../../../api/questionApi';
+import "./teacher.css";
 
 const TeacherDashboardPage = () => {
   const navigate = useNavigate();
@@ -67,12 +68,12 @@ const TeacherDashboardPage = () => {
   };
 
   return (
-    <TeacherLayout pageTitle="Trang chu giao vien">
+    <TeacherLayout pageTitle="Trang chủ giáo viên">
       {loading ? (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Dang tai du lieu...</p>
+            <p className="text-gray-600">Đang tải dữ liệu...</p>
           </div>
         </div>
       ) : (
@@ -100,7 +101,7 @@ const TeacherDashboardPage = () => {
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm font-medium mb-1">Tong so de thi</p>
+                  <p className="text-blue-100 text-sm font-medium mb-1">Tổng số đề thi</p>
                   <h3 className="text-3xl font-bold">{stats.totalTests}</h3>
                 </div>
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -108,14 +109,14 @@ const TeacherDashboardPage = () => {
                 </div>
               </div>
               <p className="text-blue-100 text-xs mt-2 flex items-center gap-1">
-                <FiTrendingUp /> Tang 12% thang nay
+                <FiTrendingUp /> Tăng 12% tháng này
               </p>
             </div>
 
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm font-medium mb-1">Tong so cau hoi</p>
+                  <p className="text-green-100 text-sm font-medium mb-1">Tổng số câu hỏi</p>
                   <h3 className="text-3xl font-bold">{stats.totalQuestions}</h3>
                 </div>
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -123,14 +124,14 @@ const TeacherDashboardPage = () => {
                 </div>
               </div>
               <p className="text-green-100 text-xs mt-2 flex items-center gap-1">
-                <FiTrendingUp /> Tang 8% thang nay
+                <FiTrendingUp /> Tăng 8% tháng này
               </p>
             </div>
 
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm font-medium mb-1">Tong so hoc sinh</p>
+                  <p className="text-purple-100 text-sm font-medium mb-1">Tổng số học sinh</p>
                   <h3 className="text-3xl font-bold">{stats.totalStudents}</h3>
                 </div>
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -138,14 +139,14 @@ const TeacherDashboardPage = () => {
                 </div>
               </div>
               <p className="text-purple-100 text-xs mt-2 flex items-center gap-1">
-                <FiTrendingUp /> 3 hoc sinh moi
+                <FiTrendingUp /> 3 học sinh mới
               </p>
             </div>
 
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm font-medium mb-1">So bai nop</p>
+                  <p className="text-orange-100 text-sm font-medium mb-1">Số bài nộp</p>
                   <h3 className="text-3xl font-bold">{stats.totalSubmissions}</h3>
                 </div>
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -153,13 +154,13 @@ const TeacherDashboardPage = () => {
                 </div>
               </div>
               <p className="text-orange-100 text-xs mt-2 flex items-center gap-1">
-                <FiTrendingUp /> 95% hoan thanh
+                <FiTrendingUp /> 95% hoàn thành
               </p>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 button-group">
             <button
               onClick={handleCreateTest}
               className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
@@ -168,8 +169,8 @@ const TeacherDashboardPage = () => {
                 <FiPlus className="text-xl text-blue-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Tao de thi moi</h4>
-                <p className="text-sm text-gray-500">Tao bo de thi nhanh chong</p>
+                <h4 className="font-semibold text-gray-800">Tạo đề thi mới</h4>
+                <p className="text-sm text-gray-500">Tạo bộ đề thi nhanh chóng</p>
               </div>
             </button>
 
@@ -181,8 +182,8 @@ const TeacherDashboardPage = () => {
                 <FiUsers className="text-xl text-green-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Tao lop hoc moi</h4>
-                <p className="text-sm text-gray-500">Tao lop va them hoc sinh</p>
+                <h4 className="font-semibold text-gray-800">Tạo lớp học mới</h4>
+                <p className="text-sm text-gray-500">Tạo lớp và thêm học sinh</p>
               </div>
             </button>
           </div>
@@ -190,9 +191,9 @@ const TeacherDashboardPage = () => {
           {/* Recent Classes Section */}
           <div className="dashboard-section mb-8">
             <div className="dashboard-section-header">
-              <h2 className="dashboard-section-title">Lop hoc moi nhat</h2>
+              <h2 className="dashboard-section-title">Lớp học mới nhất</h2>
               <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                Xem tat ca →
+                Xem tất cả →
               </button>
             </div>
             <div className="dashboard-grid">
@@ -211,12 +212,12 @@ const TeacherDashboardPage = () => {
               ) : (
                 <div className="col-span-full bg-white p-8 rounded-xl text-center border border-dashed border-gray-300">
                   <FiUsers className="text-4xl text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">Ban chua co lop hoc nao</p>
+                  <p className="text-gray-500 mb-4">Bạn chưa có lớp học nào</p>
                   <button
                     onClick={handleCreateClass}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    Tao lop dau tien
+                    Tạo lớp đầu tiên
                   </button>
                 </div>
               )}
@@ -226,9 +227,9 @@ const TeacherDashboardPage = () => {
           {/* Recent Assignments Section */}
           <div className="dashboard-section">
             <div className="dashboard-section-header">
-              <h2 className="dashboard-section-title">De thi moi nhat</h2>
+              <h2 className="dashboard-section-title">Đề thi mới nhất</h2>
               <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                Xem tat ca →
+                Xem tất cả →
               </button>
             </div>
             <div className="space-y-3">
@@ -243,14 +244,14 @@ const TeacherDashboardPage = () => {
                         <div>
                           <h4 className="font-semibold text-gray-800">{assignment.title}</h4>
                           <p className="text-sm text-gray-500 flex items-center gap-1">
-                            <FiClock /> {assignment.duration ? `${assignment.duration} phut` : 'Khong gioi han'}
+                            <FiClock /> {assignment.duration ? `${assignment.duration} phút` : 'Không giới hạn'}
                           </p>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         assignment.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                       }`}>
-                        {assignment.is_active ? 'Dang mo' : 'Da dong'}
+                        {assignment.is_active ? 'Đang mở' : 'Đã đóng'}
                       </span>
                     </div>
                   </div>
@@ -258,12 +259,12 @@ const TeacherDashboardPage = () => {
               ) : (
                 <div className="bg-white p-8 rounded-xl text-center border border-dashed border-gray-300">
                   <FiFileText className="text-4xl text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">Ban chua tao de thi nao</p>
+                  <p className="text-gray-500 mb-4">Bạn chưa tạo đề thi nào</p>
                   <button
                     onClick={handleCreateTest}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    Tao de thi dau tien
+                    Tạo đề thi đầu tiên
                   </button>
                 </div>
               )}

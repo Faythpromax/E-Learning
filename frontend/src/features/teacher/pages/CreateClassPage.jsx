@@ -54,7 +54,7 @@ const CreateClassPage = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      setError('Vui long nhap ten lop');
+      setError('Vui lòng nhập tên lớp');
       return;
     }
 
@@ -64,15 +64,15 @@ const CreateClassPage = () => {
     try {
       if (isEditing) {
         await classApi.updateClass(classId, formData);
-        alert('Cap nhat lop thanh cong!');
+        alert('Cập nhật lớp thành công!');
       } else {
         await classApi.createClass(formData);
-        alert('Tao lop thanh cong!');
+        alert('Tạo lớp thành công!');
       }
       navigate('/teacher/classes');
     } catch (err) {
       console.error('Failed to save class:', err);
-      setError(err.response?.data?.message || 'Luu that bai. Vui long thu lai.');
+      setError(err.response?.data?.message || 'Lưu thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -80,20 +80,20 @@ const CreateClassPage = () => {
 
   if (loading && isEditing) {
     return (
-      <TeacherLayout pageTitle="Chinh sua lop">
+      <TeacherLayout pageTitle="Chỉnh sửa lớp">
         <div className="flex items-center justify-center py-20">
-          <div className="text-gray-500">Dang tai...</div>
+          <div className="text-gray-500">Đang tải...</div>
         </div>
       </TeacherLayout>
     );
   }
 
   return (
-    <TeacherLayout pageTitle={isEditing ? 'Chinh sua lop' : 'Tao lop moi'}>
+    <TeacherLayout pageTitle={isEditing ? 'Chỉnh sửa lớp' : 'Tạo lớp mới'}>
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-6">
-            {isEditing ? 'Chinh sua thong tin lop' : 'Tao lop hoc moi'}
+            {isEditing ? 'Chỉnh sửa thông tin lớp' : 'Tạo lớp học mới'}
           </h2>
 
           {error && (
@@ -105,14 +105,14 @@ const CreateClassPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ten lop <span className="text-red-500">*</span>
+                Tên lớp <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="VD: Toan Lop 2A"
+                placeholder="VD: Toán Lớp 2A"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
@@ -120,31 +120,31 @@ const CreateClassPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ma lop
+                Mã lớp
               </label>
               <input
                 type="text"
                 name="class_code"
                 value={formData.class_code}
                 onChange={handleChange}
-                placeholder="VD: LOP2A (de trong de tu dong tao)"
+                placeholder="VD: LOP2A (để trống để tự động tạo)"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
                 maxLength={20}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Ma lop duoc su dung de hoc sinh tham gia lop. De trong de tu dong tao ma ngau nhien.
+                Mã lớp được sử dụng để học sinh tham gia lớp. Để trống để tự động tạo mã ngẫu nhiên.
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mo ta
+                Mô tả
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Mo ta ve lop hoc (tuy chon)"
+                placeholder="Mô tả về lớp học (tùy chọn)"
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -156,14 +156,14 @@ const CreateClassPage = () => {
                 onClick={() => navigate('/teacher/classes')}
                 className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Huy
+                Hủy
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                {loading ? 'Dang luu...' : (isEditing ? 'Cap nhat' : 'Tao lop')}
+                {loading ? 'Đang lưu...' : (isEditing ? 'Cập nhật' : 'Tạo lớp')}
               </button>
             </div>
           </form>

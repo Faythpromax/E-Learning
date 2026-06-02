@@ -98,7 +98,7 @@ export function CreateTestPage() {
     e.preventDefault();
     
     if (formData.question_ids.length === 0) {
-      alert('Vui long chon it nhat mot cau hoi.');
+      alert('Vui lòng chọn ít nhất một câu hỏi.');
       return;
     }
 
@@ -119,7 +119,7 @@ export function CreateTestPage() {
       navigate('/teacher/tests');
     } catch (error) {
       console.error('Failed to save test:', error);
-      alert('Luu that bai. Vui long thu lai.');
+      alert('Lưu thất bại. Vui lòng thử lại.');
     } finally {
       setSaving(false);
     }
@@ -142,18 +142,18 @@ export function CreateTestPage() {
   <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 py-10 px-4">
     <div className="max-w-6xl mx-auto">
       <h1 className="text-4xl font-extrabold text-gray-800 mb-8">
-        {isEditing ? 'Chinh sua bai kiem tra' : 'Tao bai kiem tra moi'}
+        {isEditing ? 'Chỉnh sửa bài kiểm tra' : 'Tạo bài kiểm tra mới'}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-          <h2 className="text-lg font-semibold mb-4">Thong tin co ban</h2>
+          <h2 className="text-lg font-semibold mb-4">Thông tin cơ bản</h2>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tieu de bai kiem tra *
+                Tiêu đề bài kiểm tra *
               </label>
               <input
                 type="text"
@@ -162,13 +162,13 @@ export function CreateTestPage() {
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="VD: Kiem tra giua ky - Toan lop 2"
+                placeholder="VD: Kiểm tra giữa kỳ - Toán lớp 2"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mon hoc *
+                Môn học *
               </label>
               <select
                 name="subject_id"
@@ -177,18 +177,18 @@ export function CreateTestPage() {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Chon mon hoc</option>
-                <option value="1">Toan</option>
-                <option value="2">Tieng Viet</option>
-                <option value="3">Tieng Anh</option>
-                <option value="4">Khoa hoc</option>
-                <option value="5">Lich su</option>
+                <option value="">Chọn môn học</option>
+                <option value="1">Toán</option>
+                <option value="2">Tiếng Việt</option>
+                <option value="3">Tiếng Anh</option>
+                <option value="4">Khoa học</option>
+                <option value="5">Lịch sử</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hinh thuc truy cap
+                Hình thức truy cập
               </label>
               <select
                 name="access_type"
@@ -196,15 +196,15 @@ export function CreateTestPage() {
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="both">Ma truy cap & Lop hoc</option>
-                <option value="public_code">Chi ma truy cap</option>
-                <option value="class_only">Chi lop hoc</option>
+                <option value="both">Mã truy cập & Lớp học</option>
+                <option value="public_code">Chỉ mã truy cập</option>
+                <option value="class_only">Chỉ lớp học</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Thoi gian lam bai (phut)
+                Thời gian làm bài (phút)
               </label>
               <input
                 type="number"
@@ -219,7 +219,7 @@ export function CreateTestPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                So lan thi toi da
+                Số lần thi tối đa
               </label>
               <input
                 type="number"
@@ -234,7 +234,7 @@ export function CreateTestPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ngay het han
+                Ngày hết hạn
               </label>
               <input
                 type="date"
@@ -255,7 +255,7 @@ export function CreateTestPage() {
                   className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm font-medium text-gray-700">
-                  Kich hoat bai kiem tra
+                  Kích hoạt bài kiểm tra
                 </span>
               </label>
             </div>
@@ -266,7 +266,7 @@ export function CreateTestPage() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
-              Chon cau hoi ({formData.question_ids.length} da chon)
+              Chọn câu hỏi ({formData.question_ids.length} đã chọn)
             </h2>
           </div>
 
@@ -277,7 +277,7 @@ export function CreateTestPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tim kiem cau hoi..."
+              placeholder="Tìm kiếm câu hỏi..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

@@ -7,6 +7,16 @@ use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SubjectController;
+
+// Provide a friendly JSON response for accidental GET requests to /api/login
+// This prevents the default 405 HTML response when someone navigates to /api/login
+Route::get('/login', function () {
+    return response()->json([
+        'message' => 'This endpoint accepts POST requests for authentication. Please POST credentials to /api/login.',
+        'hint' => 'Use POST /api/login with {email, password, role}'
+    ], 200);
+});
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
@@ -28,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/practice/random', [PracticeController::class, 'getRandomQuestions']);
     Route::post('/practice/answer', [PracticeController::class, 'submitAnswer']);
     Route::get('/practice/progress', [PracticeController::class, 'getProgress']);
+    Route::get('/subjects', [SubjectController::class, 'index']);
 
     // Tests
     Route::get('/tests', [TestController::class, 'index']);

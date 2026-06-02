@@ -36,18 +36,21 @@ function LoginTeacherPage() {
     );
   }
 } catch (err) {
-      if (err.response) {
-        if (err.response.status === 422) {
-          const validationErrors = err.response.data.errors;
-          const firstErrorKey = Object.keys(validationErrors)[0];
-          setError(validationErrors[firstErrorKey][0]);
-        } else if (err.response.status === 401) {
-          setError(err.response.data.message || "Email hoặc mật khẩu không chính xác.");
+      if (err.response && err.response.status === 422) {
+        const validationErrors = err.response.data.errors;
+        const firstErrorKey = Object.keys(validationErrors)[0];
+        setError(validationErrors[firstErrorKey][0]);
+      } else if (err.response && err.response.status === 401) {
+        // Bắt lỗi sai mật khẩu (invalid credentials) hoặc lỗi do authService ném ra khi sai role
+        const msg = err.response.data.message;
+        if (msg === "invalid credentials" || msg === "Invalid credentials") {
+          setError("Mật khẩu nhập vào không chính xác. Vui lòng thử lại.");
         } else {
-          setError("Đăng nhập thất bại. Vui lòng thử lại sau.");
+          setError(msg || "Tài khoản hoặc mật khẩu không đúng.");
         }
       } else {
-        setError("Lỗi kết nối server.");
+        // Trường hợp bị sai Role do code bốc từ authService.js ném ra bằng lệnh `throw new Error(...)`
+        setError(err.message || "Đăng nhập thất bại.");
       }
     } finally {
       setLoading(false);

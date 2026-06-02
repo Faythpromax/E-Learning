@@ -1,0 +1,116 @@
+/* ==========================================================================
+   TEACHER DASHBOARD LAYOUT FIX (Sửa lỗi vỡ trận hiển thị)
+   ========================================================================== */
+
+/* Ép cấu trúc lưới cho danh sách lớp học */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Định hình khối tiêu đề của từng Section */
+.dashboard-section {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  margin-bottom: 2rem;
+  border: 1px solid #f1f5f9;
+}
+
+.dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+
+.dashboard-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* --- HỆ THỐNG GRID CHO KHỐI 4 CARD THỐNG KÊ (TAILWIND FALLBACK) --- */
+.grid {
+  display: grid !important;
+}
+
+@media (min-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg:\grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Hỗ trợ khoảng cách Gap giữa các Card */
+.gap-6 { gap: 1.5rem !important; }
+.gap-4 { gap: 1rem !important; }
+.space-y-3 > * + * { margin-top: 0.75rem !important; }
+
+/* --- CSS ĐỔ MÀU GRADIENT CHO CÁC CARD THỐNG KÊ --- */
+.bg-gradient-to-br {
+  background-size: 100% 100%;
+}
+
+.from-blue-500 {
+  background-image: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+
+.from-green-500 {
+  background-image: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+}
+
+.from-purple-500 {
+  background-image: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+}
+
+.from-orange-500 {
+  background-image: linear-gradient(135deg, #f97316 0%, #c2410c 100%) !important;
+}
+
+/* Hiệu ứng xoay tròn khi đang load dữ liệu */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Format các thẻ text và layout phụ trợ bổ sung */
+.flex { display: flex !important; }
+.items-center { align-items: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-center { justify-content: center !important; }
+.rounded-2xl { border-radius: 1rem !important; }
+.rounded-3xl { border-radius: 1.5rem !important; }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; }
+.p-6 { padding: 1.5rem !important; }
+
+/* Reshape welcome text spacing */
+.text-3xl {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Margin for create buttons */
+.button-group {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.p-4 { padding: 1rem !important; }
+.text-white { color: #ffffff !important; }
