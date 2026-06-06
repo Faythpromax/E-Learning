@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function McqQuestion({ question, onAnswer, showResult = false, result = null }) {
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
+export function McqQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
+  const [selectedAnswer, setSelectedAnswer] = useState(answer);
   const { options = [], correct_answer } = question.data || {};
   const correctAnswer = correct_answer;
+
+  useEffect(() => {
+    setSelectedAnswer(answer);
+  }, [answer]);
 
   const handleSelect = (optionId) => {
     if (showResult) return;

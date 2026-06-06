@@ -23,8 +23,15 @@ const ClassListPage = () => {
     try {
       setLoading(true);
       const response = await classApi.getClasses();
-      if (response.success) {
+      console.log('Class list response:', response);
+      const classesData = response?.data ?? response;
+
+      if (Array.isArray(classesData)) {
+        setClasses(classesData);
+      } else if (response?.success && Array.isArray(response.data)) {
         setClasses(response.data);
+      } else {
+        console.warn('Unexpected class response format:', response);
       }
     } catch (error) {
       console.error('Failed to fetch classes:', error);
@@ -96,18 +103,14 @@ const ClassListPage = () => {
     classItem.class_code?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getRoleBadge = (classItem, userId) => {
-    if (classItem.created_by === userId) {
-      return <span className="badge badge-primary">Chu lop</span>;
-    }
-    return <span className="badge badge-secondary">Giao vien</span>;
-  };
-
   if (loading) {
     return (
       <TeacherLayout pageTitle="Quan ly lop hoc">
-        <div className="flex items-center justify-center py-20">
-          <div className="text-gray-500">Dang tai...</div>
+        <div className="flex flex-col items-center gap-3 py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <div className="text-gray-500">
+            Đang tải lớp học...
+          </div>
         </div>
       </TeacherLayout>
     );
@@ -137,31 +140,31 @@ const ClassListPage = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
             >
               <FiPlus />
-              Tham gia lop
+              Tham gia lớp
             </button>
             <button
               onClick={handleCreateClass}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <FiPlus />
-              Tao lop moi
+              Tạo lớp mới
             </button>
           </div>
         </div>
 
         {/* Class List */}
         {filteredClasses.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-lg shadow">
-            <FiUsers className="mx-auto text-4xl text-gray-300 mb-4" />
+          <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
+            <FiUsers className="mx-auto text-6xl text-gray-300 mb-4" />
             <p className="text-gray-500 mb-4">
-              {searchQuery ? 'Khong tim thay lop nao.' : 'Ban chua co lop hoc nao.'}
+              {searchQuery ? 'Không tìm thấy lớp nào.' : 'Bạn chưa có lớp học nào.'}
             </p>
             {!searchQuery && (
               <button
                 onClick={handleCreateClass}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Tao lop hoc dau tien
+                Tạo lớp học đầu tiên
               </button>
             )}
           </div>
@@ -172,13 +175,13 @@ const ClassListPage = () => {
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-800">{classItem.name}</h3>
+                      <h3 className="font-bold text-xl text-gray-900">{classItem.name}</h3>
                       <p className="text-sm text-gray-500">
-                        Ma lop: <span className="font-mono">{classItem.class_code}</span>
+                        Mã lớp: <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">{classItem.class_code}</span>
                         <button
                           onClick={() => handleCopyCode(classItem.class_code)}
                           className="ml-2 text-blue-500 hover:text-blue-700"
-                          title="Copy ma lop"
+                          title="Copy mã lớp"
                         >
                           <FiCopy size={14} />
                         </button>
@@ -193,19 +196,19 @@ const ClassListPage = () => {
 
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                     <span className="flex items-center gap-1">
-                      <FiUsers /> {classItem.users?.length || 0} thanh vien
+                      <FiUsers /> {classItem.users?.length || classItem.students_count || classItem.members?.length || 0} thành viên
                     </span>
                     <span className="flex items-center gap-1">
-                      <FiFileText /> {classItem.materials?.length || 0} tai lieu
+                      <FiFileText /> {classItem.materials?.length || classItem.documents?.length || 0} tài liệu
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleViewClass(classItem.id)}
-                      className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm"
+                      className="flex-1 px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 text-blue-600 rounded-lg hover:bg-blue-100 text-sm"
                     >
-                      Xem chi tiet
+                      Xem chi tiết
                     </button>
                     <button
                       onClick={() => handleEditClass(classItem.id)}
@@ -229,23 +232,23 @@ const ClassListPage = () => {
         {/* Delete Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-96">
-              <h3 className="text-lg font-semibold mb-4">Xac nhan xoa lop</h3>
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <h3 className="text-lg font-semibold mb-4">Xác nhận xóa lớp</h3>
               <p className="text-gray-600 mb-6">
-                Ban co chac chan muon xoa lop "{selectedClass?.name}"? Hanh dong nay khong the hoan tac.
+                Bạn có chắc chắn muốn xóa lớp "{selectedClass?.name}"? Hành động này không thể hoàn tác.
               </p>
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Huy
+                  Hủy
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Xoa
+                  Xóa
                 </button>
               </div>
             </div>
@@ -256,9 +259,9 @@ const ClassListPage = () => {
         {showJoinModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-96">
-              <h3 className="text-lg font-semibold mb-4">Tham gia lop hoc</h3>
+              <h3 className="text-lg font-semibold mb-4">Tham gia lớp học</h3>
               <p className="text-gray-600 mb-4">
-                Nhap ma lop de tham gia.
+                Nhập mã lớp để tham gia.
               </p>
               <input
                 type="text"
@@ -276,14 +279,14 @@ const ClassListPage = () => {
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Huy
+                  Hủy
                 </button>
                 <button
                   onClick={handleJoinClass}
                   disabled={!joinCode.trim() || joinLoading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {joinLoading ? 'Dang xu ly...' : 'Tham gia'}
+                  {joinLoading ? 'Đang xử lý...' : 'Tham gia'}
                 </button>
               </div>
             </div>

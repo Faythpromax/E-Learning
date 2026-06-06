@@ -12,15 +12,20 @@ export const authService = {
     });
     
     const serverResponse = response.data;
+    const payload = serverResponse?.data || serverResponse;
+    const token = payload?.token;
+    const user = payload?.user || payload?.teacher || serverResponse?.user || serverResponse?.teacher;
 
-    if (serverResponse.success && serverResponse.data?.token) {
-        localStorage.setItem('token', serverResponse.data.token);
-        localStorage.setItem('user', JSON.stringify(serverResponse.data.user));
+    if (serverResponse.success && token && user) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('auth_user', JSON.stringify(user));
     } else {
         throw new Error(serverResponse.message || "Đăng nhập thất bại.");
     }
     
-    return serverResponse.data;
+    return payload;
 },
 
     /**
@@ -48,7 +53,9 @@ export const authService = {
             console.error("Lỗi khi hủy token trên hệ thống:", error);
         } finally {
             localStorage.removeItem('token');
+            localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
+            localStorage.removeItem('auth_user');
             window.location.href = '/login';
         }
     },

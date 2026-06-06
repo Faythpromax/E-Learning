@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiPlus, FiTrash2, FiSearch } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import { questionApi } from '../../../api/questionApi';
+import subjectApi from '../../../api/subjectApi';
+import classApi from '../../../api/classApi';
 
 export function CreateTestPage() {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ export function CreateTestPage() {
   const [formData, setFormData] = useState({
     title: '',
     subject_id: '',
+    class_id: '',
     access_type: 'both',
     is_active: true,
     expires_at: '',
@@ -23,6 +26,8 @@ export function CreateTestPage() {
 
   const [questions, setQuestions] = useState([]);
   const [availableQuestions, setAvailableQuestions] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,8 +38,16 @@ export function CreateTestPage() {
 
   const fetchData = async () => {
     try {
-      const questionsRes = await questionApi.getQuestions();
-      setAvailableQuestions(questionsRes.data || []);
+const [questionsRes, subjectsRes, classesRes] = await Promise.all([
+      questionApi.getQuestions({ per_page: 1000 }),
+      subjectApi.getSubjects(),
+      classApi.getClasses(),
+    ]);
+
+    setAvailableQuestions(questionsRes.data || questionsRes || []);
+    setSubjects(subjectsRes.data || subjectsRes || []);
+    const classesData = classesRes?.data || classesRes;
+    setClasses(Array.isArray(classesData) ? classesData : []);
 
       if (isEditing) {
         const testRes = await testApi.getTestDetails(testId);
@@ -42,7 +55,8 @@ export function CreateTestPage() {
         
         setFormData({
           title: test.title || '',
-          subject_id: test.subject_id || '',
+          subject_id: test.subject_id?.toString() || '',
+          class_id: test.class_id?.toString() || '',
           access_type: test.access_type || 'both',
           is_active: test.is_active ?? true,
           expires_at: test.expires_at ? test.expires_at.split('T')[0] : '',
@@ -52,7 +66,6 @@ export function CreateTestPage() {
           question_scores: {},
         });
 
-        // Set question scores
         const scores = {};
         test.questions?.forEach(q => {
           scores[q.id] = q.pivot?.score || 1;
@@ -106,8 +119,10 @@ export function CreateTestPage() {
       setSaving(true);
       const submitData = {
         ...formData,
-        max_attempts: formData.max_attempts ? parseInt(formData.max_attempts) : null,
-        duration: formData.duration ? parseInt(formData.duration) : null,
+        subject_id: formData.subject_id ? parseInt(formData.subject_id, 10) : null,
+        class_id: formData.class_id ? parseInt(formData.class_id, 10) : null,
+        max_attempts: formData.max_attempts ? parseInt(formData.max_attempts, 10) : null,
+        duration: formData.duration ? parseInt(formData.duration, 10) : null,
       };
 
       if (isEditing) {
@@ -125,10 +140,12 @@ export function CreateTestPage() {
     }
   };
 
-  const filteredQuestions = availableQuestions.filter(q => 
-    q.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    q.type?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredQuestions = availableQuestions.filter(q => {
+    const subjectMatches = !formData.subject_id || q.subject?.id?.toString() === formData.subject_id.toString();
+    const searchMatches = q.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      q.type?.toLowerCase().includes(searchQuery.toLowerCase());
+    return subjectMatches && searchMatches;
+  });
 
   if (loading) {
     return (
@@ -166,7 +183,7 @@ export function CreateTestPage() {
               />
             </div>
 
-            <div>
+                  <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Môn học *
               </label>
@@ -178,11 +195,30 @@ export function CreateTestPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Chọn môn học</option>
-                <option value="1">Toán</option>
-                <option value="2">Tiếng Việt</option>
-                <option value="3">Tiếng Anh</option>
-                <option value="4">Khoa học</option>
-                <option value="5">Lịch sử</option>
+                {subjects.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Lớp áp dụng
+              </label>
+              <select
+                name="class_id"
+                value={formData.class_id}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Chọn lớp học (tùy chọn)</option>
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
               </select>
             </div>
 

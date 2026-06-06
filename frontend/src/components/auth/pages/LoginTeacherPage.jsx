@@ -20,13 +20,15 @@ function LoginTeacherPage() {
     setLoading(true);
 
     try {
-  const data = await authService.login(
-    email,
-    password,
-    "teacher"
-  );
+      const data = await authService.login(
+        email,
+        password,
+        "teacher"
+      );
+      console.log("KẾT QUẢ ĐĂNG NHẬP THỰC TẾ:", data);
+      console.log("DỮ LIỆU TRONG STORAGE:", localStorage.getItem('auth_user'));
 
-  if (data.user && data.user.role === "teacher") {
+      if (data.user && data.user.role === "teacher") {
     navigate("/teacher/dashboard");
   } else {
     await authService.logout();

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { McqQuestion } from './McqQuestion';
 import { FillBlankQuestion } from './FillBlankQuestion';
 import { MatchingQuestion } from './MatchingQuestion';
@@ -14,11 +14,16 @@ const questionComponents = {
 export function QuestionRenderer({
   question,
   onAnswer,
+  answer: initialAnswer = null,
   showResult = false,
   result = null
 }) {
-  const [answer, setAnswer] = useState(null);
+  const [answer, setAnswer] = useState(initialAnswer);
   const QuestionComponent = questionComponents[question.type];
+
+  useEffect(() => {
+    setAnswer(initialAnswer);
+  }, [initialAnswer]);
 
   const handleAnswer = (userAnswer) => {
     setAnswer(userAnswer);
@@ -34,6 +39,7 @@ export function QuestionRenderer({
       <QuestionComponent
         question={question}
         onAnswer={handleAnswer}
+        answer={answer}
         showResult={showResult}
         result={result}
       />

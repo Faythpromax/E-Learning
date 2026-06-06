@@ -1,3 +1,4 @@
+import { useAuth } from '../../contexts/AuthContext';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,10 +13,11 @@ import {
 
 const TeacherHeader = ({ title, onMenuClick }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
-  const handleLogout = () => {
-    navigate('/');
+  const handleLogout = async () => {
+    await logout();
     setAccountDropdownOpen(false);
   };
 
@@ -28,11 +30,7 @@ const TeacherHeader = ({ title, onMenuClick }) => {
     <header className="teacher-header">
       {/* Left: Menu & Title */}
       <div className="teacher-header-left">
-        {/* <button className="teacher-menu-btn" onClick={onMenuClick}>
-          <FiMenu />
-        </button> */}
         <h2 className="teacher-header-title">{title}</h2>
-        <p>Chào mừng trở lại, tiếp tục hành trình giảng dạy của bạn!</p>
       </div>
 
       {/* Center: Search */}
@@ -60,8 +58,14 @@ const TeacherHeader = ({ title, onMenuClick }) => {
             className="teacher-account-btn"
             onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
           >
-            <div className="teacher-avatar">T</div>
-            <span className="teacher-account-name">Teacher</span>
+              <div className="teacher-avatar">
+                {(user?.full_name || user?.name || 'T').charAt(0).toUpperCase()}
+              </div>
+
+              <span className="teacher-account-name">
+                {user?.full_name || user?.name || 'Teacher'}
+              </span>
+
             <FiChevronDown
               className={`account-chevron ${
                 accountDropdownOpen ? 'open' : ''
@@ -78,6 +82,7 @@ const TeacherHeader = ({ title, onMenuClick }) => {
                 <FiSettings className="dropdown-icon" />
                 Cài đặt
               </button>
+
               <button
                 className="teacher-dropdown-item logout"
                 onClick={handleLogout}

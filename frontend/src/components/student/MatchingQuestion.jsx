@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function MatchingQuestion({ question, onAnswer, showResult = false, result = null }) {
+export function MatchingQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
   const { left = [], right = [], correct_matches = {} } = question.data || {};
-  const [matches, setMatches] = useState({});
+  const [matches, setMatches] = useState(answer || {});
+
+  useEffect(() => {
+    if (answer) {
+      setMatches(answer);
+    }
+  }, [answer]);
 
   const handleMatch = (leftId, rightId) => {
     if (showResult) return;

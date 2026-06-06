@@ -18,8 +18,7 @@ const CreateQuestionPage = () => {
     explanation: '', // Thêm trường giải thích đáp án
     difficulty: 'medium',
     options: ['', '', '', ''],
-    correct_answer: 0,
-    options_matching: [],
+    correct_answer: 'a',
     matching_pairs: [{ left: '', right: '' }],
     table_data: { 
       headers: ['Tiêu đề 1', 'Tiêu đề 2'], 
@@ -64,13 +63,13 @@ const CreateQuestionPage = () => {
         const qData = response.data; 
         
         setFormData({
-          subject_id: qData.subject_id || '',
+          subject_id: qData.subject_id?.toString() || '',
           type: qData.type || 'mcq',
           content: qData.content || '',
           explanation: qData.explanation || '', // Đọc dữ liệu giải thích từ Backend
           difficulty: qData.difficulty || 'medium',
-          options: qData.data?.options || ['', '', '', ''],
-          correct_answer: qData.data?.correct_answer ?? 0,
+          options: qData.data?.options?.map((opt) => opt.text) || ['', '', '', ''],
+          correct_answer: qData.data?.correct_answer ?? qData.data?.correct_answers?.[0] ?? 'a',
           matching_pairs: qData.data?.matching_pairs || [{ left: '', right: '' }],
           table_data: qData.data?.table_data || { headers: ['Tiêu đề 1', 'Tiêu đề 2'], rows: [['', '']] },
         });
@@ -182,21 +181,24 @@ const CreateQuestionPage = () => {
       let questionDataStructure = {};
       
       if (formData.type === 'mcq') {
-        questionDataStructure = { 
-          options: formData.options, 
-          correct_answer: formData.correct_answer 
+        questionDataStructure = {
+          options: formData.options.map((option, index) => ({
+            id: String.fromCharCode(97 + index),
+            text: option,
+          })),
+          correct_answer: formData.correct_answer || 'a'
         };
       } else if (formData.type === 'fill_blank') {
-        questionDataStructure = { 
-          correct_answer: formData.correct_answer 
+        questionDataStructure = {
+          correct_answers: [formData.correct_answer || ''],
         };
       } else if (formData.type === 'matching') {
-        questionDataStructure = { 
-          matching_pairs: formData.matching_pairs 
+        questionDataStructure = {
+          matching_pairs: formData.matching_pairs,
         };
       } else if (formData.type === 'table_fill') {
-        questionDataStructure = { 
-          table_data: formData.table_data 
+        questionDataStructure = {
+          table_data: formData.table_data,
         };
       }
 
@@ -232,25 +234,28 @@ const CreateQuestionPage = () => {
   const renderMcqFields = () => (
     <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
       <label className="block text-sm font-semibold text-gray-700">Các lựa chọn đáp án</label>
-      {formData.options.map((option, index) => (
-        <div key={index} className="flex items-center gap-3">
-          <input
-            type="radio"
-            name="correct_choice"
-            checked={Number(formData.correct_answer) === index}
-            onChange={() => setFormData({ ...formData, correct_answer: index })}
-            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-          />
-          <input
-            type="text"
-            value={option}
-            onChange={(e) => handleOptionChange(index, e.target.value)}
-            placeholder={`Nội dung lựa chọn ${index + 1}`}
-            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-      ))}
+      {formData.options.map((option, index) => {
+        const optionId = String.fromCharCode(97 + index);
+        return (
+          <div key={index} className="flex items-center gap-3">
+            <input
+              type="radio"
+              name="correct_choice"
+              checked={formData.correct_answer === optionId}
+              onChange={() => setFormData({ ...formData, correct_answer: optionId })}
+              className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              value={option}
+              onChange={(e) => handleOptionChange(index, e.target.value)}
+              placeholder={`Nội dung lựa chọn ${index + 1}`}
+              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+        );
+      })}
       <p className="text-xs text-gray-500 italic">* Tích chọn nút tròn bên trái để xác định đáp án đúng.</p>
     </div>
   );

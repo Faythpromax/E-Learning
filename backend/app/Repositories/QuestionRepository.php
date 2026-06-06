@@ -10,7 +10,7 @@ class QuestionRepository
 {
     public function getAll(array $filters = []): LengthAwarePaginator
     {
-        $query = Question::query();
+        $query = Question::with(['subject']);
 
         if (!empty($filters['subject_id'])) {
             $query->where('subject_id', $filters['subject_id']);

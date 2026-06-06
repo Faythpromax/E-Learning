@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function FillBlankQuestion({ question, onAnswer, showResult = false, result = null }) {
+export function FillBlankQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
   const { correct_answers = [], case_sensitive = false } = question.data || {};
-  const [answers, setAnswers] = useState(Array(correct_answers.length).fill(''));
+  const [answers, setAnswers] = useState(answer || Array(correct_answers.length).fill(''));
+
+  useEffect(() => {
+    if (answer) {
+      setAnswers(answer);
+    }
+  }, [answer]);
 
   const handleChange = (index, value) => {
     if (showResult) return;

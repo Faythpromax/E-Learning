@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function TableFillQuestion({ question, onAnswer, showResult = false, result = null }) {
+export function TableFillQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
   const { rows = 2, cols = 2, correct_answers = {} } = question.data || {};
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState(answer || {});
+
+  useEffect(() => {
+    if (answer) {
+      setAnswers(answer);
+    }
+  }, [answer]);
 
   const handleChange = (row, col, value) => {
     if (showResult) return;

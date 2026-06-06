@@ -19,8 +19,8 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('auth_user');
-    const token = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('auth_user') || localStorage.getItem('user');
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
 
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
@@ -30,37 +30,57 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password, role = 'teacher') => {
-  try {
-    const response = await apiClient.post('/login', {
-      email,
-      password,
-      role,
-    });
+    try {
+      const response = await apiClient.post('/login', {
+        email,
+        password,
+        role,
+      });
 
-    const { user: userData, token } = response.data.data;
+      // 1. Log toàn bộ những gì Backend trả về để check
+      console.log("BACKEND TRA VE:", response.data);
 
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('auth_user', JSON.stringify(userData));
+      const payload = response.data?.data || response.data;
+      console.log('BACKEND TRA VE:', response.data);
+      const token = payload?.token;
+      const userData = payload?.user || payload?.teacher || response.data?.user || response.data?.teacher;
 
-    setUser(userData);
-    setIsAuthenticated(true);
+      if (token) {
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('token', token);
+      }
+      if (userData) {
+        localStorage.setItem('auth_user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        setIsAuthenticated(true);
+      }
 
-    return { success: true, user: userData };
-  } catch (error) {
-    return {
-      success: false,
-      message: error.response?.data?.message || 'Login failed',
-    };
-  }
-};
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Login API error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed',
+      };
+    }
+  };
 
   const register = async (data) => {
     try {
       const response = await apiClient.post('/register', data);
-      const { user: userData, token } = response.data.data;
+      const payload = response.data?.data || response.data;
+      const userData = payload?.user || payload?.teacher || response.data?.user || response.data?.teacher;
+      const token = payload?.token;
 
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_user', JSON.stringify(userData));
+      if (token) {
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('token', token);
+      }
+      if (userData) {
+        localStorage.setItem('auth_user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
 
       setUser(userData);
       setIsAuthenticated(true);
@@ -82,7 +102,9 @@ export const AuthProvider = ({ children }) => {
     }
 
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('user');
 
     setUser(null);
     setIsAuthenticated(false);
@@ -93,6 +115,7 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (userData) => {
     setUser(userData);
     localStorage.setItem('auth_user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const value = {

@@ -16,7 +16,7 @@ class TestRepository implements TestRepositoryInterface
 {
     public function getAll(array $filters = []): Collection
     {
-        $query = Test::with(['subject', 'creator']);
+        $query = Test::with(['subject', 'creator', 'questions']);
 
         if (isset($filters['subject_id'])) {
             $query->where('subject_id', $filters['subject_id']);

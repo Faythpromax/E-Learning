@@ -67,6 +67,34 @@ const TeacherDashboardPage = () => {
     navigate('/teacher/tests/create');
   };
 
+  // Định nghĩa CSS Inline thuần để cưỡng chế giao diện cân đối tuyệt đối
+  const cardStyle = {
+    height: '160px',
+    minHeight: '160px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    padding: '20px',
+    boxSizing: 'border-box'
+  };
+
+  const rowTopStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    width: '100%'
+  };
+
+  const rowBottomStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    marginTop: 'auto',
+    paddingTop: '8px',
+    borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+    fontSize: '12px'
+  };
+
   return (
     <TeacherLayout pageTitle="Trang chủ giáo viên">
       {loading ? (
@@ -78,84 +106,118 @@ const TeacherDashboardPage = () => {
         </div>
       ) : (
         <>
+          
           {/* Welcome */}
-          <div className="mb-8 rounded-3xl bg-white p-8 shadow-lg">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Xin chào</p>
-                <h1 className="text-3xl font-bold text-gray-900">{user?.name || 'Giáo viên'}</h1>
-                <p className="text-gray-500 mt-2">Tổng quan nhanh về lớp, học sinh và đề thi.</p>
+          <div className="mb-8 rounded-3xl bg-white shadow-lg" style={{ padding: '32px', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', width: '100%' }}>
+              
+              {/* Bên trái: Lời chào (Đã xử lý giãn dòng, không lo dính chữ) */}
+              <div style={{ flex: '1', minWidth: '250px', display: 'block', textAlign: 'left' }}>
+                <p className="text-sm text-gray-500" style={{ display: 'block', margin: '0 0 8px 0', padding: '0', lineHeight: '1.5', lg: 'text-base' }}>
+                  Xin chào
+                </p>
+                <h1 className="text-3xl font-bold text-gray-900" style={{ display: 'block', margin: '0 0 12px 0', padding: '0', lineHeight: '1.3', letterSpacing: '-0.02em' }}>
+                  {user?.full_name || user?.name || 'Giáo viên'}
+                </h1>
+                <p className="text-gray-500" style={{ display: 'block', margin: '0', padding: '0', lineHeight: '1.5', fontSize: '15px' }}>
+                  Tổng quan nhanh về lớp, học sinh và đề thi.
+                </p>
               </div>
-              <div className="inline-flex items-center gap-3 rounded-2xl bg-blue-50 px-5 py-4">
-                <FiUsers className="text-blue-600 text-2xl" />
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-blue-600">Tổng học sinh</p>
-                  <p className="text-2xl font-semibold text-blue-900">{stats.totalStudents}</p>
+              
+              {/* Bên phải: Khối tổng học sinh (Đẩy lên cao chuẩn hàng ngang) */}
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'row',
+                alignItems: 'center', 
+                gap: '14px', 
+                backgroundColor: '#f0f6ff', 
+                padding: '14px 20px', 
+                borderRadius: '18px',
+                minWidth: '180px',
+                height: '68px',
+                boxSizing: 'border-box',
+                marginTop: '4px' /* Định tiến nhẹ xuống để cân bằng với dòng Xin chào */
+              }}>
+                <FiUsers className="text-blue-600" style={{ fontSize: '26px', flexShrink: 0, display: 'block' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', flex: '1' }}>
+                  <p className="text-xs uppercase tracking-wide text-blue-600" 
+                     style={{ display: 'block', margin: '0 0 4px 0', padding: '0', fontWeight: '600', lineHeight: '1', whiteSpace: 'nowrap' }}>
+                    Tổng học sinh
+                  </p>
+                  <p className="text-2xl font-bold text-blue-900" 
+                     style={{ display: 'block', margin: '0', padding: '0', lineHeight: '1' }}>
+                    {stats.totalStudents}
+                  </p>
                 </div>
               </div>
+
             </div>
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
-              <div className="flex items-center justify-between">
+            {/* Thẻ 1: Tổng số đề thi */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg" style={cardStyle}>
+              <div style={rowTopStyle}>
                 <div>
-                  <p className="text-blue-100 text-sm font-medium mb-1">Tổng số đề thi</p>
-                  <h3 className="text-3xl font-bold">{stats.totalTests}</h3>
+                  <p className="text-blue-100 font-medium m-0 p-0" style={{ fontSize: '14px', marginBottom: '4px' }}>Tổng số đề thi</p>
+                  <h3 className="font-bold m-0 p-0" style={{ fontSize: '36px', lineHeight: '1' }}>{stats.totalTests}</h3>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <FiFileText className="text-2xl" />
+                <div className="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FiFileText style={{ fontSize: '20px' }} />
                 </div>
               </div>
-              <p className="text-blue-100 text-xs mt-2 flex items-center gap-1">
+              <div className="text-blue-100" style={rowBottomStyle}>
                 <FiTrendingUp /> Tăng 12% tháng này
-              </p>
+              </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg">
-              <div className="flex items-center justify-between">
+            {/* Thẻ 2: Tổng số câu hỏi */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg" style={cardStyle}>
+              <div style={rowTopStyle}>
                 <div>
-                  <p className="text-green-100 text-sm font-medium mb-1">Tổng số câu hỏi</p>
-                  <h3 className="text-3xl font-bold">{stats.totalQuestions}</h3>
+                  <p className="text-green-100 font-medium m-0 p-0" style={{ fontSize: '14px', marginBottom: '4px' }}>Tổng số câu hỏi</p>
+                  <h3 className="font-bold m-0 p-0" style={{ fontSize: '36px', lineHeight: '1' }}>{stats.totalQuestions}</h3>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <FiBookOpen className="text-2xl" />
+                <div className="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FiBookOpen style={{ fontSize: '20px' }} />
                 </div>
               </div>
-              <p className="text-green-100 text-xs mt-2 flex items-center gap-1">
+              <div className="text-green-100" style={rowBottomStyle}>
                 <FiTrendingUp /> Tăng 8% tháng này
-              </p>
+              </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-              <div className="flex items-center justify-between">
+            {/* Thẻ 3: Tổng số học sinh */}
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg" style={cardStyle}>
+              <div style={rowTopStyle}>
                 <div>
-                  <p className="text-purple-100 text-sm font-medium mb-1">Tổng số học sinh</p>
-                  <h3 className="text-3xl font-bold">{stats.totalStudents}</h3>
+                  <p className="text-purple-100 font-medium m-0 p-0" style={{ fontSize: '14px', marginBottom: '4px' }}>Tổng số học sinh</p>
+                  <h3 className="font-bold m-0 p-0" style={{ fontSize: '36px', lineHeight: '1' }}>{stats.totalStudents}</h3>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <FiUsers className="text-2xl" />
+                <div className="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FiUsers style={{ fontSize: '20px' }} />
                 </div>
               </div>
-              <p className="text-purple-100 text-xs mt-2 flex items-center gap-1">
+              <div className="text-purple-100" style={rowBottomStyle}>
                 <FiTrendingUp /> 3 học sinh mới
-              </p>
+              </div>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
-              <div className="flex items-center justify-between">
+            {/* Thẻ 4: Số bài nộp */}
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg" style={cardStyle}>
+              <div style={rowTopStyle}>
                 <div>
-                  <p className="text-orange-100 text-sm font-medium mb-1">Số bài nộp</p>
-                  <h3 className="text-3xl font-bold">{stats.totalSubmissions}</h3>
+                  <p className="text-orange-100 font-medium m-0 p-0" style={{ fontSize: '14px', marginBottom: '4px' }}>Số bài nộp</p>
+                  <h3 className="font-bold m-0 p-0" style={{ fontSize: '36px', lineHeight: '1' }}>{stats.totalSubmissions}</h3>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <FiCheckCircle className="text-2xl" />
+                <div className="w-10 h-10 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FiCheckCircle style={{ fontSize: '20px' }} />
                 </div>
               </div>
-              <p className="text-orange-100 text-xs mt-2 flex items-center gap-1">
+              <div className="text-orange-100" style={rowBottomStyle}>
                 <FiTrendingUp /> 95% hoàn thành
-              </p>
+              </div>
             </div>
           </div>
 
