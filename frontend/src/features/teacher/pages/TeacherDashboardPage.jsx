@@ -11,6 +11,17 @@ import { userApi } from '../../../api/userApi';
 import { questionApi } from '../../../api/questionApi';
 import "./teacher.css";
 
+const calculateExamStatus = (exam) => {
+  if (!exam) return false;
+  const now = new Date();
+  const startTime = exam.start_time ? new Date(exam.start_time) : null;
+  const endTime = exam.end_time ? new Date(exam.end_time) : null;
+
+  if (startTime && now < startTime) return false; // Not started yet
+  if (endTime && now > endTime) return false; // Already ended
+  return true; // Open
+};
+
 const TeacherDashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -38,7 +49,10 @@ const TeacherDashboardPage = () => {
         questionApi.getQuestions(),
       ]);
 
-      const tests = testsRes.data || [];
+      const tests = (testsRes.data || []).map(test => ({
+        ...test,
+        is_active: calculateExamStatus(test)
+      }));
       const classesData = classesRes.data || [];
       const students = studentsRes.data || [];
       const questions = questionsRes.data || [];
@@ -267,7 +281,7 @@ const TeacherDashboardPage = () => {
                       ...classItem,
                       color: classItem.color || ['#4ec28a', '#6366f1', '#ec4899', '#f59e0b'][index % 4],
                       avatar: classItem.name?.charAt(0)?.toUpperCase() || 'C',
-                      teacher: 'Ban'
+                      teacher: classItem.teacher?.name || classItem.teacher?.full_name || user?.full_name || user?.name || 'Giáo viên'
                     }}
                   />
                 ))

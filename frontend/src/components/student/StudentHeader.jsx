@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   FiBell,
   FiMessageSquare,
@@ -12,11 +13,12 @@ import {
 
 const StudentHeader = ({ title, subtitle, onMenuClick }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const subtitleText = subtitle || 'Chào mừng trở lại! Tiếp tục hành trình học tập của bạn.';
 
-  const handleLogout = () => {
-    navigate('/');
+  const handleLogout = async () => {
+    await logout();
     setAccountDropdownOpen(false);
   };
 
@@ -61,8 +63,12 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
             className="student-account-btn"
             onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
           >
-            <div className="student-avatar">S</div>
-            <span className="student-account-name">Student</span>
+            <div className="student-avatar">
+              {(user?.full_name || user?.name || 'S').charAt(0).toUpperCase()}
+            </div>
+            <span className="student-account-name">
+              {user?.full_name || user?.name || 'Student'}
+            </span>
             <FiChevronDown
               className={`account-chevron ${
                 accountDropdownOpen ? 'open' : ''
