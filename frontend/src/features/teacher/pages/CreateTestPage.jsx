@@ -176,44 +176,48 @@ export function CreateTestPage() {
   }
 
   return (
-    <TeacherLayout pageTitle={isEditing ? "Chỉnh sửa bài kiểm tra" : "Tạo bài kiểm tra mới"}>
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto pb-12">
+    <TeacherLayout pageTitle={isEditing ? "Hiệu chỉnh bài thi" : "Khởi tạo đề thi mới"}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1100px', margin: '0 auto', padding: '0 16px 64px 16px', boxSizing: 'border-box' }}>
         
-        {/* Header Action Bar */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        {/* ================= HEADER ACTION BAR ================= */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              {isEditing ? 'Chỉnh sửa bài kiểm tra' : 'Tạo bài kiểm tra mới'}
+            <h1 style={{ margin: '0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
+              {isEditing ? '✏️ Chỉnh sửa bài kiểm tra' : 'Tạo bài kiểm tra mới'}
             </h1>
-            <p className="text-sm text-slate-400 mt-1">Thiết lập cấu hình phòng thi và cấu trúc điểm số bài kiểm tra.</p>
+            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#94a3b8' }}>
+              Thiết lập cấu hình phòng thi và cấu trúc điểm số bài kiểm tra.
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               type="button"
               onClick={() => navigate('/teacher/tests')}
-              className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
+              style={{ px: '16px', py: '10px', height: '40px', backgroundColor: '#fff', border: '1px solid #cbd5e1', color: '#475569', borderRadius: '12px', fontSize: '14px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px' }}
             >
               <FiArrowLeft /> Hủy bỏ
             </button>
             <button
               type="submit"
               disabled={saving || formData.question_ids.length === 0}
-              className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ height: '40px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 20px', opacity: (saving || formData.question_ids.length === 0) ? 0.5 : 1, shadow: '0 1px 3px rgba(0,0,0,0.1)' }}
             >
               <FiSave /> {saving ? 'Đang lưu...' : (isEditing ? 'Cập nhật đề' : 'Lưu đề thi')}
             </button>
           </div>
         </div>
 
-        {/* Khối Thông tin cơ bản */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-5">
-          <h2 className="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-50 pb-2">
-            <span className="w-1 h-4 bg-blue-600 rounded-full"></span> Cấu hình thông tin cơ bản
+        {/* ================= KHỐI THÔNG TIN CƠ BẢN ================= */}
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <h2 style={{ margin: '0', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            <span style={{ width: '4px', height: '16px', backgroundColor: '#2563eb', borderRadius: '4px', display: 'inline-block' }}></span>
+            Cấu hình thông tin cơ bản
           </h2>
           
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Tiêu đề */}
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tiêu đề bài kiểm tra *</label>
+              <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Tiêu đề bài kiểm tra *</label>
               <input
                 type="text"
                 name="title"
@@ -221,19 +225,20 @@ export function CreateTestPage() {
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="VD: Kiểm tra giữa kỳ - Toán lớp 2"
-                className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                style={{ w: '100%', width: '100%', px: '16px', py: '10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', focus: 'outline-none', boxSizing: 'border-box', padding: '10px 16px' }}
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Môn học & Lớp áp dụng */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Môn học *</label>
+                <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Môn học *</label>
                 <select
                   name="subject_id"
                   required
                   value={formData.subject_id}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 16px', boxSizing: 'border-box' }}
                 >
                   <option value="">Chọn môn học</option>
                   {subjects.map((subject) => (
@@ -243,12 +248,12 @@ export function CreateTestPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Lớp áp dụng</label>
+                <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Lớp áp dụng</label>
                 <select
                   name="class_id"
                   value={formData.class_id}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 16px', boxSizing: 'border-box' }}
                 >
                   <option value="">Chọn lớp học (tùy chọn)</option>
                   {classes.map((cls) => (
@@ -258,14 +263,15 @@ export function CreateTestPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Hình thức & Thời gian */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Hình thức truy cập</label>
+                <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Hình thức truy cập</label>
                 <select
                   name="access_type"
                   value={formData.access_type}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 16px', boxSizing: 'border-box' }}
                 >
                   <option value="both">Mã truy cập & Lớp học</option>
                   <option value="public_code">Chỉ mã truy cập</option>
@@ -274,158 +280,157 @@ export function CreateTestPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Thời gian làm bài (phút)</label>
-                <div className="relative">
+                <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Thời gian làm bài (phút)</label>
+                <div style={{ position: 'relative', width: '100%' }}>
                   <input
                     type="number"
                     name="duration"
-                    min="1"
                     value={formData.duration}
                     onChange={handleInputChange}
+                    min="1"
                     placeholder="VD: 30"
-                    className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 40px 10px 16px', boxSizing: 'border-box' }}
                   />
-                  <FiClock className="absolute right-3 top-3.5 text-slate-400" />
+                  <FiClock style={{ position: 'absolute', right: '14px', top: '13px', color: '#94a3b8' }} />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Lượt thi tối đa & Ngày hết hạn */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Số lần thi tối đa</label>
+                <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Số lần thi tối đa</label>
                 <input
                   type="number"
                   name="max_attempts"
-                  min="1"
                   value={formData.max_attempts}
                   onChange={handleInputChange}
+                  min="1"
                   placeholder="VD: 3"
-                  className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 16px', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Ngày hết hạn</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    name="expires_at"
-                    value={formData.expires_at}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                </div>
+                <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>Ngày hết hạn</label>
+                <input
+                  type="date"
+                  name="expires_at"
+                  value={formData.expires_at}
+                  onChange={handleInputChange}
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 16px', boxSizing: 'border-box' }}
+                />
               </div>
             </div>
 
-            {/* Checkbox kích hoạt */}
-            <div className="pt-2">
-              <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            {/* Checkbox Kích hoạt bài kiểm tra */}
+            <div style={{ paddingTop: '6px' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
                 <input
                   type="checkbox"
                   name="is_active"
                   checked={formData.is_active}
                   onChange={handleInputChange}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 transition-transform"
+                  style={{ width: '18px', height: '18px', borderRadius: '4px', cursor: 'pointer' }}
                 />
-                <span className="text-sm font-medium text-slate-700">Kích hoạt bài kiểm tra hiển thị trên hệ thống</span>
+                <span style={{ fontSize: '14px', fontWeight: '500', color: '#334155' }}>Kích hoạt bài kiểm tra hiển thị trên hệ thống</span>
               </label>
             </div>
           </div>
         </div>
 
-        {/* Khối Lựa chọn câu hỏi từ ngân hàng đề */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-50 pb-3">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <span className="w-1 h-4 bg-indigo-600 rounded-full"></span> 
+        {/* ================= KHỐI LỰA CHỌN CÂU HỎI NGÂN HÀNG ================= */}
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px', flexWrap: 'wrap', gap: '16px' }}>
+            <h2 style={{ margin: '0', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '4px', height: '16px', backgroundColor: '#4f46e5', borderRadius: '4px', display: 'inline-block' }}></span>
               Danh sách câu hỏi ngân hàng
-              <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full ml-1">
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#4f46e5', backgroundColor: '#e0e7ff', padding: '2px 10px', borderRadius: '99px', marginLeft: '6px' }}>
                 Đã chọn {formData.question_ids.length} câu
               </span>
             </h2>
             
-            {/* Bộ lọc tìm kiếm nhanh câu hỏi */}
-            <div className="relative w-full sm:w-72">
+            {/* Input tìm kiếm tách biệt hàng ngang */}
+            <div style={{ position: 'relative', width: '280px' }}>
+              <FiSearch style={{ position: 'absolute', left: '12px', top: '11px', color: '#94a3b8', fontSize: '14px' }} />
               <input
                 type="text"
                 placeholder="Tìm kiếm nội dung câu hỏi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-500 transition-colors"
+                style={{ width: '100%', padding: '8px 12px 8px 36px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '13px', boxSizing: 'border-box' }}
               />
-              <FiSearch className="absolute left-3 top-2.5 text-slate-400 text-sm" />
             </div>
           </div>
 
           {/* Vùng cuộn danh sách câu hỏi */}
-          <div className="max-h-[380px] overflow-y-auto pr-1 space-y-2.5 scrollbar-thin">
+          <div style={{ maxHeight: '380px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
             {filteredQuestions.length > 0 ? (
               filteredQuestions.map((question) => {
                 const isSelected = formData.question_ids.includes(question.id);
                 const badge = getQuestionTypeBadge(question.type);
-                
                 return (
                   <div
                     key={question.id}
                     onClick={() => handleToggleQuestion(question.id)}
-                    className={`p-4 rounded-xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 select-none cursor-pointer ${
-                      isSelected 
-                        ? 'bg-indigo-50/40 border-indigo-200 shadow-sm' 
-                        : 'bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50/30'
-                    }`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: isSelected ? '1px solid #c7d2fe' : '1px solid #f1f5f9',
+                      backgroundColor: isSelected ? '#f5f7ff' : '#ffffff',
+                      transition: 'all 0.15s ease',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
                   >
-                    {/* Phần nội dung cốt lõi */}
-                    <div className="flex items-start gap-4 min-w-0 flex-1">
-                      <div className="text-xl mt-0.5 flex-shrink-0">
-                        {isSelected ? (
-                          <FiCheckSquare className="text-indigo-600 animate-fade-in" />
-                        ) : (
-                          <FiSquare className="text-slate-300" />
-                        )}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: '1', minWidth: '0' }}>
+                      <div style={{ fontSize: '20px', marginTop: '2px', display: 'flex', flexShrink: 0 }}>
+                        {isSelected ? <FiCheckSquare style={{ color: '#4f46e5' }} /> : <FiSquare style={{ color: '#cbd5e1' }} />}
                       </div>
-
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${badge.class}`}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1', minWidth: '0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${badge.class}`} style={{ display: 'inline-block' }}>
                             {badge.label}
                           </span>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600">
+                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '500' }}>
                             {question.subject?.name || 'Môn học'}
                           </span>
                         </div>
-                        <p className="text-slate-700 font-medium text-sm leading-relaxed truncate md:whitespace-normal">
+                        <p style={{ margin: '0', fontSize: '14px', fontWeight: '500', color: '#334155', lineHeight: '1.5', wordBreak: 'break-word' }}>
                           {question.content}
                         </p>
                       </div>
                     </div>
 
-                    {/* Ô nhập điểm số nằm riêng biệt góc phải khi câu hỏi được kích hoạt */}
+                    {/* Điểm số góc bên phải */}
                     {isSelected && (
                       <div 
-                        className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-indigo-100 shadow-inner self-end md:self-center flex-shrink-0"
-                        onClick={(e) => e.stopPropagation()} // Chặn cơ chế toggle nhầm card khi click chọn input
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ffffff', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', flexShrink: 0 }}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Điểm số:</label>
+                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8' }}>ĐIỂM:</span>
                         <input
                           type="number"
+                          step="0.25"
                           min="0"
-                          max="100"
-                          step="0.5"
-                          value={formData.question_scores[question.id] || 1}
+                          value={formData.question_scores[question.id] ?? 1}
                           onChange={(e) => handleScoreChange(question.id, e.target.value)}
-                          className="w-16 text-center text-sm font-bold text-slate-800 bg-slate-50 rounded border border-slate-200 focus:outline-none focus:border-indigo-500 py-0.5"
+                          style={{ width: '45px', textAlign: 'center', fontSize: '13px', fontWeight: 'bold', border: 'none', backgroundColor: '#f8fafc', padding: '2px 4px', borderRadius: '4px', outline: 'none' }}
                         />
                       </div>
                     )}
-
                   </div>
                 );
               })
             ) : (
-              <div className="text-center py-12 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                <FiBookOpen className="text-3xl text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-400">Không tìm thấy câu hỏi phù hợp với tiêu chí lọc</p>
+              <div style={{ textAlign: 'center', padding: '48px 16px', border: '1px dashed #e2e8f0', borderRadius: '12px', backgroundColor: '#fafafa' }}>
+                <FiBookOpen style={{ fontSize: '36px', color: '#cbd5e1', marginBottom: '8px' }} />
+                <p style={{ margin: '0', fontSize: '13px', color: '#94a3b8' }}>Không tìm thấy câu hỏi phù hợp.</p>
               </div>
             )}
           </div>
