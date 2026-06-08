@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import classApi from '../../../api/classApi';
+import { testApi } from '../../../api/testApi';
 
 const ClassDetailPage = () => {
   const { classId } = useParams();
@@ -32,109 +33,118 @@ const ClassDetailPage = () => {
   const [selectedTest, setSelectedTest] = useState('');
 
   useEffect(() => {
-    fetchClassDetail();
+    fetchClassDetail(true);
   }, [classId]);
 
-  const fetchClassDetail = async () => {
-    try {
+  const fetchClassDetail = async (showLoadingOverlay = false) => {
+  try {
+    if (showLoadingOverlay) {
       setLoading(true);
-      const response = await classApi.getClassDetail(classId);
-      if (response.success) {
-        setClassData(response.data);
-        setStudents(response.data.users?.filter(u => u.class_pivot?.role === 'student') || []);
-        setTeachers(response.data.users?.filter(u => u.class_pivot?.role === 'teacher') || []);
-        setMaterials(response.data.materials || []);
-        setTests(response.data.tests || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch class detail:', error);
-      alert('Khong the tai thong tin lop');
-    } finally {
-      setLoading(false);
     }
-  };
+    const response = await classApi.getClassDetail(classId);
+    if (response.success) {
+  setClassData(response.data);
+  
+  // Đổi u.class_pivot thành u.pivot
+  setStudents(response.data.users?.filter(u => u.pivot?.role === 'student') || []);
+  setTeachers(response.data.users?.filter(u => u.pivot?.role === 'teacher') || []);
+  
+  setMaterials(response.data.materials || []);
+  setTests(response.data.tests || []);
+}
+  } catch (error) {
+    console.error('Failed to fetch class detail:', error);
+    alert('Không thể lấy thông tin lớp');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleRemoveStudent = async (userId) => {
-    if (!confirm('Ban co chac chan muon xoa hoc sinh nay?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa học sinh này không?')) return;
 
     try {
       await classApi.removeStudent(classId, userId);
       setStudents(students.filter(s => s.id !== userId));
     } catch (error) {
       console.error('Failed to remove student:', error);
-      alert('Xoa that bai');
+      alert('Xóa thất bại!');
     }
   };
 
   const handleRemoveTeacher = async (userId) => {
-    if (!confirm('Ban co chac chan muon xoa giao vien nay?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa giáo viên này không?')) return;
 
     try {
       await classApi.removeTeacher(classId, userId);
       setTeachers(teachers.filter(t => t.id !== userId));
     } catch (error) {
       console.error('Failed to remove teacher:', error);
-      alert('Xoa that bai');
+      alert('Xóa thất bại!');
     }
   };
 
   const handleAddStudent = async () => {
-    if (!studentEmail.trim()) return;
+  if (!studentEmail.trim()) return;
 
-    try {
-      await classApi.addStudent(classId, parseInt(studentEmail));
-      alert('Them hoc sinh thanh cong!');
-      setStudentEmail('');
-      setShowAddModal(false);
-      fetchClassDetail();
-    } catch (error) {
-      console.error('Failed to add student:', error);
-      alert(error.response?.data?.message || 'Them that bai');
-    }
-  };
+  try {
+    // TRUYỀN THẲNG SỐ ID VÀO ĐÂY, classApi sẽ tự bọc thành { user_id: ... }
+    const response = await classApi.addStudent(classId, parseInt(studentEmail));
+    
+    alert('Them hoc sinh thanh cong!');
+    setStudentEmail('');
+    setShowAddModal(false);
+    fetchClassDetail(); // Gọi lại để cập nhật danh sách học sinh ngầm
+  } catch (error) {
+    console.error('Failed to add student:', error);
+    alert(error.response?.data?.message || 'Them that bai');
+  }
+};
 
-  const handleAddTeacher = async () => {
-    if (!teacherEmail.trim()) return;
+const handleAddTeacher = async () => {
+  if (!teacherEmail.trim()) return;
 
-    try {
-      await classApi.addTeacher(classId, parseInt(teacherEmail));
-      alert('Them giao vien thanh cong!');
-      setTeacherEmail('');
-      setShowAddModal(false);
-      fetchClassDetail();
-    } catch (error) {
-      console.error('Failed to add teacher:', error);
-      alert(error.response?.data?.message || 'Them that bai');
-    }
-  };
+  try {
+    // TƯƠNG TỰ CHO GIÁO VIÊN: Truyền thẳng số ID
+    const response = await classApi.addTeacher(classId, parseInt(teacherEmail));
+    
+    alert('Them giao vien thanh cong!');
+    setTeacherEmail('');
+    setShowAddModal(false);
+    fetchClassDetail(); // Gọi lại để cập nhật danh sách giáo viên ngầm
+  } catch (error) {
+    console.error('Failed to add teacher:', error);
+    alert(error.response?.data?.message || 'Them that bai');
+  }
+};
 
   const handleAddMaterial = async () => {
     if (!newMaterial.title.trim() || !newMaterial.file_url.trim()) {
-      alert('Vui long nhap day du thong tin');
+      alert('Vui lòng nhập đầy đủ thông tin');
       return;
     }
 
     try {
       await classApi.addMaterial(classId, newMaterial);
-      alert('Them tai lieu thanh cong!');
+      alert('Thêm thành công!');
       setNewMaterial({ title: '', description: '', file_url: '', type: 'pdf' });
       setShowAddModal(false);
       fetchClassDetail();
     } catch (error) {
       console.error('Failed to add material:', error);
-      alert('Them that bai');
+      alert('Thêm thất bại!');
     }
   };
 
   const handleRemoveMaterial = async (materialId) => {
-    if (!confirm('Ban co chac chan muon xoa tai lieu nay?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này không?')) return;
 
     try {
       await classApi.removeMaterial(classId, materialId);
       setMaterials(materials.filter(m => m.id !== materialId));
     } catch (error) {
       console.error('Failed to remove material:', error);
-      alert('Xoa that bai');
+      alert('Xóa tài liệu thất bại');
     }
   };
 
@@ -143,42 +153,55 @@ const ClassDetailPage = () => {
 
     try {
       await classApi.assignTest(classId, parseInt(selectedTest));
-      alert('Gan bai kiem tra thanh cong!');
+      alert('Gán thành công!');
       setSelectedTest('');
       setShowAddModal(false);
       fetchClassDetail();
     } catch (error) {
       console.error('Failed to assign test:', error);
-      alert(error.response?.data?.message || 'Gan that bai');
+      alert(error.response?.data?.message || 'Gán thất bại');
     }
   };
 
   const handleRemoveTest = async (testId) => {
-    if (!confirm('Ban co chac chan muon xoa bai kiem tra nay?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa bài kiểm tra này không?')) return;
 
     try {
       await classApi.removeTest(classId, testId);
       setTests(tests.filter(t => t.id !== testId));
     } catch (error) {
       console.error('Failed to remove test:', error);
-      alert('Xoa that bai');
+      alert('Xóa bài kiểm tra thất bại');
     }
   };
 
-  const openAddModal = (type) => {
+  const openAddModal = async (type) => {
     setAddModalType(type);
     setShowAddModal(true);
+    
+    if (type === 'test') {
+      fetchAvailableTests();
+    }
+  };
+
+  const fetchAvailableTests = async () => {
+    try {
+      const response = await testApi.getTests();
+      setAvailableTests(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch tests:', error);
+    }
   };
 
   const renderStudentsTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Danh sach hoc sinh ({students.length})</h3>
+        <h3 className="text-lg font-semibold">Danh sách học sinh ({students.length})</h3>
         <button
           onClick={() => openAddModal('student')}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
-          <FiPlus /> Them hoc sinh
+          <FiPlus /> Thêm học sinh
         </button>
       </div>
 
@@ -491,7 +514,7 @@ const ClassDetailPage = () => {
     return (
       <TeacherLayout pageTitle="Chi tiet lop">
         <div className="flex items-center justify-center py-20">
-          <div className="text-gray-500">Dang tai...</div>
+          <div className="text-gray-500">Đang tải...</div>
         </div>
       </TeacherLayout>
     );
@@ -501,18 +524,18 @@ const ClassDetailPage = () => {
     return (
       <TeacherLayout pageTitle="Chi tiet lop">
         <div className="text-center py-20">
-          <p className="text-gray-500">Khong tim thay lop</p>
-          <button onClick={() => navigate('/teacher/classes')} className="mt-4 text-blue-500">Quay lai</button>
+          <p className="text-gray-500">Không tìm thấy lớp này</p>
+          <button onClick={() => navigate('/teacher/classes')} className="mt-4 text-blue-500">Quay lại</button>
         </div>
       </TeacherLayout>
     );
   }
 
   const tabs = [
-    { id: 'students', label: 'Hoc sinh', icon: FiUsers },
-    { id: 'teachers', label: 'Giao vien', icon: FiUsers },
-    { id: 'materials', label: 'Tai lieu', icon: FiFileText },
-    { id: 'tests', label: 'Bai kiem tra', icon: FiClipboard },
+    { id: 'students', label: 'Học sinh', icon: FiUsers },
+    { id: 'teachers', label: 'Giao viên', icon: FiUsers },
+    { id: 'materials', label: 'Tài liệu', icon: FiFileText },
+    { id: 'tests', label: 'Bài kiểm tra', icon: FiClipboard },
   ];
 
   return (
@@ -522,13 +545,13 @@ const ClassDetailPage = () => {
           onClick={() => navigate('/teacher/classes')}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
         >
-          <FiArrowLeft /> Quay lai danh sach lop
+          <FiArrowLeft /> Quay lại danh sách lớp
         </button>
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{classData.name}</h2>
           <p className="text-gray-500">
-            Ma lop: <span className="font-mono font-semibold">{classData.class_code}</span>
+            Mã lớp: <span className="font-mono font-semibold">{classData.class_code}</span>
           </p>
           {classData.description && (
             <p className="text-gray-600 mt-2">{classData.description}</p>

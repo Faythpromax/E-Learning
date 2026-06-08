@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import StudentLayout from '../../../components/student/StudentLayout';
 import ClassTabs from '../../../components/student/ClassTabs';
 import AnnouncementCard from '../../../components/student/AnnouncementCard';
 import ExerciseCard from '../../../components/student/ExerciseCard';
 import TestCard from '../../../components/student/TestCard';
 import StudentListItem from '../../../components/student/StudentListItem';
-import {
-  announcement,
-  exercises,
-  tests,
-  students,
-  classes,
-} from '../../../data/classDetailMockData';
+import classApi from '../../../api/classApi';
 
 const tabOptions = [
   { id: 'overview', label: 'Về môn học' },
@@ -23,10 +17,46 @@ const tabOptions = [
 
 const StudentClassDetailPage = () => {
   const { classId: classIdParam, id } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [classData, setClassData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const classId = Number(classIdParam || id);
-  const classInfo = classes.find((item) => item.id === classId);
-  const className = classInfo?.name || `Lớp học #${classIdParam || id || ''}`;
+
+  useEffect(() => {
+    fetchClassData();
+  }, [classId]);
+
+  const fetchClassData = async () => {
+    try {
+      const response = await classApi.getClassDetail(classId);
+      if (response.success) {
+        setClassData(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch class data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartTest = async (testId) => {
+    navigate(`/student/tests/${testId}`);
+  };
+
+  const className = classData?.name || `Lớp học #${classIdParam || id || ''}`;
+  const testsData = classData?.tests || [];
+  const studentsData = classData?.users?.filter(u => u.pivot?.role === 'student') || [];
+
+  if (loading) {
+    return (
+      <StudentLayout pageTitle={className}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-gray-500">Đang tải...</div>
+        </div>
+      </StudentLayout>
+    );
+  }
 
   return (
     <StudentLayout
@@ -42,22 +72,41 @@ const StudentClassDetailPage = () => {
 
         <div className="class-detail-content">
           {activeTab === 'overview' && (
-            <AnnouncementCard announcement={announcement} />
+            <AnnouncementCard announcement={{ title: 'Thông báo', content: 'Chào mừng đến với lớp!' }} />
           )}
 
           {activeTab === 'exercises' && (
             <div className="class-detail-grid">
-              {exercises.map((exercise) => (
-                <ExerciseCard key={exercise.id} exercise={exercise} />
-              ))}
+              <div className="text-center py-8 text-gray-500">Chưa có bài tập nào</div>
             </div>
           )}
 
           {activeTab === 'tests' && (
             <div className="class-detail-grid">
-              {tests.map((testItem) => (
-                <TestCard key={testItem.id} testItem={testItem} />
-              ))}
+              {testsData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 col-span-full">Chưa có bài kiểm tra nào</div>
+              ) : (
+                testsData.map((testItem) => (
+                  <div key={testItem.id} className="class-detail-card test-card">
+                    <h3>{testItem.title}</h3>
+                    <p className="test-description">
+                      Thời lượng: {testItem.duration ? `${testItem.duration} phút` : 'Không giới hạn'}
+                    </p>
+                    <p className="class-detail-meta">
+                      Số câu hỏi: {testItem.questions?.length || 0}
+                    </p>
+                    <div className="class-detail-action">
+                      <button 
+                        type="button" 
+                        className="class-detail-button"
+                        onClick={() => handleStartTest(testItem.id)}
+                      >
+                        Bắt đầu
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
@@ -68,14 +117,14 @@ const StudentClassDetailPage = () => {
                   <tr>
                     <th>Họ và tên</th>
                     <th>Email</th>
-                    <th>Ngày sinh</th>
-                    <th>Trường</th>
-                    <th>Lớp</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((student) => (
-                    <StudentListItem key={student.id} student={student} />
+                  {studentsData.map((student) => (
+                    <tr key={student.id}>
+                      <td>{student.name}</td>
+                      <td>{student.email}</td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
