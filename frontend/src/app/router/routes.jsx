@@ -31,6 +31,7 @@ import TeacherTestListPage from '../../features/teacher/pages/TestListPage';
 import CreateTestPage from '../../features/teacher/pages/CreateTestPage';
 import TestResultsPage from '../../features/teacher/pages/TestResultsPage';
 import TestDetailPage from '../../features/teacher/pages/TestDetailPage';
+import AdminQuestionListPage from '../../features/admin/pages/AdminQuestionListPage';
 import QuestionListPage from '../../features/teacher/pages/QuestionListPage';
 import CreateQuestionPage from '../../features/teacher/pages/CreateQuestionPage';
 import ClassListPage from '../../features/teacher/pages/ClassListPage';
@@ -129,6 +130,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminCreateTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminQuestionListPage />
             </ProtectedRoute>
           }
         />

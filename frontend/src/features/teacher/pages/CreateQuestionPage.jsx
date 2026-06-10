@@ -452,7 +452,7 @@ const CreateQuestionPage = () => {
           onClick={() => navigate('/teacher/questions')}
           className="question-back-btn"
         >
-          <FiArrowLeft /> Quay lại danh sách
+          <FiArrowLeft /> Quay lại danh sách câu hỏi
         </button>
 
         <div className="question-form-card">

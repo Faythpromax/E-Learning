@@ -1,34 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import MatchingBuilder from '../../../components/common/questions/MatchingQuestion';
+import MatchingBuilder from '../../../components/teacher/questions/MatchingBuilder';
+import subjectApi from '../../../api/subjectApi';
+import questionApi from '../../../api/questionApi';
 
 const AdminCreateQuestionPage = () => {
   const { questionId } = useParams();
   const navigate = useNavigate();
   const isEditing = !!questionId;
 
-  const handleBack = () => {
-    navigate('/admin/questions');
-  };
-
-  return (
-    <AdminLayout title={isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}>
-      <div className="max-w-3xl mx-auto px-4 py-2">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors"
-        >
-          &larr; Quay lại danh sách câu hỏi
-        </button>
-
-        <AdminQuestionContent questionId={questionId} isEditing={isEditing} />
-      </div>
-    </AdminLayout>
-  );
-};
-
-function AdminQuestionContent({ questionId, isEditing }) {
   const [blankAnswers, setBlankAnswers] = React.useState({});
 
   const [formData, setFormData] = React.useState({
@@ -49,7 +30,33 @@ function AdminQuestionContent({ questionId, isEditing }) {
   const [subjects, setSubjects] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
-  const navigate = require('react-router-dom').useNavigate();
+  const contentRef = useRef(null);
+
+  const handleBack = () => {
+    navigate('/admin/questions');
+  };
+
+  const insertBlank = () => {
+    const blankCount = (formData.content.match(/__BLANK_\d+__/g) || []).length;
+    const placeholder = `__BLANK_${blankCount}__`;
+    const textarea = contentRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = formData.content.substring(0, start);
+      const after = formData.content.substring(end);
+      const newContent = before + placeholder + after;
+      setFormData(prev => ({ ...prev, content: newContent }));
+      setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+      }, 0);
+    } else {
+      setFormData(prev => ({ ...prev, content: prev.content + placeholder }));
+      setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
+    }
+  };
 
   React.useEffect(() => {
     fetchSubjects();
@@ -60,7 +67,6 @@ function AdminQuestionContent({ questionId, isEditing }) {
 
   const fetchSubjects = async () => {
     try {
-      const subjectApi = require('../../../api/subjectApi').default;
       const resp = await subjectApi.getSubjects();
       if (resp && resp.success) {
         setSubjects(resp.data);
@@ -73,7 +79,6 @@ function AdminQuestionContent({ questionId, isEditing }) {
   const fetchQuestion = async (id) => {
     try {
       setLoading(true);
-      const questionApi = require('../../../api/questionApi').default;
       const response = await questionApi.getQuestion(id);
 
       if (response && response.success) {
@@ -222,10 +227,23 @@ function AdminQuestionContent({ questionId, isEditing }) {
       return;
     }
 
+    if (formData.type === 'fill_blank') {
+      const blankCount = getBlankCount();
+      if (blankCount === 0) {
+        setError('Vui long them it nhat mot o trong vao de bai bang nut "Chen o trong".');
+        return;
+      }
+      const unfilled = Array.from({ length: blankCount }, (_, i) => i)
+        .filter(i => !blankAnswers[i]?.trim());
+      if (unfilled.length > 0) {
+        setError(`Vui long nhap dap an cho tat ca cac o trong (thieu ${unfilled.length} o).`);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      const questionApi = require('../../../api/questionApi').default;
       let questionDataStructure = {};
 
       if (formData.type === 'mcq') {
@@ -455,10 +473,22 @@ function AdminQuestionContent({ questionId, isEditing }) {
 
             <div className="question-field">
               <label className="question-label">Nội dung đề bài câu hỏi</label>
+              {formData.type === 'fill_blank' && (
+                <button
+                  type="button"
+                  onClick={insertBlank}
+                  className="question-insert-btn"
+                >
+                  + Chèn ô trống
+                </button>
+              )}
               <textarea
+                ref={contentRef}
                 value={formData.content}
                 onChange={(e) => handleChange('content', e.target.value)}
-                placeholder="Nhập câu hỏi hoặc yêu cầu đề bài tại đây..."
+                placeholder={formData.type === 'fill_blank'
+                  ? "Nhấn nút 'Chèn ô trống' phía trên để thêm ô điền đáp án..."
+                  : "Nhập câu hỏi hoặc yêu cầu đề bài tại đây..."}
                 rows={4}
                 className="question-textarea"
                 required
@@ -494,6 +524,6 @@ function AdminQuestionContent({ questionId, isEditing }) {
       </div>
     </AdminLayout>
   );
-}
+};
 
 export default AdminCreateQuestionPage;
