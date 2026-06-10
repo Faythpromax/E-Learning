@@ -21,6 +21,7 @@ slides.md
 UML.docx
 *.log
 .DS_Store
+.cursor/
 .env
 .env.backup
 .env.production
