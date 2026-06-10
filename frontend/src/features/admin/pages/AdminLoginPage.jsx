@@ -1,24 +1,39 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, forceClearAuthSession } from '../../contexts/AuthContext';
 
 function AdminLoginPage() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    const Email = document.querySelector('input[placeholder="Email"]').value;
-    const Password = document.querySelector('input[placeholder="Mật khẩu"]').value;
+  const handleLogin = async () => {
+    const email = document.querySelector('input[type="email"]').value;
+    const password = document.querySelector('input[type="password"]').value;
 
-    const mockEmail = 'NHV123@gmail.com';
-    const mockPassword = '123';
-
-    if (!Email || !Password) {
-      alert('Vui lòng nhập đầy đủ thông tin.');
+    if (!email || !password) {
+      setError('Vui lòng nhập đầy đủ thông tin.');
       return;
     }
 
-    if (Email === mockEmail && Password === mockPassword) {
-      navigate('/admin/dashboard');
-    } else {
-      alert('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
+    setLoading(true);
+    setError('');
+
+    // Clear any existing auth state before login (handles case where user changed URL without logout)
+    if (isAuthenticated && user) {
+      forceClearAuthSession();
+      window.location.href = '/admin/login';
+      setLoading(false);
+      return;
+    }
+
+    const result = await login(email, password, 'admin');
+
+    setLoading(false);
+
+    if (!result.success) {
+      setError(result.message || 'Email hoặc mật khẩu không đúng.');
     }
   };
 
@@ -30,14 +45,20 @@ function AdminLoginPage() {
         </button>
         <h1 style={{ fontSize: '1.6rem', marginBottom: '8px', color: '#0f1f3d' }}>Đăng nhập quản trị viên</h1>
         <p style={{ color: '#6b7280', lineHeight: 1.6, marginBottom: '24px' }}>Khu vực quản trị hoạt động riêng cho role Admin.</p>
+        {error && (
+          <div style={{ padding: '12px', background: '#fee2e2', borderRadius: '8px', color: '#dc2626', marginBottom: '16px', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
         <div style={{ display: 'grid', gap: '12px' }}>
-          <input type="email" placeholder="Email" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} required />
-          <input type="password" placeholder="Mật khẩu" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} required />
+          <input type="email" placeholder="Email" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} />
+          <input type="password" placeholder="Mật khẩu" style={{ padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #d1dff7' }} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
           <button
             type="button"
             onClick={handleLogin}
-            style={{ padding: '12px 14px', border: 'none', borderRadius: '12px', background: 'linear-gradient(135deg, #0084FF, #0070d9)', color: '#fff', fontWeight: 700 }}>
-            Đăng Nhập
+            disabled={loading}
+            style={{ padding: '12px 14px', border: 'none', borderRadius: '12px', background: loading ? '#9ca3af' : 'linear-gradient(135deg, #0084FF, #0070d9)', color: '#fff', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer' }}>
+            {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
           </button>
         </div>
       </div>

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../../services/authService';
+import { useAuth } from '../../../contexts/AuthContext';
 
 /**
  * Component AdminLoginPage - Xử lý đăng nhập cho Quản trị viên
  */
 function AdminLoginPage() {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,14 +19,10 @@ function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const data = await authService.login(email, password, "admin");
+      const result = await authLogin(email, password, "admin");
 
-      // Kiểm tra vai trò admin
-      if (data.user && data.user.role === "admin") {
-        navigate('/admin/dashboard');
-      } else {
-        await authService.logout();
-        setError("Bạn không có quyền truy cập khu vực quản trị.");
+      if (!result.success) {
+        setError(result.message || "Email hoặc mật khẩu không đúng.");
       }
     } catch (err) {
       if (err.response) {
@@ -34,9 +31,9 @@ function AdminLoginPage() {
           const firstErrorKey = Object.keys(validationErrors)[0];
           setError(validationErrors[firstErrorKey][0]);
         } else if (err.response.status === 401) {
-          setError(err.response.data.message || "Email hoặc mật khẩu admin không đúng.");
+          setError(err.response.data.message || "Email hoặc mật khẩu không đúng.");
         } else {
-          setError("Lỗi đăng nhập admin. Vui lòng thử lại.");
+          setError("Lỗi đăng nhập. Vui lòng thử lại.");
         }
       } else {
         setError("Lỗi kết nối máy chủ.");

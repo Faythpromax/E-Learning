@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../../services/authService";
+import { useAuth, forceClearAuthSession } from "../../../contexts/AuthContext";
 import "../auth.css";
 
 function LoginStudentPage() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, user } = useAuth();
   const [formData, setFormData] = useState({ contact: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -20,28 +21,19 @@ function LoginStudentPage() {
     setError("");
     setLoading(true);
 
-    try {
-      const data = await authService.login(
-        formData.contact,
-        formData.password,
-        "student"
-      );
+    // Clear any existing auth state before login (handles case where user changed URL without logout)
+    if (isAuthenticated && user) {
+      forceClearAuthSession();
+      window.location.href = '/login/student';
+      return;
+    }
 
-      if (data.user?.role === "student") {
-        navigate("/student/dashboard");
-      } else {
-        setError("Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản học sinh.");
-      }
-    } catch (err) {
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError("Đăng nhập thất bại. Vui lòng thử lại.");
-      }
-    } finally {
-      setLoading(false);
+    const result = await login(formData.contact, formData.password, "student");
+
+    setLoading(false);
+
+    if (!result.success) {
+      setError(result.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     }
   };
 

@@ -1,34 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth, forceClearAuthSession } from "../../../contexts/AuthContext";
 import "../auth.css";
-import { useAuth } from "../../../contexts/AuthContext";
 
 function LoginTeacherPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const [formData, setFormData] = useState({ contact: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
+    setError("");
   };
 
   const handleSubmit = async (event) => {
-  event.preventDefault();
+    event.preventDefault();
+    setError("");
+    setLoading(true);
 
-  const result = await login(
-    formData.contact,
-    formData.password,
-    "teacher"
-  );
+    // Clear any existing auth state before login (handles case where user changed URL without logout)
+    if (isAuthenticated && user) {
+      forceClearAuthSession();
+      window.location.href = '/login/teacher';
+      return;
+    }
 
-  if (result.success) {
-    alert("Đăng nhập thành công!");
-    navigate("/teacher/dashboard");
-  } else {
-    alert(result.message);
-  }
-};
+    const result = await login(formData.contact, formData.password, "teacher");
+
+    setLoading(false);
+
+    if (!result.success) {
+      setError(result.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+    }
+  };
 
   return (
     <div className="auth-page auth-page--centered">
@@ -50,6 +57,12 @@ function LoginTeacherPage() {
           <p className="auth-subtitle">
             Chào mừng trở lại! Nhập thông tin tài khoản của bạn.
           </p>
+
+          {error && (
+            <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px' }}>
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
@@ -100,8 +113,9 @@ function LoginTeacherPage() {
               id="btn-login-teacher"
               type="submit"
               className="auth-btn auth-btn-primary"
+              disabled={loading}
             >
-              Đăng nhập
+              {loading ? "Đang xác thực..." : "Đăng nhập"}
             </button>
           </form>
 

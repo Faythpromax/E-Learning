@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../../services/authService";
+import { useAuth } from "../../../contexts/AuthContext";
 import "../../../features/auth/auth.css";
 
 /**
@@ -8,6 +8,7 @@ import "../../../features/auth/auth.css";
  */
 function LoginTeacherPage() {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,30 +21,19 @@ function LoginTeacherPage() {
     setLoading(true);
 
     try {
-      const data = await authService.login(
-        email,
-        password,
-        "teacher"
-      );
-      console.log("KẾT QUẢ ĐĂNG NHẬP THỰC TẾ:", data);
-      console.log("DỮ LIỆU TRONG STORAGE:", localStorage.getItem('auth_user'));
+      const result = await authLogin(email, password, "teacher");
 
-      if (data.user && data.user.role === "teacher") {
-    navigate("/teacher/dashboard");
-  } else {
-    await authService.logout();
-
-    setError(
-      "Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản giáo viên."
-    );
-  }
-} catch (err) {
+      if (result.success && result.user?.role === "teacher") {
+        // AuthContext.login() already navigates to the correct dashboard
+      } else {
+        setError("Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản giáo viên.");
+      }
+    } catch (err) {
       if (err.response && err.response.status === 422) {
         const validationErrors = err.response.data.errors;
         const firstErrorKey = Object.keys(validationErrors)[0];
         setError(validationErrors[firstErrorKey][0]);
       } else if (err.response && err.response.status === 401) {
-        // Bắt lỗi sai mật khẩu (invalid credentials) hoặc lỗi do authService ném ra khi sai role
         const msg = err.response.data.message;
         if (msg === "invalid credentials" || msg === "Invalid credentials") {
           setError("Mật khẩu nhập vào không chính xác. Vui lòng thử lại.");
@@ -51,7 +41,6 @@ function LoginTeacherPage() {
           setError(msg || "Tài khoản hoặc mật khẩu không đúng.");
         }
       } else {
-        // Trường hợp bị sai Role do code bốc từ authService.js ném ra bằng lệnh `throw new Error(...)`
         setError(err.message || "Đăng nhập thất bại.");
       }
     } finally {

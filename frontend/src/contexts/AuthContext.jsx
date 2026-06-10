@@ -1,8 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 
 const AuthContext = createContext(null);
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -12,52 +15,73 @@ export const useAuth = () => {
   return context;
 };
 
+// Utility export for force clearing auth state (without React state reset)
+export const forceClearAuthSession = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  delete apiClient.defaults.headers.common['Authorization'];
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const TOKEN_KEY = 'auth_token';
-  const USER_KEY = 'auth_user';
+  const initAuth = useCallback(() => {
+    try {
+      const storedUser = localStorage.getItem(USER_KEY);
+      const token = localStorage.getItem(TOKEN_KEY);
+
+      if (storedUser && token) {
+        const parsedUser = JSON.parse(storedUser);
+        console.log("=== THÔNG TIN USER KHI KHỞI TẠO ===", parsedUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error('Error parsing stored user data:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const initAuth = () => {
-      try {
-        const storedUser = localStorage.getItem(USER_KEY);
-        const token = localStorage.getItem(TOKEN_KEY);
+    initAuth();
 
-        if (storedUser && token) {
-          const parsedUser = JSON.parse(storedUser);
-          console.log("=== THÔNG TIN USER KHI KHỞI TẠO TRANG ===", parsedUser);
-          setUser(parsedUser);
-          setIsAuthenticated(true);
-        } else {
-          clearAuthStorage();
-        }
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        clearAuthStorage();
-      } finally {
-        setLoading(false);
+    const handleStorageChange = (e) => {
+      if (e.key === TOKEN_KEY || e.key === USER_KEY) {
+        initAuth();
       }
     };
 
-    initAuth();
-  }, []);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [initAuth]);
 
   const clearAuthStorage = () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    delete apiClient.defaults.headers.common['Authorization'];
     setUser(null);
     setIsAuthenticated(false);
   };
 
   const login = async (email, password, role = 'teacher') => {
     try {
+      // Clear existing auth state completely before login
       clearAuthStorage();
+      setUser(null);
+      setIsAuthenticated(false);
 
       const response = await apiClient.post('/login', {
         email,
@@ -75,19 +99,19 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
-      
-      // Gán trực tiếp token mới vào apiClient ngay lập tức để chặn dùng token cũ
-      if (apiClient.defaults.headers.common) {
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      const actualRole = userData?.role || role;
 
       setUser(userData);
       setIsAuthenticated(true);
 
-      // Su dung navigate() de redirect - tranh race condition voi React Router
-      if (role === 'teacher') {
+      if (actualRole === 'teacher') {
         navigate('/teacher/dashboard', { replace: true });
-      } else if (role === 'admin') {
+      } else if (actualRole === 'admin') {
         navigate('/admin/dashboard', { replace: true });
       } else {
         navigate('/student/dashboard', { replace: true });
@@ -96,7 +120,6 @@ export const AuthProvider = ({ children }) => {
       return { success: true, user: userData };
     } catch (error) {
       console.error('Login API error:', error);
-      clearAuthStorage();
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Login failed',
@@ -136,7 +159,14 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout API error:', error);
     } finally {
-      clearAuthStorage();
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      setUser(null);
+      setIsAuthenticated(false);
+
       navigate('/login', { replace: true });
     }
   };
@@ -156,6 +186,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    clearAuthStorage,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
