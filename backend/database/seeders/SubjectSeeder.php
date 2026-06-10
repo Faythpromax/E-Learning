@@ -2,24 +2,28 @@
 
 namespace Database\Seeders;
 
-use App\Models\Subject;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class SubjectSeeder extends Seeder
 {
     public function run(): void
     {
+        // Insert the default subjects (without truncating to keep foreign keys)
         $subjects = [
-            ['name' => 'Toán', 'class_level' => 'Lớp 1'],
-            ['name' => 'Toán', 'class_level' => 'Lớp 2'],
-            ['name' => 'Tiếng Việt', 'class_level' => 'Lớp 1'],
-            ['name' => 'Tiếng Việt', 'class_level' => 'Lớp 2'],
-            ['name' => 'Khoa học', 'class_level' => 'Lớp 2'],
-            ['name' => 'Tiếng Anh', 'class_level' => 'Lớp 1'],
+            ['name' => 'Math', 'class_level' => 'General'],
+            ['name' => 'Vietnamese', 'class_level' => 'General'],
+            ['name' => 'English', 'class_level' => 'General'],
+            ['name' => 'Science', 'class_level' => 'General'],
         ];
 
         foreach ($subjects as $subject) {
-            Subject::create($subject);
+            DB::table('subjects')->updateOrInsert(
+                ['name' => $subject['name']],
+                $subject
+            );
         }
+
+        $this->command->info('Subjects seeded successfully!');
     }
 }

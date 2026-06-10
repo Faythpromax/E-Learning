@@ -29,6 +29,7 @@ export function TestSessionPage() {
     try {
       setLoading(true);
       const response = await testApi.startTest(testId);
+      console.log("START TEST RESPONSE:", response);
       
       if (response.success && response.data) {
         const data = response.data;

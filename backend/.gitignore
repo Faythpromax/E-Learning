@@ -8,6 +8,7 @@
 sequence/
 usecase/
 activity/
+resources/uml/
 
 # Ignore local folders
 out/

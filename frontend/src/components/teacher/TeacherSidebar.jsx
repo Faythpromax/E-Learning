@@ -84,8 +84,8 @@ const TeacherSidebar = ({ isOpen }) => {
         </div>
 
         <div
-          className={`nav-item ${isActive("/teacher/test") ? "active" : ""}`}
-          onClick={() => navigate("/teacher/test")}
+          className={`nav-item ${isActive("/teacher/tests") ? "active" : ""}`}
+          onClick={() => navigate("/teacher/tests")}
         >
           <FiFileText className="nav-icon" />
           <span className="nav-text">Bài kiểm tra</span>

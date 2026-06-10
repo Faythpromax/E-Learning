@@ -119,7 +119,10 @@ class TestService
 
     public function submitTest(int $attemptId, array $answers): array
     {
-        $attempt = TestAttempt::with(['test', 'test.questions.question'])->findOrFail($attemptId);
+        $attempt = TestAttempt::with([
+            'test',
+            'test.questions'
+        ])->findOrFail($attemptId);
 
         // Check if already submitted
         if ($attempt->status === TestAttempt::STATUS_SUBMITTED) {
@@ -137,8 +140,7 @@ class TestService
         $results = [];
 
         // Grade each answer
-        foreach ($attempt->test->questions as $testQuestion) {
-            $question = $testQuestion->question;
+        foreach ($attempt->test->questions as $question) {
             $questionId = $question->id;
             $answer = $answers[$questionId] ?? null;
             $questionData = $question->toArray();
@@ -159,7 +161,7 @@ class TestService
             $this->testRepository->createAnswer($attemptId, $questionId, $answer, $isCorrect);
 
             // Calculate scores
-            $questionMaxScore = $testQuestion->score ?? 1;
+            $questionMaxScore = $question->pivot->score ?? 1;
             $maxScore += $questionMaxScore;
             $totalScore += $isCorrect ? $questionMaxScore : 0;
 
@@ -230,8 +232,7 @@ class TestService
         }
 
         $questions = [];
-        foreach ($attempt->test->questions as $testQuestion) {
-            $question = $testQuestion->question;
+        foreach ($attempt->test->questions as $question) {
             $answer = $attempt->answers->firstWhere('question_id', $question->id);
             $questionData = $question->toArray();
 
@@ -246,7 +247,7 @@ class TestService
                 'user_answer' => $answer?->answer,
                 'is_correct' => $answer?->is_correct,
                 'correct_answer' => $this->scoringFactory->getCorrectAnswer($question->type, $questionData),
-                'score' => $testQuestion->score ?? 1,
+                'score' => $question->pivot->score ?? 1,
             ];
         }
 
@@ -298,16 +299,16 @@ class TestService
             ->pluck('answer', 'question_id')
             ->toArray();
 
-        $questions = $test->questions->map(function ($testQuestion) {
+        $questions = $test->questions->map(function ($question) {
             return [
-                'id' => $testQuestion->question->id,
-                'type' => $testQuestion->question->type,
-                'content' => $testQuestion->question->content,
-                'data' => $testQuestion->question->data,
-                'media_image' => $testQuestion->question->media_image,
-                'media_audio' => $testQuestion->question->media_audio,
-                'score' => $testQuestion->score ?? 1,
-                'order_index' => $testQuestion->order_index,
+                'id' => $question->id,
+                'type' => $question->type,
+                'content' => $question->content,
+                'data' => $question->data,
+                'media_image' => $question->media_image,
+                'media_audio' => $question->media_audio,
+                'score' => $question->score ?? 1,
+                'order_index' => $question->order_index,
             ];
         });
 

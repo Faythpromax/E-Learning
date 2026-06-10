@@ -79,7 +79,7 @@ class TestRepository implements TestRepositoryInterface
         return Test::with([
             'subject',
             'creator',
-            'questions.question'
+            'questions'
         ])->findOrFail($id);
     }
 

@@ -26,6 +26,7 @@ import TeacherDashboardPage from '../../features/teacher/pages/TeacherDashboardP
 import TeacherTestListPage from '../../features/teacher/pages/TestListPage';
 import CreateTestPage from '../../features/teacher/pages/CreateTestPage';
 import TestResultsPage from '../../features/teacher/pages/TestResultsPage';
+import TestDetailPage from '../../features/teacher/pages/TestDetailPage';
 import QuestionListPage from '../../features/teacher/pages/QuestionListPage';
 import CreateQuestionPage from '../../features/teacher/pages/CreateQuestionPage';
 import ClassListPage from '../../features/teacher/pages/ClassListPage';
@@ -186,6 +187,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <TeacherTestListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/tests/:testId"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TestDetailPage />
             </ProtectedRoute>
           }
         />

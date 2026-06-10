@@ -38,7 +38,9 @@ class TestController extends Controller
     public function show(int $id): JsonResponse
     {
         try {
-            $test = $this->testService->getTestById($id);
+            $test = $this->testService->getTestWithQuestions($id);
+            $test->load('subject');
+            $test->attempts_count = $test->attempts()->count();
 
             return response()->json([
                 'success' => true,
