@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  FiPlus, FiTrash2, FiSearch, FiArrowLeft, FiSave, 
-  FiClock, FiCalendar, FiBookOpen, FiCheckSquare, FiSquare, FiPlusCircle 
+import {
+  FiPlus, FiTrash2, FiSearch, FiArrowLeft, FiSave,
+  FiClock, FiCalendar, FiBookOpen, FiCheckSquare, FiSquare, FiPlusCircle
 } from 'react-icons/fi';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { testApi } from '../../../api/testApi';
@@ -325,15 +325,24 @@ export function AdminCreateTestPage() {
               </span>
             </h2>
             
-            <div style={{ position: 'relative', width: '280px' }}>
-              <FiSearch style={{ position: 'absolute', left: '12px', top: '11px', color: '#94a3b8', fontSize: '14px' }} />
-              <input
-                type="text"
-                placeholder="Tìm kiếm nội dung câu hỏi..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px 8px 36px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '13px', boxSizing: 'border-box' }}
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ position: 'relative', width: '280px', flex: 'none' }}>
+                <FiSearch style={{ position: 'absolute', left: '12px', top: '11px', color: '#94a3b8', fontSize: '14px' }} />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm nội dung câu hỏi..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px 8px 36px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '13px', boxSizing: 'border-box' }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/admin/questions/create')}
+                style={{ height: '36px', backgroundColor: '#4f46e5', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '0 14px', flexShrink: 0, boxShadow: '0 1px 3px rgba(79,70,229,0.3)' }}
+              >
+                <FiPlus /> Thêm câu hỏi
+              </button>
             </div>
           </div>
 

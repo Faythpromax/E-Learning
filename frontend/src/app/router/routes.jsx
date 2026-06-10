@@ -16,6 +16,7 @@ import EditUserPage from '../../features/admin/pages/EditUserPage';
 import AdminTestListPage from '../../features/admin/pages/TestListPage';
 import AdminTestDetailPage from '../../features/admin/pages/TestDetailPage';
 import AdminCreateTestPage from '../../features/admin/pages/CreateTestPage';
+import AdminCreateQuestionPage from '../../features/admin/pages/AdminCreateQuestionPage';
 import StudentDashboardPage from '../../features/student/pages/StudentDashboardPage';
 import StudentGradesPage from '../../features/student/pages/StudentGradesPage';
 import StudentSupportPage from '../../features/student/pages/StudentSupportPage';
@@ -128,6 +129,22 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminCreateTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions/create"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateQuestionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions/:questionId/edit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateQuestionPage />
             </ProtectedRoute>
           }
         />

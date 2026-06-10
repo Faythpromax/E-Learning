@@ -1,21 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2 } from 'react-icons/fi';
-import TeacherLayout from '../../../components/teacher/TeacherLayout';
-import MatchingBuilder from '../../../components/teacher/questions/MatchingBuilder';
-import questionApi from '../../../api/questionApi';
-import subjectApi from '../../../api/subjectApi';
+import AdminLayout from '../../../components/admin/AdminLayout';
+import MatchingBuilder from '../../../components/common/questions/MatchingQuestion';
 
-const CreateQuestionPage = () => {
-  const { id } = useParams();
+const AdminCreateQuestionPage = () => {
+  const { questionId } = useParams();
   const navigate = useNavigate();
-  const isEditing = !!id;
+  const isEditing = !!questionId;
 
-  // State cho Fill Blank - quan ly cac o trong
-  const [blankAnswers, setBlankAnswers] = useState({});
-  const contentRef = useRef(null);
+  const handleBack = () => {
+    navigate('/admin/questions');
+  };
 
-  const [formData, setFormData] = useState({
+  return (
+    <AdminLayout title={isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}>
+      <div className="max-w-3xl mx-auto px-4 py-2">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors"
+        >
+          &larr; Quay lại danh sách câu hỏi
+        </button>
+
+        <AdminQuestionContent questionId={questionId} isEditing={isEditing} />
+      </div>
+    </AdminLayout>
+  );
+};
+
+function AdminQuestionContent({ questionId, isEditing }) {
+  const [blankAnswers, setBlankAnswers] = React.useState({});
+
+  const [formData, setFormData] = React.useState({
     subject_id: '',
     type: 'mcq',
     content: '',
@@ -29,43 +45,39 @@ const CreateQuestionPage = () => {
       rows: [['', '']]
     },
   });
-  
-  const [subjects, setSubjects] = useState([
-    { id: '1', name: 'Tiếng Anh 5A3' },
-    { id: '2', name: 'Tiếng Anh 4A2' }
-  ]); // Mock danh sách môn học đồng bộ với Sidebar của bạn
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    // Nếu bạn có API lấy danh sách môn học thực tế từ DB, chạy ở đây:
+  const [subjects, setSubjects] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const navigate = require('react-router-dom').useNavigate();
+
+  React.useEffect(() => {
     fetchSubjects();
-    
-    if (isEditing) {
-      fetchQuestion();
+    if (isEditing && questionId) {
+      fetchQuestion(questionId);
     }
-  }, [id]);
+  }, [questionId]);
 
   const fetchSubjects = async () => {
     try {
+      const subjectApi = require('../../../api/subjectApi').default;
       const resp = await subjectApi.getSubjects();
       if (resp && resp.success) {
         setSubjects(resp.data);
       }
     } catch (err) {
-      // keep fallback mock subjects
-      console.error('Không lấy được danh sách môn học:', err);
+      console.error('Khong lay duoc danh sach mon hoc:', err);
     }
   };
 
-  const fetchQuestion = async () => {
+  const fetchQuestion = async (id) => {
     try {
       setLoading(true);
+      const questionApi = require('../../../api/questionApi').default;
       const response = await questionApi.getQuestion(id);
-      
+
       if (response && response.success) {
-        const qData = response.data; 
-        
+        const qData = response.data;
         setFormData({
           subject_id: qData.subject_id?.toString() || '',
           type: qData.type || 'mcq',
@@ -81,7 +93,7 @@ const CreateQuestionPage = () => {
         });
       }
     } catch (err) {
-      setError('Không thể tải thông tin câu hỏi này từ hệ thống.');
+      setError('Khong the tai thong tin cau hoi.');
     } finally {
       setLoading(false);
     }
@@ -107,48 +119,19 @@ const CreateQuestionPage = () => {
     });
   };
 
-  // --- Logic cho Matching voi MatchingBuilder ---
   const handleMatchingDataChange = (newData) => {
-    setFormData(prev => ({
-      ...prev,
-      matching_data: newData,
-    }));
+    setFormData(prev => ({ ...prev, matching_data: newData }));
   };
 
-  // --- Logic cho Fill Blank - chen o trong vao de bai ---
-  const insertBlank = () => {
-    const blankCount = (formData.content.match(/__BLANK_\d+__/g) || []).length;
-    const placeholder = `__BLANK_${blankCount}__`;
-    const textarea = contentRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const before = formData.content.substring(0, start);
-      const after = formData.content.substring(end);
-      const newContent = before + placeholder + after;
-      setFormData(prev => ({ ...prev, content: newContent }));
-      setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
-      // Set cursor after the placeholder
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
-      }, 0);
-    } else {
-      setFormData(prev => ({ ...prev, content: prev.content + placeholder }));
-      setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
-    }
-  };
+  const getBlankCount = () => (formData.content.match(/__BLANK_\d+__/g) || []).length;
 
   const handleBlankAnswerChange = (index, value) => {
     setBlankAnswers(prev => ({ ...prev, [index]: value }));
   };
 
-  const getBlankCount = () => (formData.content.match(/__BLANK_\d+__/g) || []).length;
-
   const renderContentWithBlanks = () => {
     const blankCount = getBlankCount();
     if (blankCount === 0) return null;
-
     return (
       <div className="question-blanks-panel">
         <p style={{ fontSize: '12px', color: '#92400e', marginBottom: '10px', fontWeight: 600 }}>
@@ -172,7 +155,6 @@ const CreateQuestionPage = () => {
     );
   };
 
-  // --- Logic động cho câu hỏi Điền bảng (Table Fill) ---
   const handleHeaderChange = (index, value) => {
     const newHeaders = [...formData.table_data.headers];
     newHeaders[index] = value;
@@ -192,7 +174,7 @@ const CreateQuestionPage = () => {
   };
 
   const addTableColumn = () => {
-    const newHeaders = [...formData.table_data.headers, `Tiêu đề ${formData.table_data.headers.length + 1}`];
+    const newHeaders = [...formData.table_data.headers, `Tieu de ${formData.table_data.headers.length + 1}`];
     const newRows = formData.table_data.rows.map(row => [...row, '']);
     setFormData({
       ...formData,
@@ -220,57 +202,30 @@ const CreateQuestionPage = () => {
     e.preventDefault();
     setError('');
 
-    // 1. Kiểm tra nhanh các trường bắt buộc ở Frontend
     if (!formData.subject_id) {
-      setError('Vui lòng lựa chọn Môn học / Lớp học cho câu hỏi này.');
+      setError('Vui long chon Mon hoc / Lop hoc cho cau hoi nay.');
       return;
     }
 
     if (!formData.content.trim()) {
-      setError('Vui lòng nhập nội dung đề bài câu hỏi.');
+      setError('Vui long nhap noi dung de bai cau hoi.');
       return;
     }
 
     if (formData.type === 'mcq' && formData.options.some(o => !o.trim())) {
-      setError('Vui lòng nhập đầy đủ nội dung cho cả 4 đáp án lựa chọn.');
+      setError('Vui long nhap day du noi dung cho ca 4 dap an lua chon.');
       return;
     }
 
     if (formData.type === 'mcq' && (!formData.correct_answers || formData.correct_answers.length === 0)) {
-      setError('Vui lòng chọn ít nhất một đáp án đúng.');
+      setError('Vui long chon it nhat mot dap an dung.');
       return;
-    }
-
-    if (formData.type === 'matching') {
-      const { left, right, correct_matches } = formData.matching_data;
-      if (left.some(l => !l.trim()) || right.some(r => !r.trim())) {
-        setError('Vui lòng nhập đầy đủ nội dung các cặp ghép nối.');
-        return;
-      }
-      if (Object.keys(correct_matches).length !== left.length) {
-        setError('Vui lòng nối đủ tất cả các cặp ghép.');
-        return;
-      }
-    }
-
-    if (formData.type === 'fill_blank') {
-      const blankCount = getBlankCount();
-      if (blankCount === 0) {
-        setError('Vui lòng thêm ít nhất một ô trống vào đề bài bằng nút "Chèn ô trống".');
-        return;
-      }
-      const unfilled = Array.from({ length: blankCount }, (_, i) => i)
-        .filter(i => !blankAnswers[i]?.trim());
-      if (unfilled.length > 0) {
-        setError(`Vui lòng nhập đáp án cho tất cả các ô trống (thiếu ${unfilled.length} ô).`);
-        return;
-      }
     }
 
     setLoading(true);
 
     try {
-      // 2. Tự động đóng gói object 'data' tương ứng với từng loại câu hỏi
+      const questionApi = require('../../../api/questionApi').default;
       let questionDataStructure = {};
 
       if (formData.type === 'mcq') {
@@ -299,34 +254,30 @@ const CreateQuestionPage = () => {
         };
       }
 
-      // 3. Gom tất cả thành Payload hoàn chỉnh chuẩn Laravel yêu cầu
       const payload = {
         subject_id: Number(formData.subject_id),
         type: formData.type,
         content: formData.content,
         explanation: formData.explanation,
         difficulty: formData.difficulty || 'medium',
-        data: questionDataStructure // Nhét cục dữ liệu đặc thù vào đây
+        data: questionDataStructure,
       };
 
-      // 4. Gọi API gửi đi (Xử lý linh hoạt giữa Thêm mới và Cập nhật)
-      if (isEditing) {
-        await questionApi.updateQuestion(id, payload);
-        alert('Cập nhật thay đổi câu hỏi thành công!');
+      if (isEditing && questionId) {
+        await questionApi.updateQuestion(questionId, payload);
+        alert('Cap nhat thay doi cau hoi thanh cong!');
       } else {
         await questionApi.createQuestion(payload);
-        alert('Tạo câu hỏi học tập mới thành công!');
+        alert('Tao cau hoi hoc tap moi thanh cong!');
       }
-      
-      navigate('/teacher/questions');
+
+      navigate('/admin/questions');
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra trong quá trình kết nối và lưu dữ liệu.');
+      setError(err.response?.data?.message || 'Co loi xay ra trong qua trinh luu du lieu.');
     } finally {
       setLoading(false);
     }
   };
-
-  // --- RENDER GIAO DIỆN CÁC LOẠI CÂU HỎI ---
 
   const renderMcqFields = () => (
     <div className="question-answer-card blue">
@@ -339,7 +290,6 @@ const CreateQuestionPage = () => {
           <div key={index} className="question-option-row">
             <input
               type="checkbox"
-              id={`mcq-opt-${index}`}
               checked={isCorrect || false}
               onChange={() => toggleCorrectAnswer(optionId)}
               className="question-option-check"
@@ -446,13 +396,10 @@ const CreateQuestionPage = () => {
   );
 
   return (
-    <TeacherLayout pageTitle={isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}>
+    <AdminLayout title={isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}>
       <div className="question-page-wrapper">
-        <button
-          onClick={() => navigate('/teacher/questions')}
-          className="question-back-btn"
-        >
-          <FiArrowLeft /> Quay lại danh sách
+        <button onClick={handleBack} className="question-back-btn">
+          &larr; Quay lại danh sách câu hỏi
         </button>
 
         <div className="question-form-card">
@@ -460,9 +407,7 @@ const CreateQuestionPage = () => {
             {isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi học tập mới'}
           </h2>
 
-          {error && (
-            <div className="question-error">{error}</div>
-          )}
+          {error && <div className="question-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="question-field">
@@ -481,7 +426,7 @@ const CreateQuestionPage = () => {
             </div>
 
             <div className="question-row">
-              <div className="question-field" style={{ marginBottom: 0 }}>
+              <div style={{ marginBottom: 0 }}>
                 <label className="question-label">Loại hình câu hỏi</label>
                 <select
                   value={formData.type}
@@ -494,7 +439,7 @@ const CreateQuestionPage = () => {
                   <option value="table_fill">Điền thông tin vào ô bảng</option>
                 </select>
               </div>
-              <div className="question-field" style={{ marginBottom: 0 }}>
+              <div style={{ marginBottom: 0 }}>
                 <label className="question-label">Độ khó câu hỏi</label>
                 <select
                   value={formData.difficulty}
@@ -510,22 +455,10 @@ const CreateQuestionPage = () => {
 
             <div className="question-field">
               <label className="question-label">Nội dung đề bài câu hỏi</label>
-              {formData.type === 'fill_blank' && (
-                <button
-                  type="button"
-                  onClick={insertBlank}
-                  className="question-insert-btn"
-                >
-                  + Chèn ô trống
-                </button>
-              )}
               <textarea
-                ref={contentRef}
                 value={formData.content}
                 onChange={(e) => handleChange('content', e.target.value)}
-                placeholder={formData.type === 'fill_blank'
-                  ? "Nhấn nút 'Chèn ô trống' phía trên để thêm ô điền đáp án..."
-                  : "Nhập câu hỏi hoặc yêu cầu đề bài tại đây..."}
+                placeholder="Nhập câu hỏi hoặc yêu cầu đề bài tại đây..."
                 rows={4}
                 className="question-textarea"
                 required
@@ -549,26 +482,18 @@ const CreateQuestionPage = () => {
             </div>
 
             <div className="question-actions">
-              <button
-                type="button"
-                onClick={() => navigate('/teacher/questions')}
-                className="question-btn-cancel"
-              >
+              <button type="button" onClick={handleBack} className="question-btn-cancel">
                 Hủy bỏ
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="question-btn-submit"
-              >
+              <button type="submit" disabled={loading} className="question-btn-submit">
                 {loading ? 'Đang xử lý...' : (isEditing ? 'Cập nhật thay đổi' : 'Lưu câu hỏi')}
               </button>
             </div>
           </form>
         </div>
       </div>
-    </TeacherLayout>
+    </AdminLayout>
   );
-};
+}
 
-export default CreateQuestionPage;
+export default AdminCreateQuestionPage;
