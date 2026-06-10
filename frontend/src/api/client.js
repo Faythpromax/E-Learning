@@ -35,16 +35,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn("Phiên đăng nhập hết hạn hoặc không hợp lệ. Đang dọn dẹp storage...");
-      
+      console.warn("Phiên đăng nhập hết hạn hoặc không hợp lệ.");
+
       // Xóa sạch cả bộ key mới lẫn bộ key cũ để chặn đứng rò rỉ session
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
-      // Ép quay về màn hình login
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

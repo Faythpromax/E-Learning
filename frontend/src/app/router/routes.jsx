@@ -13,6 +13,9 @@ import StudentListPage from '../../features/admin/pages/StudentListPage';
 import FeedbackPage from '../../features/admin/pages/FeedbackPage';
 import SettingsPage from '../../features/admin/pages/SettingsPage';
 import EditUserPage from '../../features/admin/pages/EditUserPage';
+import AdminTestListPage from '../../features/admin/pages/TestListPage';
+import AdminTestDetailPage from '../../features/admin/pages/TestDetailPage';
+import AdminCreateTestPage from '../../features/admin/pages/CreateTestPage';
 import StudentDashboardPage from '../../features/student/pages/StudentDashboardPage';
 import StudentGradesPage from '../../features/student/pages/StudentGradesPage';
 import StudentSupportPage from '../../features/student/pages/StudentSupportPage';
@@ -33,11 +36,9 @@ import ClassListPage from '../../features/teacher/pages/ClassListPage';
 import CreateClassPage from '../../features/teacher/pages/CreateClassPage';
 import ClassDetailPage from '../../features/teacher/pages/ClassDetailPage';
 import ProtectedRoute from "../../components/auth/ProtectedRoute";
-import { AuthProvider } from '../../contexts/AuthContext';
 
 export function AppRoutes() {
   return (
-    <AuthProvider>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
@@ -95,6 +96,38 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <EditUserPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminTestListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests/create"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests/:testId"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminTestDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests/:testId/edit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateTestPage />
             </ProtectedRoute>
           }
         />
@@ -271,6 +304,5 @@ export function AppRoutes() {
           }
         />
       </Routes>
-    </AuthProvider>
   );
 }

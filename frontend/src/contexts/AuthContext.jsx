@@ -84,8 +84,14 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setIsAuthenticated(true);
 
-      // 👉 THAY VÌ DÙNG navigate(), ÉP TRÌNH DUYỆT TẢI LẠI TRANG ĐỂ LÀM SẠCH AXIOS STATE
-      window.location.href = role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard';
+      // Su dung navigate() de redirect - tranh race condition voi React Router
+      if (role === 'teacher') {
+        navigate('/teacher/dashboard', { replace: true });
+      } else if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/student/dashboard', { replace: true });
+      }
 
       return { success: true, user: userData };
     } catch (error) {
@@ -131,7 +137,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout API error:', error);
     } finally {
       clearAuthStorage();
-      window.location.href = '/login';
+      navigate('/login', { replace: true });
     }
   };
 

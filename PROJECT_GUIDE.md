@@ -15,7 +15,7 @@
 | Test Module | HOAN THIEN | Backend + Frontend |
 | Class Module | HOAN THIEN | Backend + Frontend |
 | User Module | HOAN THIEN | Backend + Frontend |
-| Admin Pages | HOAN THIEN | Dashboard, Users, Settings |
+| Admin Pages | HOAN THIEN | Dashboard, Users, Quiz Management |
 
 ## 1.2. Backend da co
 
@@ -44,7 +44,7 @@ backend/app/
 ```
 frontend/src/
 ├── features/auth/               [HOAN THIEN - Login/Register]
-├── features/admin/              [HOAN THIEN - Dashboard, Users]
+├── features/admin/              [HOAN THIEN - Dashboard, Users, Quiz Management]
 ├── features/teacher/
 │   ├── pages/QuestionListPage   [HOAN THIEN]
 │   ├── pages/CreateQuestionPage [HOAN THIEN - MCQ, FillBlank]
@@ -298,5 +298,5 @@ Neu co them thoi gian:
 
 ---
 
-**Cap nhat:** 24/05/2026
-**Trang thai:** Can sua Question Module (80% hoan thien)
+**Cap nhat:** 10/06/2026
+**Trang thai:** Admin Quiz Management - Hoan thien
