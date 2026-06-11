@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiFileText } from 'react-icons/fi';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import questionApi from '../../../api/questionApi';
 
 const AdminQuestionListPage = () => {
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -132,7 +134,7 @@ const AdminQuestionListPage = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => window.location.href = `/admin/questions/${question.id}/edit`}
+                      onClick={() => navigate(`/admin/questions/${question.id}/edit`)}
                       className="p-2 text-blue-500 hover:text-blue-700 mr-2"
                     >
                       <FiEdit2 />

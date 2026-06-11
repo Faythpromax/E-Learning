@@ -42,7 +42,7 @@ export function CreateTestPage() {
   const fetchData = async () => {
     try {
       const [questionsRes, subjectsRes, classesRes] = await Promise.all([
-        questionApi.getQuestions({ per_page: 1000 }),
+        questionApi.getClassQuestions({ per_page: 1000 }),
         subjectApi.getSubjects(),
         classApi.getClasses(),
       ]);

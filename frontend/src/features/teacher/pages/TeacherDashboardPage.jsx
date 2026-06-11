@@ -46,7 +46,7 @@ const TeacherDashboardPage = () => {
         testApi.getTests(),
         classApi.getClasses(),
         userApi.getStudents(),
-        questionApi.getQuestions(),
+        questionApi.getClassQuestions(),
       ]);
 
       const tests = (testsRes.data || []).map(test => ({

@@ -32,6 +32,19 @@ class ClassRepository implements ClassRepositoryInterface
         return $query->orderBy('created_at', 'desc')->get();
     }
 
+    public function search(string $query): Collection
+    {
+        $normalized = trim($query);
+
+        return ClassModel::with(['creator'])
+            ->where(function ($q) use ($normalized) {
+                $q->where('class_code', 'like', "%{$normalized}%")
+                  ->orWhere('name', 'like', "%{$normalized}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
     public function getById(int $id): ?ClassModel
     {
         return ClassModel::with([

@@ -23,6 +23,7 @@ import StudentSupportPage from '../../features/student/pages/StudentSupportPage'
 import StudentSettingsPage from '../../features/student/pages/StudentSettingsPage';
 import StudentClassDetailPage from '../../features/student/pages/StudentClassDetailPage';
 import StudentClassListPage from '../../features/student/pages/StudentClassListPage';
+import SystemTestsPage from '../../features/student/pages/SystemTestsPage';
 import TestListPage from '../../features/student/pages/TestListPage';
 import TestSessionPage from '../../features/student/pages/TestSessionPage';
 import TestResultPage from '../../features/student/pages/TestResultPage';
@@ -34,9 +35,14 @@ import TestDetailPage from '../../features/teacher/pages/TestDetailPage';
 import AdminQuestionListPage from '../../features/admin/pages/AdminQuestionListPage';
 import QuestionListPage from '../../features/teacher/pages/QuestionListPage';
 import CreateQuestionPage from '../../features/teacher/pages/CreateQuestionPage';
+import EditQuestionPage from '../../features/teacher/pages/EditQuestionPage';
+import AdminEditQuestionPage from '../../features/admin/pages/AdminEditQuestionPage';
 import ClassListPage from '../../features/teacher/pages/ClassListPage';
 import CreateClassPage from '../../features/teacher/pages/CreateClassPage';
 import ClassDetailPage from '../../features/teacher/pages/ClassDetailPage';
+import TeacherPracticeListPage from '../../features/teacher/pages/PracticeListPage';
+import CreatePracticePage from '../../features/teacher/pages/CreatePracticePage';
+import PracticeQuestionPage from '../../features/teacher/pages/PracticeQuestionPage';
 import ProtectedRoute from "../../components/auth/ProtectedRoute";
 
 export function AppRoutes() {
@@ -153,7 +159,7 @@ export function AppRoutes() {
           path="/admin/questions/:questionId/edit"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <AdminCreateQuestionPage />
+              <AdminEditQuestionPage />
             </ProtectedRoute>
           }
         />
@@ -212,6 +218,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <TestListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/system-tests"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <SystemTestsPage />
             </ProtectedRoute>
           }
         />
@@ -301,7 +315,7 @@ export function AppRoutes() {
           path="/teacher/questions/:questionId/edit"
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
-              <CreateQuestionPage />
+              <EditQuestionPage />
             </ProtectedRoute>
           }
         />
@@ -326,6 +340,46 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <ClassDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherPracticeListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/create"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <CreatePracticePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/:practiceId/edit"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <CreatePracticePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/:practiceId"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherPracticeListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/:practiceId/questions"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <PracticeQuestionPage />
             </ProtectedRoute>
           }
         />

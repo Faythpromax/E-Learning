@@ -5,11 +5,12 @@ import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import MatchingBuilder from '../../../components/teacher/questions/MatchingBuilder';
 import questionApi from '../../../api/questionApi';
 import subjectApi from '../../../api/subjectApi';
+import { practiceApi } from '../../../api/practiceApi';
 
-const CreateQuestionPage = () => {
-  const { id } = useParams();
+const PracticeQuestionPage = () => {
+  const { practiceId } = useParams();
   const navigate = useNavigate();
-  const isEditing = !!id;
+  const isEditing = !!practiceId;
 
   // State cho Fill Blank - quan ly cac o trong
   const [blankAnswers, setBlankAnswers] = useState({});
@@ -30,21 +31,13 @@ const CreateQuestionPage = () => {
     },
   });
   
-  const [subjects, setSubjects] = useState([
-    { id: '1', name: 'Tiếng Anh 5A3' },
-    { id: '2', name: 'Tiếng Anh 4A2' }
-  ]); // Mock danh sách môn học đồng bộ với Sidebar của bạn
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Nếu bạn có API lấy danh sách môn học thực tế từ DB, chạy ở đây:
     fetchSubjects();
-    
-    if (isEditing) {
-      fetchQuestion();
-    }
-  }, [id]);
+  }, []);
 
   const fetchSubjects = async () => {
     try {
@@ -53,46 +46,7 @@ const CreateQuestionPage = () => {
         setSubjects(resp.data);
       }
     } catch (err) {
-      // keep fallback mock subjects
       console.error('Không lấy được danh sách môn học:', err);
-    }
-  };
-
-  const fetchQuestion = async () => {
-    try {
-      setLoading(true);
-      const response = await questionApi.getQuestion(id);
-      
-      if (response && response.success) {
-        const qData = response.data; 
-        
-        setFormData({
-          subject_id: qData.subject_id?.toString() || '',
-          type: qData.type || 'mcq',
-          content: qData.content || '',
-          explanation: qData.explanation || '',
-          difficulty: qData.difficulty || 'medium',
-          options: qData.data?.options?.map((opt) => opt.text) || ['', '', '', ''],
-          correct_answers: qData.data?.correct_answers || (qData.data?.correct_answer ? [qData.data.correct_answer] : []),
-          matching_data: qData.data?.left && qData.data?.right
-            ? { left: qData.data.left, right: qData.data.right, correct_matches: qData.data.correct_matches || {} }
-            : { left: ['', ''], right: ['', ''], correct_matches: {} },
-          table_data: qData.data?.headers && qData.data?.rows
-            ? { headers: qData.data.headers, rows: qData.data.rows }
-            : (qData.data?.table_data || { headers: ['Tiêu đề 1', 'Tiêu đề 2'], rows: [['', '']] }),
-        });
-
-        // Populate blankAnswers from saved correct_answers
-        if (qData.type === 'fill_blank' && Array.isArray(qData.data?.correct_answers)) {
-          const mapped = {};
-          qData.data.correct_answers.forEach((ans, i) => { mapped[i] = ans; });
-          setBlankAnswers(mapped);
-        }
-      }
-    } catch (err) {
-      setError('Không thể tải thông tin câu hỏi này từ hệ thống.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -104,17 +58,6 @@ const CreateQuestionPage = () => {
     const newOptions = [...formData.options];
     newOptions[index] = value;
     setFormData({ ...formData, options: newOptions });
-  };
-
-  const addOption = () => {
-    setFormData(prev => ({ ...prev, options: [...prev.options, ''] }));
-  };
-
-  const removeOption = (index) => {
-    const newOptions = formData.options.filter((_, i) => i !== index);
-    const removedId = String.fromCharCode(97 + index);
-    const newCorrect = (formData.correct_answers || []).filter(id => id !== removedId);
-    setFormData({ ...formData, options: newOptions, correct_answers: newCorrect });
   };
 
   const toggleCorrectAnswer = (optionId) => {
@@ -148,7 +91,6 @@ const CreateQuestionPage = () => {
       const newContent = before + placeholder + after;
       setFormData(prev => ({ ...prev, content: newContent }));
       setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
-      // Set cursor after the placeholder
       setTimeout(() => {
         textarea.focus();
         textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
@@ -251,13 +193,8 @@ const CreateQuestionPage = () => {
       return;
     }
 
-    if (formData.type === 'mcq' && formData.options.length < 2) {
-      setError('Cần ít nhất 2 phương án lựa chọn.');
-      return;
-    }
-
     if (formData.type === 'mcq' && formData.options.some(o => !o.trim())) {
-      setError('Vui lòng nhập đầy đủ nội dung cho tất cả các đáp án lựa chọn.');
+      setError('Vui lòng nhập đầy đủ nội dung cho cả 4 đáp án lựa chọn.');
       return;
     }
 
@@ -333,19 +270,30 @@ const CreateQuestionPage = () => {
         content: formData.content,
         explanation: formData.explanation,
         difficulty: formData.difficulty || 'medium',
-        data: questionDataStructure // Nhét cục dữ liệu đặc thù vào đây
+        data: questionDataStructure
       };
 
-      // 4. Gọi API gửi đi (Xử lý linh hoạt giữa Thêm mới và Cập nhật)
-      if (isEditing) {
-        await questionApi.updateClassQuestion(id, payload);
-        alert('Cập nhật thay đổi câu hỏi thành công!');
-      } else {
-        await questionApi.createClassQuestion(payload);
-        alert('Tạo câu hỏi học tập mới thành công!');
-      }
+      // 4. Gọi API để tạo câu hỏi
+      await questionApi.createClassQuestion(payload);
+      alert('Tạo câu hỏi học tập mới thành công!');
       
-      navigate('/teacher/questions');
+      // Reset form sau khi tạo thành công
+      setFormData({
+        subject_id: formData.subject_id,
+        type: 'mcq',
+        content: '',
+        explanation: '',
+        difficulty: 'medium',
+        options: ['', '', '', ''],
+        correct_answers: [],
+        matching_data: { left: ['', ''], right: ['', ''], correct_matches: {} },
+        table_data: {
+          headers: ['Tiêu đề 1', 'Tiêu đề 2'],
+          rows: [['', '']]
+        },
+      });
+      setBlankAnswers({});
+      
     } catch (err) {
       setError(err.response?.data?.message || 'Có lỗi xảy ra trong quá trình kết nối và lưu dữ liệu.');
     } finally {
@@ -382,28 +330,9 @@ const CreateQuestionPage = () => {
               className="question-option-input"
               required
             />
-            {formData.options.length > 2 && (
-              <button
-                type="button"
-                onClick={() => removeOption(index)}
-                style={{ marginLeft: '8px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
-                title="Xoá phương án"
-              >
-                x
-              </button>
-            )}
           </div>
         );
       })}
-      <div style={{ marginTop: '8px' }}>
-        <button
-          type="button"
-          onClick={addOption}
-          style={{ padding: '6px 14px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#2563eb', fontWeight: '500' }}
-        >
-          + Thêm phương án
-        </button>
-      </div>
       <div className="question-option-note">
         Tích chọn ô vuông bên trái để xác định đáp án đúng. Có thể chọn nhiều hơn một đáp án.
       </div>
@@ -492,33 +421,25 @@ const CreateQuestionPage = () => {
   );
 
   return (
-    <TeacherLayout pageTitle={isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}>
+    <TeacherLayout pageTitle="Thêm câu hỏi ôn tập">
       <div className="question-page-wrapper">
         <button
-          onClick={() => navigate('/teacher/questions')}
+          onClick={() => navigate('/teacher/practice')}
           className="question-back-btn"
         >
-          <FiArrowLeft /> Quay lại danh sách câu hỏi
+          <FiArrowLeft /> Quay lại danh sách bài ôn tập
         </button>
 
         <div className="question-form-card">
           <h2 className="question-form-title">
-            {isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi học tập mới'}
+            Thêm câu hỏi vào bài ôn tập
           </h2>
 
           {error && (
             <div className="question-error">{error}</div>
           )}
 
-          {loading && isEditing && (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
-              Đang tải dữ liệu câu hỏi...
-            </div>
-          )}
-
-          {!loading && (
-            <>
-            <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="question-field">
               <label className="question-label">Môn học / Lớp phụ trách</label>
               <select
@@ -526,7 +447,6 @@ const CreateQuestionPage = () => {
                 onChange={(e) => handleChange('subject_id', e.target.value)}
                 className="question-select"
                 required
-                disabled={isEditing}
               >
                 <option value="">-- Chọn môn học ứng với câu hỏi --</option>
                 {subjects.map(sub => (
@@ -542,7 +462,6 @@ const CreateQuestionPage = () => {
                   value={formData.type}
                   onChange={(e) => handleChange('type', e.target.value)}
                   className="question-select"
-                  disabled={isEditing}
                 >
                   <option value="mcq">Trắc nghiệm nhiều lựa chọn</option>
                   <option value="fill_blank">Điền từ vào chỗ trống</option>
@@ -607,7 +526,7 @@ const CreateQuestionPage = () => {
             <div className="question-actions">
               <button
                 type="button"
-                onClick={() => navigate('/teacher/questions')}
+                onClick={() => navigate('/teacher/practice')}
                 className="question-btn-cancel"
               >
                 Hủy bỏ
@@ -617,16 +536,14 @@ const CreateQuestionPage = () => {
                 disabled={loading}
                 className="question-btn-submit"
               >
-                {loading ? 'Đang xử lý...' : (isEditing ? 'Cập nhật thay đổi' : 'Lưu câu hỏi')}
+                {loading ? 'Đang xử lý...' : 'Thêm câu hỏi'}
               </button>
             </div>
-            </form>
-            </>
-          )}
+          </form>
         </div>
       </div>
     </TeacherLayout>
   );
 };
 
-export default CreateQuestionPage;
+export default PracticeQuestionPage;

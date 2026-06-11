@@ -25,24 +25,46 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Questions
-    Route::get('/questions', [QuestionController::class, 'index']);
+    // System Questions (Admin only)
+    Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+        Route::get('/admin/questions', [QuestionController::class, 'indexSystem']);
+        Route::post('/admin/questions', [QuestionController::class, 'storeSystem']);
+        Route::put('/admin/questions/{id}', [QuestionController::class, 'updateSystem']);
+        Route::delete('/admin/questions/{id}', [QuestionController::class, 'destroySystem']);
+    });
+
+    // Class Questions (Teacher + Admin)
+    Route::middleware(['auth:sanctum', 'role:teacher,admin'])->group(function () {
+        Route::get('/teacher/questions', [QuestionController::class, 'indexClass']);
+        Route::post('/teacher/questions', [QuestionController::class, 'storeClass']);
+        Route::put('/teacher/questions/{id}', [QuestionController::class, 'updateClass']);
+        Route::delete('/teacher/questions/{id}', [QuestionController::class, 'destroyClass']);
+    });
+
+    // Question details and check answer - All authenticated users
     Route::get('/questions/{id}', [QuestionController::class, 'show']);
-    Route::post('/questions', [QuestionController::class, 'store']);
-    Route::put('/questions/{id}', [QuestionController::class, 'update']);
-    Route::delete('/questions/{id}', [QuestionController::class, 'destroy']);
     Route::post('/questions/{id}/check', [QuestionController::class, 'checkAnswer']);
 
     // Practice
     Route::get('/practice/questions/{id}', [PracticeController::class, 'getQuestion']);
-    Route::get('/practice/random', [PracticeController::class, 'getRandomQuestions']);
-    Route::post('/practice/answer', [PracticeController::class, 'submitAnswer']);
+    Route::get('/practice/questions/random', [PracticeController::class, 'getRandomQuestions']);
+    Route::post('/practice/check', [PracticeController::class, 'submitAnswer']);
     Route::get('/practice/progress', [PracticeController::class, 'getProgress']);
+
+    // Teacher Practice Management
+    Route::middleware(['auth:sanctum', 'role:teacher,admin'])->group(function () {
+        Route::get('/teacher/practices', [PracticeController::class, 'index']);
+        Route::get('/teacher/practices/{id}', [PracticeController::class, 'show']);
+        Route::post('/teacher/practices', [PracticeController::class, 'store']);
+        Route::put('/teacher/practices/{id}', [PracticeController::class, 'update']);
+        Route::delete('/teacher/practices/{id}', [PracticeController::class, 'destroy']);
+    });
     Route::get('/subjects', [SubjectController::class, 'index']);
 
     // Tests
     Route::get('/tests', [TestController::class, 'index']);
     Route::get('/tests/available', [TestController::class, 'available']);
+    Route::get('/tests/system', [TestController::class, 'systemTests']);
     Route::get('/tests/access/{code}', [TestController::class, 'accessByCode']);
 
     // Test Results
@@ -62,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Classes
     Route::get('/classes', [ClassController::class, 'index']);
+    Route::get('/classes/search', [ClassController::class, 'search']);
     Route::get('/classes/{class}', [ClassController::class, 'show']);
     Route::post('/classes', [ClassController::class, 'store']);
     Route::put('/classes/{class}', [ClassController::class, 'update']);

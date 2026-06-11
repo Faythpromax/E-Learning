@@ -94,8 +94,16 @@ const AdminCreateQuestionPage = () => {
           matching_data: qData.data?.left && qData.data?.right
             ? { left: qData.data.left, right: qData.data.right, correct_matches: qData.data.correct_matches || {} }
             : { left: ['', ''], right: ['', ''], correct_matches: {} },
-          table_data: qData.data?.table_data || { headers: ['Tiêu đề 1', 'Tiêu đề 2'], rows: [['', '']] },
+          table_data: qData.data?.headers && qData.data?.rows
+            ? { headers: qData.data.headers, rows: qData.data.rows }
+            : (qData.data?.table_data || { headers: ['Tiêu đề 1', 'Tiêu đề 2'], rows: [['', '']] }),
         });
+
+        if (qData.type === 'fill_blank' && Array.isArray(qData.data?.correct_answers)) {
+          const mapped = {};
+          qData.data.correct_answers.forEach((ans, i) => { mapped[i] = ans; });
+          setBlankAnswers(mapped);
+        }
       }
     } catch (err) {
       setError('Khong the tai thong tin cau hoi.');
@@ -112,6 +120,17 @@ const AdminCreateQuestionPage = () => {
     const newOptions = [...formData.options];
     newOptions[index] = value;
     setFormData({ ...formData, options: newOptions });
+  };
+
+  const addOption = () => {
+    setFormData(prev => ({ ...prev, options: [...prev.options, ''] }));
+  };
+
+  const removeOption = (index) => {
+    const newOptions = formData.options.filter((_, i) => i !== index);
+    const removedId = String.fromCharCode(97 + index);
+    const newCorrect = (formData.correct_answers || []).filter(id => id !== removedId);
+    setFormData({ ...formData, options: newOptions, correct_answers: newCorrect });
   };
 
   const toggleCorrectAnswer = (optionId) => {
@@ -217,8 +236,13 @@ const AdminCreateQuestionPage = () => {
       return;
     }
 
+    if (formData.type === 'mcq' && formData.options.length < 2) {
+      setError('Can it nhat 2 phuong an lua chon.');
+      return;
+    }
+
     if (formData.type === 'mcq' && formData.options.some(o => !o.trim())) {
-      setError('Vui long nhap day du noi dung cho ca 4 dap an lua chon.');
+      setError('Vui long nhap day du noi dung cho tat ca cac dap an lua chon.');
       return;
     }
 
@@ -252,13 +276,13 @@ const AdminCreateQuestionPage = () => {
             id: String.fromCharCode(97 + index),
             text: option,
           })),
-          correct_answers: formData.correct_answers || [],
+          correct_answer: formData.correct_answers?.[0] || '',
         };
       } else if (formData.type === 'fill_blank') {
         const blankCount = getBlankCount();
         const answers = Array.from({ length: blankCount }, (_, i) => blankAnswers[i] || '');
         questionDataStructure = {
-          blank_answers: answers,
+          correct_answers: answers,
         };
       } else if (formData.type === 'matching') {
         questionDataStructure = {
@@ -268,7 +292,9 @@ const AdminCreateQuestionPage = () => {
         };
       } else if (formData.type === 'table_fill') {
         questionDataStructure = {
-          table_data: formData.table_data,
+          headers: formData.table_data.headers,
+          rows: formData.table_data.rows,
+          cols: formData.table_data.headers.length,
         };
       }
 
@@ -323,9 +349,28 @@ const AdminCreateQuestionPage = () => {
               className="question-option-input"
               required
             />
+            {formData.options.length > 2 && (
+              <button
+                type="button"
+                onClick={() => removeOption(index)}
+                style={{ marginLeft: '8px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
+                title="Xoá phương án"
+              >
+                x
+              </button>
+            )}
           </div>
         );
       })}
+      <div style={{ marginTop: '8px' }}>
+        <button
+          type="button"
+          onClick={addOption}
+          style={{ padding: '6px 14px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#2563eb', fontWeight: '500' }}
+        >
+          + Thêm phương án
+        </button>
+      </div>
       <div className="question-option-note">
         Tích chọn ô vuông bên trái để xác định đáp án đúng. Có thể chọn nhiều hơn một đáp án.
       </div>
@@ -427,6 +472,14 @@ const AdminCreateQuestionPage = () => {
 
           {error && <div className="question-error">{error}</div>}
 
+          {loading && isEditing && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
+              Đang tải dữ liệu câu hỏi...
+            </div>
+          )}
+
+          {!loading && (
+            <>
           <form onSubmit={handleSubmit}>
             <div className="question-field">
               <label className="question-label">Môn học / Lớp phụ trách</label>
@@ -435,6 +488,7 @@ const AdminCreateQuestionPage = () => {
                 onChange={(e) => handleChange('subject_id', e.target.value)}
                 className="question-select"
                 required
+                disabled={isEditing}
               >
                 <option value="">-- Chọn môn học ứng với câu hỏi --</option>
                 {subjects.map(sub => (
@@ -450,6 +504,7 @@ const AdminCreateQuestionPage = () => {
                   value={formData.type}
                   onChange={(e) => handleChange('type', e.target.value)}
                   className="question-select"
+                  disabled={isEditing}
                 >
                   <option value="mcq">Trắc nghiệm nhiều lựa chọn</option>
                   <option value="fill_blank">Điền từ vào chỗ trống</option>
@@ -520,6 +575,8 @@ const AdminCreateQuestionPage = () => {
               </button>
             </div>
           </form>
+            </>
+          )}
         </div>
       </div>
     </AdminLayout>

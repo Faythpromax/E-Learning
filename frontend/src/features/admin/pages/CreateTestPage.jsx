@@ -39,7 +39,7 @@ export function AdminCreateTestPage() {
   const fetchData = async () => {
     try {
       const [questionsRes, subjectsRes] = await Promise.all([
-        questionApi.getQuestions({ per_page: 1000 }),
+        questionApi.getSystemQuestions({ per_page: 1000 }),
         subjectApi.getSubjects(),
       ]);
 

@@ -19,6 +19,11 @@ class ClassService
         return $this->classRepository->getAll($filters, $userId);
     }
 
+    public function searchClasses(string $query): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->classRepository->search($query);
+    }
+
     public function getClassDetail(int $id): ?ClassModel
     {
         return $this->classRepository->getById($id);

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiClock, FiFileText, FiCheckCircle, FiAlertCircle, FiPlay, FiCornerDownRight } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
+import StudentLayout from '../../../components/student/StudentLayout';
 
 export function TestListPage() {
   const navigate = useNavigate();
@@ -82,15 +83,18 @@ export function TestListPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <div className="text-gray-500 text-sm font-medium">Đang tải danh sách bài kiểm tra...</div>
-      </div>
+      <StudentLayout pageTitle="Danh sách bài kiểm tra" pageSubtitle="Quản lý các bài kiểm tra của bạn">
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-gray-500 text-sm font-medium">Đang tải danh sách bài kiểm tra...</div>
+        </div>
+      </StudentLayout>
     );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <StudentLayout pageTitle="Danh sách bài kiểm tra" pageSubtitle="Quản lý các bài kiểm tra của bạn">
+      <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-gray-900">Danh sách bài kiểm tra</h1>
 
       {/* Tabs */}
@@ -273,7 +277,8 @@ export function TestListPage() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </StudentLayout>
   );
 }
 

@@ -86,7 +86,7 @@ class TestRepository implements TestRepositoryInterface
     public function getAvailableTestsForUser(int $userId): Collection
     {
         $user = \App\Models\User::findOrFail($userId);
-        
+
         $query = Test::with(['subject', 'creator', 'testQuestions'])
             ->where('is_active', true)
             ->where(function ($q) {
@@ -94,15 +94,18 @@ class TestRepository implements TestRepositoryInterface
                     ->orWhere('expires_at', '>', now());
             });
 
+        // System tests are available to everyone
+        $query->orWhere('scope', 'system');
+
         // Access type: public_code or both
-        $query->where(function ($q) {
+        $query->orWhere(function ($q) {
             $q->where('access_type', 'public_code')
                 ->orWhere('access_type', 'both');
         });
 
         // If user is in any classes, also get class_only tests from those classes
         $classIds = ClassUser::where('user_id', $userId)->pluck('class_id');
-        
+
         if ($classIds->isNotEmpty()) {
             $query->orWhere(function ($q) use ($classIds) {
                 $q->where('access_type', 'class_only')
@@ -111,6 +114,19 @@ class TestRepository implements TestRepositoryInterface
         }
 
         return $query->orderBy('created_at', 'desc')->get();
+    }
+
+    public function getSystemTests(): Collection
+    {
+        return Test::with(['subject', 'creator', 'testQuestions'])
+            ->where('scope', 'system')
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function getActiveAttempt(int $userId, int $testId): ?Model

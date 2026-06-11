@@ -7,6 +7,16 @@ export const classApi = {
     return response.data;
   },
 
+  searchClasses: async (query) => {
+    const response = await apiClient.get('/classes/search', { params: { q: query } });
+    return response.data;
+  },
+
+  searchClasses: async (query) => {
+    const response = await apiClient.get('/classes/search', { params: { q: query } });
+    return response.data;
+  },
+
   getClassDetail: async (classId) => {
     const response = await apiClient.get(`/classes/${classId}`);
     return response.data;

@@ -108,6 +108,8 @@
 
 .nav-text {
   flex: 1;
+  font-size: 16px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -149,12 +151,13 @@
 }
 
 .nav-dropdown-item {
-  padding: 8px 12px;
+  padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 600;
   user-select: none;
   border-left: 3px solid transparent;
 }

@@ -17,7 +17,7 @@ const ClassDetailPage = () => {
 
   // Students state
   const [students, setStudents] = useState([]);
-  const [studentEmail, setStudentEmail] = useState('');
+  const [studentId, setStudentId] = useState('');
 
   // Teachers state
   const [teachers, setTeachers] = useState([]);
@@ -85,16 +85,15 @@ const ClassDetailPage = () => {
   };
 
   const handleAddStudent = async () => {
-  if (!studentEmail.trim()) return;
+  if (!studentId.trim()) return;
 
   try {
-    // TRUYỀN THẲNG SỐ ID VÀO ĐÂY, classApi sẽ tự bọc thành { user_id: ... }
-    const response = await classApi.addStudent(classId, parseInt(studentEmail));
+    const response = await classApi.addStudent(classId, parseInt(studentId));
     
     alert('Them hoc sinh thanh cong!');
-    setStudentEmail('');
+    setStudentId('');
     setShowAddModal(false);
-    fetchClassDetail(); // Gọi lại để cập nhật danh sách học sinh ngầm
+    fetchClassDetail();
   } catch (error) {
     console.error('Failed to add student:', error);
     alert(error.response?.data?.message || 'Them that bai');
@@ -208,16 +207,16 @@ const handleAddTeacher = async () => {
       {students.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <FiUsers className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chua co hoc sinh nao</p>
+          <p className="text-gray-500">Chưa có học sinh nào</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Ten</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Họ và tên</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Hanh dong</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -245,28 +244,28 @@ const handleAddTeacher = async () => {
   const renderTeachersTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Danh sach giao vien ({teachers.length})</h3>
+        <h3 className="text-lg font-semibold">Danh sách giáo viên ({teachers.length})</h3>
         <button
           onClick={() => openAddModal('teacher')}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
-          <FiPlus /> Them giao vien
+          <FiPlus /> Thêm giáo viên
         </button>
       </div>
 
       {teachers.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <FiUsers className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chua co giao vien nao</p>
+          <p className="text-gray-500">Chưa có giáo viên nào</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Ten</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Họ và tên</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Hanh dong</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -294,19 +293,19 @@ const handleAddTeacher = async () => {
   const renderMaterialsTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Tai lieu hoc tap ({materials.length})</h3>
+        <h3 className="text-lg font-semibold">Tài liệu học tập ({materials.length})</h3>
         <button
           onClick={() => openAddModal('material')}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
-          <FiPlus /> Them tai lieu
+          <FiPlus /> Thêm tài liệu
         </button>
       </div>
 
       {materials.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <FiFileText className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chua co tai lieu nao</p>
+          <p className="text-gray-500">Chưa có tài liệu nào</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,7 +332,7 @@ const handleAddTeacher = async () => {
                 rel="noopener noreferrer"
                 className="mt-3 inline-block text-blue-500 hover:text-blue-700 text-sm"
               >
-                Xem tai lieu
+                Xem tài liệu
               </a>
             </div>
           ))}
@@ -345,19 +344,19 @@ const handleAddTeacher = async () => {
   const renderTestsTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Bai kiem tra ({tests.length})</h3>
+        <h3 className="text-lg font-semibold">Bài kiểm tra ({tests.length})</h3>
         <button
           onClick={() => openAddModal('test')}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
         >
-          <FiPlus /> Gan bai kiem tra
+          <FiPlus /> Thêm bài kiểm tra
         </button>
       </div>
 
       {tests.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <FiClipboard className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chua co bai kiem tra nao</p>
+          <p className="text-gray-500">Chưa có bài kiểm tra nào</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -388,30 +387,30 @@ const handleAddTeacher = async () => {
     if (!showAddModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold mb-4">
-            {addModalType === 'student' && 'Them hoc sinh'}
-            {addModalType === 'teacher' && 'Them giao vien'}
-            {addModalType === 'material' && 'Them tai lieu'}
-            {addModalType === 'test' && 'Gan bai kiem tra'}
+      <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <h3 className="modal-title">
+            {addModalType === 'student' && 'Thêm học sinh'}
+            {addModalType === 'teacher' && 'Thêm giáo viên'}
+            {addModalType === 'material' && 'Thêm tài liệu'}
+            {addModalType === 'test' && 'Gán bài kiểm tra'}
           </h3>
 
           {addModalType === 'student' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                ID hoc sinh
+                ID học sinh
               </label>
               <input
                 type="number"
-                value={studentEmail}
-                onChange={(e) => setStudentEmail(e.target.value)}
-                placeholder="Nhap ID hoc sinh"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                placeholder="Nhập ID học sinh"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
               />
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huy</button>
-                <button onClick={handleAddStudent} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Them</button>
+                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
+                <button onClick={handleAddStudent} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Thêm</button>
               </div>
             </div>
           )}
@@ -419,18 +418,18 @@ const handleAddTeacher = async () => {
           {addModalType === 'teacher' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                ID giao vien
+                ID giáo viên
               </label>
               <input
                 type="number"
                 value={teacherEmail}
                 onChange={(e) => setTeacherEmail(e.target.value)}
-                placeholder="Nhap ID giao vien"
+                placeholder="Nhập ID giáo viên"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
               />
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huy</button>
-                <button onClick={handleAddTeacher} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Them</button>
+                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
+                <button onClick={handleAddTeacher} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Thêm</button>
               </div>
             </div>
           )}
@@ -438,7 +437,7 @@ const handleAddTeacher = async () => {
           {addModalType === 'material' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tieu de</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
                 <input
                   type="text"
                   value={newMaterial.title}
@@ -447,7 +446,7 @@ const handleAddTeacher = async () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Loai</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
                 <select
                   value={newMaterial.type}
                   onChange={(e) => setNewMaterial({ ...newMaterial, type: e.target.value })}
@@ -457,21 +456,21 @@ const handleAddTeacher = async () => {
                   <option value="video">Video</option>
                   <option value="link">Link</option>
                   <option value="document">Document</option>
-                  <option value="other">Khac</option>
+                  <option value="other">Khác</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duong dan</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Đường dẫn</label>
                 <input
                   type="text"
                   value={newMaterial.file_url}
                   onChange={(e) => setNewMaterial({ ...newMaterial, file_url: e.target.value })}
-                  placeholder="URL tai lieu"
+                  placeholder="URL tài liệu"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mo ta</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
                 <textarea
                   value={newMaterial.description}
                   onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
@@ -480,28 +479,28 @@ const handleAddTeacher = async () => {
                 />
               </div>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huy</button>
-                <button onClick={handleAddMaterial} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Them</button>
+                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
+                <button onClick={handleAddMaterial} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Thêm</button>
               </div>
             </div>
           )}
 
           {addModalType === 'test' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Chon bai kiem tra</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Chọn bài kiểm tra</label>
               <select
                 value={selectedTest}
                 onChange={(e) => setSelectedTest(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
               >
-                <option value="">-- Chon bai kiem tra --</option>
+                <option value="">-- Chọn bài kiểm tra --</option>
                 {availableTests.map((test) => (
                   <option key={test.id} value={test.id}>{test.title}</option>
                 ))}
               </select>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huy</button>
-                <button onClick={handleAddTest} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Gan</button>
+                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
+                <button onClick={handleAddTest} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Gán</button>
               </div>
             </div>
           )}

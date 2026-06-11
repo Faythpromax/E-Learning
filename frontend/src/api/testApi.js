@@ -12,6 +12,11 @@ export const testApi = {
     return response.data;
   },
 
+  getSystemTests: async () => {
+    const response = await apiClient.get('/tests/system');
+    return response.data;
+  },
+
   getTestDetails: async (testId) => {
     const response = await apiClient.get(`/tests/${testId}`);
     return response.data;

@@ -2,26 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Question extends Model
+class Practice extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
+        'title',
         'subject_id',
-        'type',
-        'content',
-        'media_image',
-        'media_audio',
-        'data',
-        'explanation',
         'created_by',
-        'scope',
+        'description',
+        'is_active',
     ];
 
     protected $casts = [
-        'data' => 'array',
+        'is_active' => 'boolean',
     ];
 
     public function subject(): BelongsTo
@@ -34,8 +33,8 @@ class Question extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function progress(): HasMany
+    public function questions(): HasMany
     {
-        return $this->hasMany(QuestionProgress::class);
+        return $this->hasMany(PracticeQuestion::class);
     }
 }
