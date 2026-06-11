@@ -13,12 +13,17 @@ import StudentListPage from '../../features/admin/pages/StudentListPage';
 import FeedbackPage from '../../features/admin/pages/FeedbackPage';
 import SettingsPage from '../../features/admin/pages/SettingsPage';
 import EditUserPage from '../../features/admin/pages/EditUserPage';
+import AdminTestListPage from '../../features/admin/pages/TestListPage';
+import AdminTestDetailPage from '../../features/admin/pages/TestDetailPage';
+import AdminCreateTestPage from '../../features/admin/pages/CreateTestPage';
+import AdminCreateQuestionPage from '../../features/admin/pages/AdminCreateQuestionPage';
 import StudentDashboardPage from '../../features/student/pages/StudentDashboardPage';
 import StudentGradesPage from '../../features/student/pages/StudentGradesPage';
 import StudentSupportPage from '../../features/student/pages/StudentSupportPage';
 import StudentSettingsPage from '../../features/student/pages/StudentSettingsPage';
 import StudentClassDetailPage from '../../features/student/pages/StudentClassDetailPage';
 import StudentClassListPage from '../../features/student/pages/StudentClassListPage';
+import SystemTestsPage from '../../features/student/pages/SystemTestsPage';
 import TestListPage from '../../features/student/pages/TestListPage';
 import TestSessionPage from '../../features/student/pages/TestSessionPage';
 import TestResultPage from '../../features/student/pages/TestResultPage';
@@ -27,17 +32,21 @@ import TeacherTestListPage from '../../features/teacher/pages/TestListPage';
 import CreateTestPage from '../../features/teacher/pages/CreateTestPage';
 import TestResultsPage from '../../features/teacher/pages/TestResultsPage';
 import TestDetailPage from '../../features/teacher/pages/TestDetailPage';
+import AdminQuestionListPage from '../../features/admin/pages/AdminQuestionListPage';
 import QuestionListPage from '../../features/teacher/pages/QuestionListPage';
 import CreateQuestionPage from '../../features/teacher/pages/CreateQuestionPage';
+import EditQuestionPage from '../../features/teacher/pages/EditQuestionPage';
+import AdminEditQuestionPage from '../../features/admin/pages/AdminEditQuestionPage';
 import ClassListPage from '../../features/teacher/pages/ClassListPage';
 import CreateClassPage from '../../features/teacher/pages/CreateClassPage';
 import ClassDetailPage from '../../features/teacher/pages/ClassDetailPage';
+import TeacherPracticeListPage from '../../features/teacher/pages/PracticeListPage';
+import CreatePracticePage from '../../features/teacher/pages/CreatePracticePage';
+import PracticeQuestionPage from '../../features/teacher/pages/PracticeQuestionPage';
 import ProtectedRoute from "../../components/auth/ProtectedRoute";
-import { AuthProvider } from '../../contexts/AuthContext';
 
 export function AppRoutes() {
   return (
-    <AuthProvider>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
@@ -98,6 +107,62 @@ export function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/tests"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminTestListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests/create"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests/:testId"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminTestDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/tests/:testId/edit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminQuestionListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions/create"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCreateQuestionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions/:questionId/edit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminEditQuestionPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Student Routes */}
         <Route
@@ -153,6 +218,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <TestListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/system-tests"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <SystemTestsPage />
             </ProtectedRoute>
           }
         />
@@ -242,7 +315,7 @@ export function AppRoutes() {
           path="/teacher/questions/:questionId/edit"
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
-              <CreateQuestionPage />
+              <EditQuestionPage />
             </ProtectedRoute>
           }
         />
@@ -270,7 +343,46 @@ export function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/teacher/practice"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherPracticeListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/create"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <CreatePracticePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/:practiceId/edit"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <CreatePracticePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/:practiceId"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherPracticeListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/practice/:practiceId/questions"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <PracticeQuestionPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </AuthProvider>
   );
 }

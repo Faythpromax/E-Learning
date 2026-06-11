@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FiHome,
@@ -8,20 +8,32 @@ import {
   FiChevronDown,
   FiBook,
 } from "react-icons/fi";
+import classApi from "../../api/classApi";
 
 const TeacherSidebar = ({ isOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [classesOpen, setClassesOpen] = useState(true);
-
-  const mockClasses = [
-    { id: 1, name: "Tiếng Anh 5A3" },
-    { id: 2, name: "Tiếng Anh 4A2" },
-  ];
+  const [classes, setClasses] = useState([]);
 
   const isActive = (path) => location.pathname === path;
   const isClassActive = (classId) =>
     location.pathname === `/teacher/classes/${classId}`;
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await classApi.getClasses();
+        const classesData = response?.data || [];
+        if (Array.isArray(classesData)) {
+          setClasses(classesData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch classes for sidebar:', error);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   return (
     <div className={`teacher-sidebar ${isOpen ? "open" : "closed"}`}>
@@ -60,7 +72,7 @@ const TeacherSidebar = ({ isOpen }) => {
           {/* Classes Dropdown */}
           {classesOpen && (
             <div className="nav-dropdown">
-              {mockClasses.map((cls) => (
+              {classes.map((cls) => (
                 <div
                   key={cls.id}
                   className={`nav-dropdown-item ${

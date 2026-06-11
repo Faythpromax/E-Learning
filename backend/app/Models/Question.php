@@ -17,6 +17,7 @@ class Question extends Model
         'data',
         'explanation',
         'created_by',
+        'scope',
     ];
 
     protected $casts = [

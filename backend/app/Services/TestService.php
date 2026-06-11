@@ -36,6 +36,11 @@ class TestService
         return $this->testRepository->getAvailableTestsForUser($userId);
     }
 
+    public function getSystemTests(): Collection
+    {
+        return $this->testRepository->getSystemTests();
+    }
+
     public function getTestWithQuestions(int $testId): mixed
     {
         return $this->testRepository->getTestWithQuestions($testId);

@@ -31,6 +31,16 @@ class ClassController extends Controller
         ]);
     }
 
+    public function search(Request $request): JsonResponse
+    {
+        $classes = $this->classService->searchClasses((string) $request->query('q', ''));
+
+        return response()->json([
+            'success' => true,
+            'data' => $classes,
+        ]);
+    }
+
     public function show(int $classId): JsonResponse
     {
         $class = $this->classService->getClassDetail($classId);

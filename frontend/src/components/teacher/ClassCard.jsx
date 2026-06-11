@@ -7,6 +7,10 @@ const ClassCard = ({ classData, onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  const handleCardClick = () => {
+    navigate(`/teacher/classes/${classData.id}`);
+  };
+
   return (
     <div className="class-card">
       {/* Card Header with Color */}
@@ -15,7 +19,7 @@ const ClassCard = ({ classData, onNavigate }) => {
         style={{ backgroundColor: classData.color }}
       >
         <div className="class-card-info">
-          <h3 className="class-card-title">{classData.name}</h3>
+          <h3 className="class-card-title" onClick={handleCardClick}>{classData.name}</h3>
           <p className="class-card-teacher">{classData.teacher}</p>
         </div>
         <div className="class-card-avatar">{classData.avatar}</div>

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2 } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
+import MatchingBuilder from '../../../components/teacher/questions/MatchingBuilder';
 import questionApi from '../../../api/questionApi';
 import subjectApi from '../../../api/subjectApi';
 
@@ -10,19 +11,22 @@ const CreateQuestionPage = () => {
   const navigate = useNavigate();
   const isEditing = !!id;
 
-  // ĐÃ CẬP NHẬT ĐẦY ĐỦ ĐÚNG TỪNG TRƯỜNG CỦA BẠN TRONG FORM DATA
+  // State cho Fill Blank - quan ly cac o trong
+  const [blankAnswers, setBlankAnswers] = useState({});
+  const contentRef = useRef(null);
+
   const [formData, setFormData] = useState({
     subject_id: '',
     type: 'mcq',
     content: '',
-    explanation: '', // Thêm trường giải thích đáp án
+    explanation: '',
     difficulty: 'medium',
     options: ['', '', '', ''],
-    correct_answer: 'a',
-    matching_pairs: [{ left: '', right: '' }],
-    table_data: { 
-      headers: ['Tiêu đề 1', 'Tiêu đề 2'], 
-      rows: [['', '']] 
+    correct_answers: [],
+    matching_data: { left: ['', ''], right: ['', ''], correct_matches: {} },
+    table_data: {
+      headers: ['Tiêu đề 1', 'Tiêu đề 2'],
+      rows: [['', '']]
     },
   });
   
@@ -66,13 +70,24 @@ const CreateQuestionPage = () => {
           subject_id: qData.subject_id?.toString() || '',
           type: qData.type || 'mcq',
           content: qData.content || '',
-          explanation: qData.explanation || '', // Đọc dữ liệu giải thích từ Backend
+          explanation: qData.explanation || '',
           difficulty: qData.difficulty || 'medium',
           options: qData.data?.options?.map((opt) => opt.text) || ['', '', '', ''],
-          correct_answer: qData.data?.correct_answer ?? qData.data?.correct_answers?.[0] ?? 'a',
-          matching_pairs: qData.data?.matching_pairs || [{ left: '', right: '' }],
-          table_data: qData.data?.table_data || { headers: ['Tiêu đề 1', 'Tiêu đề 2'], rows: [['', '']] },
+          correct_answers: qData.data?.correct_answers || (qData.data?.correct_answer ? [qData.data.correct_answer] : []),
+          matching_data: qData.data?.left && qData.data?.right
+            ? { left: qData.data.left, right: qData.data.right, correct_matches: qData.data.correct_matches || {} }
+            : { left: ['', ''], right: ['', ''], correct_matches: {} },
+          table_data: qData.data?.headers && qData.data?.rows
+            ? { headers: qData.data.headers, rows: qData.data.rows }
+            : (qData.data?.table_data || { headers: ['Tiêu đề 1', 'Tiêu đề 2'], rows: [['', '']] }),
         });
+
+        // Populate blankAnswers from saved correct_answers
+        if (qData.type === 'fill_blank' && Array.isArray(qData.data?.correct_answers)) {
+          const mapped = {};
+          qData.data.correct_answers.forEach((ans, i) => { mapped[i] = ans; });
+          setBlankAnswers(mapped);
+        }
       }
     } catch (err) {
       setError('Không thể tải thông tin câu hỏi này từ hệ thống.');
@@ -91,23 +106,90 @@ const CreateQuestionPage = () => {
     setFormData({ ...formData, options: newOptions });
   };
 
-  // --- Logic động cho câu hỏi Nối dòng (Matching) ---
-  const handleMatchingChange = (index, field, value) => {
-    const newPairs = [...formData.matching_pairs];
-    newPairs[index][field] = value;
-    setFormData({ ...formData, matching_pairs: newPairs });
+  const addOption = () => {
+    setFormData(prev => ({ ...prev, options: [...prev.options, ''] }));
   };
 
-  const addMatchingPair = () => {
-    setFormData({
-      ...formData,
-      matching_pairs: [...formData.matching_pairs, { left: '', right: '' }]
+  const removeOption = (index) => {
+    const newOptions = formData.options.filter((_, i) => i !== index);
+    const removedId = String.fromCharCode(97 + index);
+    const newCorrect = (formData.correct_answers || []).filter(id => id !== removedId);
+    setFormData({ ...formData, options: newOptions, correct_answers: newCorrect });
+  };
+
+  const toggleCorrectAnswer = (optionId) => {
+    setFormData(prev => {
+      const current = prev.correct_answers || [];
+      const newCorrect = current.includes(optionId)
+        ? current.filter(id => id !== optionId)
+        : [...current, optionId];
+      return { ...prev, correct_answers: newCorrect };
     });
   };
 
-  const removeMatchingPair = (index) => {
-    const newPairs = formData.matching_pairs.filter((_, i) => i !== index);
-    setFormData({ ...formData, matching_pairs: newPairs });
+  // --- Logic cho Matching voi MatchingBuilder ---
+  const handleMatchingDataChange = (newData) => {
+    setFormData(prev => ({
+      ...prev,
+      matching_data: newData,
+    }));
+  };
+
+  // --- Logic cho Fill Blank - chen o trong vao de bai ---
+  const insertBlank = () => {
+    const blankCount = (formData.content.match(/__BLANK_\d+__/g) || []).length;
+    const placeholder = `__BLANK_${blankCount}__`;
+    const textarea = contentRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = formData.content.substring(0, start);
+      const after = formData.content.substring(end);
+      const newContent = before + placeholder + after;
+      setFormData(prev => ({ ...prev, content: newContent }));
+      setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
+      // Set cursor after the placeholder
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + placeholder.length, start + placeholder.length);
+      }, 0);
+    } else {
+      setFormData(prev => ({ ...prev, content: prev.content + placeholder }));
+      setBlankAnswers(prev => ({ ...prev, [blankCount]: '' }));
+    }
+  };
+
+  const handleBlankAnswerChange = (index, value) => {
+    setBlankAnswers(prev => ({ ...prev, [index]: value }));
+  };
+
+  const getBlankCount = () => (formData.content.match(/__BLANK_\d+__/g) || []).length;
+
+  const renderContentWithBlanks = () => {
+    const blankCount = getBlankCount();
+    if (blankCount === 0) return null;
+
+    return (
+      <div className="question-blanks-panel">
+        <p style={{ fontSize: '12px', color: '#92400e', marginBottom: '10px', fontWeight: 600 }}>
+          Nhập đáp án cho từng ô trống (theo thứ tự xuất hiện từ trái sang phải):
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: blankCount }, (_, i) => (
+            <div key={i} className="question-blank-row">
+              <span className="question-blank-index">{i + 1}</span>
+              <input
+                type="text"
+                value={blankAnswers[i] || ''}
+                onChange={(e) => handleBlankAnswerChange(i, e.target.value)}
+                placeholder={`Đáp án ô ${i + 1}`}
+                className="question-blank-input"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   // --- Logic động cho câu hỏi Điền bảng (Table Fill) ---
@@ -169,9 +251,45 @@ const CreateQuestionPage = () => {
       return;
     }
 
-    if (formData.type === 'mcq' && formData.options.some(o => !o.trim())) {
-      setError('Vui lòng nhập đầy đủ nội dung cho cả 4 đáp án lựa chọn.');
+    if (formData.type === 'mcq' && formData.options.length < 2) {
+      setError('Cần ít nhất 2 phương án lựa chọn.');
       return;
+    }
+
+    if (formData.type === 'mcq' && formData.options.some(o => !o.trim())) {
+      setError('Vui lòng nhập đầy đủ nội dung cho tất cả các đáp án lựa chọn.');
+      return;
+    }
+
+    if (formData.type === 'mcq' && (!formData.correct_answers || formData.correct_answers.length === 0)) {
+      setError('Vui lòng chọn ít nhất một đáp án đúng.');
+      return;
+    }
+
+    if (formData.type === 'matching') {
+      const { left, right, correct_matches } = formData.matching_data;
+      if (left.some(l => !l.trim()) || right.some(r => !r.trim())) {
+        setError('Vui lòng nhập đầy đủ nội dung các cặp ghép nối.');
+        return;
+      }
+      if (Object.keys(correct_matches).length !== left.length) {
+        setError('Vui lòng nối đủ tất cả các cặp ghép.');
+        return;
+      }
+    }
+
+    if (formData.type === 'fill_blank') {
+      const blankCount = getBlankCount();
+      if (blankCount === 0) {
+        setError('Vui lòng thêm ít nhất một ô trống vào đề bài bằng nút "Chèn ô trống".');
+        return;
+      }
+      const unfilled = Array.from({ length: blankCount }, (_, i) => i)
+        .filter(i => !blankAnswers[i]?.trim());
+      if (unfilled.length > 0) {
+        setError(`Vui lòng nhập đáp án cho tất cả các ô trống (thiếu ${unfilled.length} ô).`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -179,26 +297,32 @@ const CreateQuestionPage = () => {
     try {
       // 2. Tự động đóng gói object 'data' tương ứng với từng loại câu hỏi
       let questionDataStructure = {};
-      
+
       if (formData.type === 'mcq') {
         questionDataStructure = {
           options: formData.options.map((option, index) => ({
             id: String.fromCharCode(97 + index),
             text: option,
           })),
-          correct_answer: formData.correct_answer || 'a'
+          correct_answer: formData.correct_answers?.[0] || '',
         };
       } else if (formData.type === 'fill_blank') {
+        const blankCount = getBlankCount();
+        const answers = Array.from({ length: blankCount }, (_, i) => blankAnswers[i] || '');
         questionDataStructure = {
-          correct_answers: [formData.correct_answer || ''],
+          correct_answers: answers,
         };
       } else if (formData.type === 'matching') {
         questionDataStructure = {
-          matching_pairs: formData.matching_pairs,
+          left: formData.matching_data.left,
+          right: formData.matching_data.right,
+          correct_matches: formData.matching_data.correct_matches,
         };
       } else if (formData.type === 'table_fill') {
         questionDataStructure = {
-          table_data: formData.table_data,
+          headers: formData.table_data.headers,
+          rows: formData.table_data.rows,
+          cols: formData.table_data.headers.length,
         };
       }
 
@@ -214,10 +338,10 @@ const CreateQuestionPage = () => {
 
       // 4. Gọi API gửi đi (Xử lý linh hoạt giữa Thêm mới và Cập nhật)
       if (isEditing) {
-        await questionApi.updateQuestion(id, payload);
+        await questionApi.updateClassQuestion(id, payload);
         alert('Cập nhật thay đổi câu hỏi thành công!');
       } else {
-        await questionApi.createQuestion(payload);
+        await questionApi.createClassQuestion(payload);
         alert('Tạo câu hỏi học tập mới thành công!');
       }
       
@@ -232,177 +356,177 @@ const CreateQuestionPage = () => {
   // --- RENDER GIAO DIỆN CÁC LOẠI CÂU HỎI ---
 
   const renderMcqFields = () => (
-    <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-      <label className="block text-sm font-semibold text-gray-700">Các lựa chọn đáp án</label>
+    <div className="question-answer-card blue">
+      <div className="question-answer-title">Các lựa chọn đáp án</div>
+      <div className="question-answer-hint">Tích chọn tất cả đáp án đúng (cho phép chọn nhiều)</div>
       {formData.options.map((option, index) => {
         const optionId = String.fromCharCode(97 + index);
+        const isCorrect = formData.correct_answers?.includes(optionId);
         return (
-          <div key={index} className="flex items-center gap-3">
+          <div key={index} className="question-option-row">
             <input
-              type="radio"
-              name="correct_choice"
-              checked={formData.correct_answer === optionId}
-              onChange={() => setFormData({ ...formData, correct_answer: optionId })}
-              className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+              type="checkbox"
+              id={`mcq-opt-${index}`}
+              checked={isCorrect || false}
+              onChange={() => toggleCorrectAnswer(optionId)}
+              className="question-option-check"
             />
+            <span className={`question-option-badge${isCorrect ? ' correct' : ''}`}>
+              {optionId.toUpperCase()}
+            </span>
             <input
               type="text"
               value={option}
               onChange={(e) => handleOptionChange(index, e.target.value)}
               placeholder={`Nội dung lựa chọn ${index + 1}`}
-              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="question-option-input"
               required
             />
+            {formData.options.length > 2 && (
+              <button
+                type="button"
+                onClick={() => removeOption(index)}
+                style={{ marginLeft: '8px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
+                title="Xoá phương án"
+              >
+                x
+              </button>
+            )}
           </div>
         );
       })}
-      <p className="text-xs text-gray-500 italic">* Tích chọn nút tròn bên trái để xác định đáp án đúng.</p>
+      <div style={{ marginTop: '8px' }}>
+        <button
+          type="button"
+          onClick={addOption}
+          style={{ padding: '6px 14px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#2563eb', fontWeight: '500' }}
+        >
+          + Thêm phương án
+        </button>
+      </div>
+      <div className="question-option-note">
+        Tích chọn ô vuông bên trái để xác định đáp án đúng. Có thể chọn nhiều hơn một đáp án.
+      </div>
     </div>
   );
 
   const renderFillBlankFields = () => (
-    <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Đáp án đúng cho từ khóa cần điền</label>
-        <input
-          type="text"
-          value={formData.correct_answer || ''}
-          onChange={(e) => setFormData({ ...formData, correct_answer: e.target.value })}
-          placeholder="Nhập cụm từ đáp án chính xác..."
-          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-                />
+    <div className="question-answer-card amber">
+      <div className="question-answer-title">Hướng dẫn điền từ</div>
+      <div className="question-answer-hint">
+        Nhấn nút &quot;Chèn ô trống&quot; phía trên để thêm ô điền đáp án vào đề bài. Mỗi ô trống cần nhập đáp án bên dưới theo thứ tự xuất hiện.
       </div>
+      {renderContentWithBlanks()}
     </div>
   );
 
   const renderMatchingFields = () => (
-    <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-      <div className="flex justify-between items-center">
-        <label className="block text-sm font-semibold text-gray-700">Thiết lập các cặp ghép nối đúng</label>
-        <button
-          type="button"
-          onClick={addMatchingPair}
-          className="flex items-center gap-1 text-xs bg-blue-600 text-white px-2.5 py-1.5 rounded-md hover:bg-blue-700"
-        >
-          <FiPlus /> Thêm cặp nối
-        </button>
-      </div>
-      {formData.matching_pairs.map((pair, index) => (
-        <div key={index} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200">
-          <input
-            type="text"
-            value={pair.left}
-            onChange={(e) => handleMatchingChange(index, 'left', e.target.value)}
-            placeholder={`Vế trái ${index + 1}`}
-            className="flex-1 px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <span className="text-gray-400 font-bold">⇄</span>
-          <input
-            type="text"
-            value={pair.right}
-            onChange={(e) => handleMatchingChange(index, 'right', e.target.value)}
-            placeholder={`Vế phải ${index + 1}`}
-            className="flex-1 px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          {formData.matching_pairs.length > 1 && (
-            <button
-              type="button"
-              onClick={() => removeMatchingPair(index)}
-              className="text-red-500 hover:text-red-700 p-1"
-            >
-              <FiTrash2 />
-            </button>
-          )}
-        </div>
-      ))}
+    <div className="question-answer-card purple">
+      <MatchingBuilder
+        data={formData.matching_data}
+        onChange={handleMatchingDataChange}
+        onSave={(data) => { handleMatchingDataChange(data); }}
+        onCancel={() => {
+          handleMatchingDataChange({ left: ['', ''], right: ['', ''], correct_matches: {} });
+        }}
+      />
     </div>
   );
 
   const renderTableFillFields = () => (
-    <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200 overflow-x-auto">
-      <div className="flex justify-between items-center">
-        <label className="block text-sm font-semibold text-gray-700">Dữ liệu bảng và Ô đáp án</label>
-        <div className="flex gap-2">
-          <button type="button" onClick={addTableColumn} className="text-xs bg-gray-200 text-gray-700 px-2 py-1.5 rounded hover:bg-gray-300">+ Thêm Cột</button>
-          <button type="button" onClick={addTableRow} className="text-xs bg-blue-600 text-white px-2 py-1.5 rounded hover:bg-blue-700">+ Thêm Hàng</button>
-        </div>
-      </div>
-      <table className="w-full border-collapse bg-white border border-gray-300 rounded-lg text-sm">
-        <thead>
-          <tr className="bg-gray-100">
-            {formData.table_data.headers.map((header, i) => (
-              <th key={i} className="border p-2">
-                <input
-                  type="text"
-                  value={header}
-                  onChange={(e) => handleHeaderChange(i, e.target.value)}
-                  className="w-full text-center bg-transparent font-bold focus:outline-none focus:bg-white"
-                />
-              </th>
-            ))}
-            <th className="border w-10"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {formData.table_data.rows.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {row.map((cell, colIndex) => (
-                <td key={colIndex} className="border p-1.5">
+    <div className="question-answer-card">
+      <div className="question-answer-title">Dữ liệu bảng</div>
+      <div className="question-answer-hint">Nhấn &quot;Thêm Cột&quot; hoặc &quot;Thêm Hàng&quot; để mở rộng bảng. Nhấn &quot;x&quot; để xóa một hàng.</div>
+      <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f8fafc' }}>
+              {formData.table_data.headers.map((header, i) => (
+                <th key={i} style={{ border: '1px solid #e2e8f0', padding: '8px', textAlign: 'center' }}>
                   <input
                     type="text"
-                    value={cell}
-                    onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                    placeholder="Điền từ..."
-                    className="w-full border-0 focus:ring-2 focus:ring-blue-500 p-1"
+                    value={header}
+                    onChange={(e) => handleHeaderChange(i, e.target.value)}
+                    style={{ width: '100%', textAlign: 'center', background: 'transparent', border: 'none', outline: 'none', fontWeight: '600', fontSize: '13px' }}
                   />
-                </td>
+                </th>
               ))}
-              <td className="border text-center">
-                {formData.table_data.rows.length > 1 && (
-                  <button type="button" onClick={() => removeTableRow(rowIndex)} className="text-red-500 hover:text-red-700"><FiTrash2 className="mx-auto" /></button>
-                )}
-              </td>
+              <th style={{ border: '1px solid #e2e8f0', width: '40px' }}></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {formData.table_data.rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, colIndex) => (
+                  <td key={colIndex} style={{ border: '1px solid #e2e8f0', padding: '4px' }}>
+                    <input
+                      type="text"
+                      value={cell}
+                      onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                      placeholder="..."
+                      style={{ width: '100%', padding: '6px 8px', border: 'none', outline: 'none', fontSize: '13px' }}
+                    />
+                  </td>
+                ))}
+                <td style={{ border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                  {formData.table_data.rows.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeTableRow(rowIndex)}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', lineHeight: 1 }}
+                    >
+                      x
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+          <button type="button" onClick={addTableColumn} style={{ padding: '6px 12px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#4b5563', fontWeight: '500' }}>+ Thêm Cột</button>
+          <button type="button" onClick={addTableRow} style={{ padding: '6px 12px', backgroundColor: '#0084ff', border: '1px solid #0084ff', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: 'white', fontWeight: '500' }}>+ Thêm Hàng</button>
+        </div>
+      </div>
     </div>
   );
 
   return (
     <TeacherLayout pageTitle={isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}>
-      <div className="max-w-3xl mx-auto px-4 py-2">
+      <div className="question-page-wrapper">
         <button
           onClick={() => navigate('/teacher/questions')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors"
+          className="question-back-btn"
         >
-          <FiArrowLeft /> Quay lại danh sách
+          <FiArrowLeft /> Quay lại danh sách câu hỏi
         </button>
 
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 md:p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">
-            {isEditing ? '📝 Chỉnh sửa câu hỏi' : '✨ Tạo câu hỏi học tập mới'}
+        <div className="question-form-card">
+          <h2 className="question-form-title">
+            {isEditing ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi học tập mới'}
           </h2>
 
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-xl mb-6 text-sm">
-              {error}
+            <div className="question-error">{error}</div>
+          )}
+
+          {loading && isEditing && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
+              Đang tải dữ liệu câu hỏi...
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* HÀNG 1: LỰA CHỌN MÔN HỌC (MỚI BỔ SUNG) */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Môn học / Lớp phụ trách</label>
+          {!loading && (
+            <>
+            <form onSubmit={handleSubmit}>
+            <div className="question-field">
+              <label className="question-label">Môn học / Lớp phụ trách</label>
               <select
                 value={formData.subject_id}
                 onChange={(e) => handleChange('subject_id', e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="question-select"
                 required
+                disabled={isEditing}
               >
                 <option value="">-- Chọn môn học ứng với câu hỏi --</option>
                 {subjects.map(sub => (
@@ -411,13 +535,14 @@ const CreateQuestionPage = () => {
               </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Loại hình câu hỏi</label>
+            <div className="question-row">
+              <div className="question-field" style={{ marginBottom: 0 }}>
+                <label className="question-label">Loại hình câu hỏi</label>
                 <select
                   value={formData.type}
                   onChange={(e) => handleChange('type', e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="question-select"
+                  disabled={isEditing}
                 >
                   <option value="mcq">Trắc nghiệm nhiều lựa chọn</option>
                   <option value="fill_blank">Điền từ vào chỗ trống</option>
@@ -425,13 +550,12 @@ const CreateQuestionPage = () => {
                   <option value="table_fill">Điền thông tin vào ô bảng</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Độ khó câu hỏi</label>
+              <div className="question-field" style={{ marginBottom: 0 }}>
+                <label className="question-label">Độ khó câu hỏi</label>
                 <select
                   value={formData.difficulty}
                   onChange={(e) => handleChange('difficulty', e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="question-select"
                 >
                   <option value="easy">Dễ (Nhận biết)</option>
                   <option value="medium">Trung bình (Thông hiểu)</option>
@@ -440,53 +564,65 @@ const CreateQuestionPage = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nội dung đề bài câu hỏi</label>
+            <div className="question-field">
+              <label className="question-label">Nội dung đề bài câu hỏi</label>
+              {formData.type === 'fill_blank' && (
+                <button
+                  type="button"
+                  onClick={insertBlank}
+                  className="question-insert-btn"
+                >
+                  + Chèn ô trống
+                </button>
+              )}
               <textarea
+                ref={contentRef}
                 value={formData.content}
                 onChange={(e) => handleChange('content', e.target.value)}
-                placeholder="Nhập câu hỏi hoặc yêu cầu đề bài tại đây..."
+                placeholder={formData.type === 'fill_blank'
+                  ? "Nhấn nút 'Chèn ô trống' phía trên để thêm ô điền đáp án..."
+                  : "Nhập câu hỏi hoặc yêu cầu đề bài tại đây..."}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="question-textarea"
                 required
               />
             </div>
 
-            {/* Render động các form đáp án đặc thù */}
             {formData.type === 'mcq' && renderMcqFields()}
             {formData.type === 'fill_blank' && renderFillBlankFields()}
             {formData.type === 'matching' && renderMatchingFields()}
             {formData.type === 'table_fill' && renderTableFillFields()}
 
-            {/* Ô NHẬP LỜI GIẢI THÍCH (MỚI BỔ SUNG) */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Lời giải thích chi tiết (Không bắt buộc)</label>
+            <div className="question-field">
+              <label className="question-label">Lời giải thích chi tiết (Không bắt buộc)</label>
               <textarea
                 value={formData.explanation}
                 onChange={(e) => handleChange('explanation', e.target.value)}
                 placeholder="Nhập lời giải hoặc ghi chú đáp án giúp học sinh hiểu bài sau khi thi xong..."
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="question-textarea"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+            <div className="question-actions">
               <button
                 type="button"
                 onClick={() => navigate('/teacher/questions')}
-                className="px-5 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+                className="question-btn-cancel"
               >
                 Hủy bỏ
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 font-medium shadow-md shadow-blue-500/10 transition-all"
+                className="question-btn-submit"
               >
                 {loading ? 'Đang xử lý...' : (isEditing ? 'Cập nhật thay đổi' : 'Lưu câu hỏi')}
               </button>
             </div>
-          </form>
+            </form>
+            </>
+          )}
         </div>
       </div>
     </TeacherLayout>

@@ -139,11 +139,11 @@ class QuestionService
 
     private function validateTableFill(array $data): bool|string
     {
-        if (empty($data['rows']) || empty($data['cols'])) {
-            return 'TableFill yêu cầu rows và cols';
+        if (empty($data['rows']) || !is_array($data['rows'])) {
+            return 'TableFill yêu cầu mảng rows';
         }
-        if (empty($data['correct_answers']) || !is_array($data['correct_answers'])) {
-            return 'TableFill yêu cầu correct_answers';
+        if (empty($data['cols']) || !is_int($data['cols']) && !is_numeric($data['cols'])) {
+            return 'TableFill yêu cầu cols';
         }
         return true;
     }

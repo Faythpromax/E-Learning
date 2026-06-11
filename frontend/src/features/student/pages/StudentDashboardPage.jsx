@@ -5,12 +5,14 @@ import ClassCard from '../../../components/student/ClassCard';
 import AssignmentCard from '../../../components/student/AssignmentCard';
 import { classService } from '../../../services/classService';
 import { testService } from '../../../services/testService';
+import JoinClassModal from '../../../components/student/JoinClassModal';
 
 const StudentDashboardPage = () => {
   const [classes, setClasses] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [stats, setStats] = useState({ classes: 0, tests: 0, completed: 0, averageGrade: null, recent: null });
   const [loading, setLoading] = useState(true);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -32,7 +34,6 @@ const StudentDashboardPage = () => {
       setClasses(classesList);
       setAssignments(availableTests);
 
-      // Compute stats
       const classesCount = classesList.length;
       const testsCount = availableTests.length;
 
@@ -50,7 +51,7 @@ const StudentDashboardPage = () => {
         classes: classesCount,
         tests: testsCount,
         completed: completedCount,
-        averageGrade: avgPercent, // percentage 0-100
+        averageGrade: avgPercent,
         recent: recentAttempt,
       });
     } catch (error) {
@@ -60,6 +61,10 @@ const StudentDashboardPage = () => {
     }
   };
 
+  const handleJoinModalJoined = () => {
+    fetchDashboardData();
+  };
+
   return (
     <StudentLayout pageTitle="Màn hình chính">
       {loading ? (
@@ -67,9 +72,13 @@ const StudentDashboardPage = () => {
       ) : (
         <>
           <StudentStats stats={stats} />
-          {/* Recent Classes Section */}
           <div className="dashboard-section">
-            <h2 className="dashboard-section-title">Các lớp học của tôi</h2>
+            <div className="dashboard-section-header">
+              <h2 className="dashboard-section-title">Các lớp học của tôi</h2>
+              <button type="button" className="join-class-trigger" onClick={() => setShowJoinModal(true)}>
+                Tham gia lớp học
+              </button>
+            </div>
             <div className="dashboard-grid">
               {classes.length > 0 ? (
                 classes.map((classItem) => (
@@ -86,7 +95,6 @@ const StudentDashboardPage = () => {
             </div>
           </div>
 
-          {/* Recent Assignments Section */}
           <div className="dashboard-section">
             <h2 className="dashboard-section-title">Bài tập cần làm</h2>
             <div className="dashboard-list">
@@ -101,6 +109,12 @@ const StudentDashboardPage = () => {
           </div>
         </>
       )}
+
+      <JoinClassModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        onJoined={handleJoinModalJoined}
+      />
     </StudentLayout>
   );
 };

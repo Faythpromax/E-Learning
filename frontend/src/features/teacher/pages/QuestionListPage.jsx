@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiFileText } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import questionApi from '../../../api/questionApi';
 
 const QuestionListPage = () => {
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +18,7 @@ const QuestionListPage = () => {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const response = await questionApi.getQuestions();
+      const response = await questionApi.getClassQuestions();
       if (response.success) {
         setQuestions(response.data || []);
       }
@@ -31,7 +33,7 @@ const QuestionListPage = () => {
     if (!window.confirm('Ban co chan muon xoa cau hoi nay?')) return;
 
     try {
-      await questionApi.deleteQuestion(id);
+      await questionApi.deleteClassQuestion(id);
       setQuestions(questions.filter(q => q.id !== id));
     } catch (error) {
       console.error('Failed to delete question:', error);
@@ -132,7 +134,7 @@ const QuestionListPage = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => window.location.href = `/teacher/questions/edit/${question.id}`}
+                      onClick={() => navigate(`/teacher/questions/${question.id}/edit`)}
                       className="p-2 text-blue-500 hover:text-blue-700 mr-2"
                     >
                       <FiEdit2 />

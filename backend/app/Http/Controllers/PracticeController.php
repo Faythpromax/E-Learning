@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Practice\SubmitAnswerRequest;
+use App\Models\Practice;
 use App\Services\PracticeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,174 @@ class PracticeController extends Controller
         private readonly PracticeService $practiceService
     ) {}
 
+    // Teacher endpoints
+    public function index(): JsonResponse
+    {
+        $userId = auth()->id();
+
+        $practices = Practice::where('created_by', $userId)
+            ->with('subject:id,name')
+            ->withCount('questions')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($practice) {
+                $practice->attempts_count = 0;
+                return $practice;
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $practices,
+        ]);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $user = auth()->user();
+        $practice = Practice::with('subject:id,name')
+            ->withCount('questions')
+            ->find($id);
+
+        if (!$practice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Practice not found.',
+            ], 404);
+        }
+
+        if ($practice->created_by !== $user->id && $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to view this practice.',
+            ], 403);
+        }
+
+        $practice->load(['subject:id,name', 'questions']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $practice,
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'subject_id' => 'required|exists:subjects,id',
+            'description' => 'nullable|string',
+            'question_ids' => 'nullable|array',
+            'question_ids.*' => 'exists:questions,id',
+        ]);
+
+        $practice = Practice::create([
+            'title' => $validated['title'],
+            'subject_id' => $validated['subject_id'],
+            'created_by' => auth()->id(),
+            'description' => $validated['description'] ?? null,
+            'is_active' => true,
+        ]);
+
+        if (!empty($validated['question_ids'])) {
+            foreach ($validated['question_ids'] as $index => $questionId) {
+                $practice->questions()->create([
+                    'question_id' => $questionId,
+                    'order_index' => $index,
+                ]);
+            }
+        }
+
+        $practice->load('subject:id,name');
+        $practice->loadCount('questions');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Practice created successfully.',
+            'data' => $practice,
+        ], 201);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $user = auth()->user();
+        $practice = Practice::find($id);
+
+        if (!$practice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Practice not found.',
+            ], 404);
+        }
+
+        if ($practice->created_by !== $user->id && $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete this practice.',
+            ], 403);
+        }
+
+        $practice->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Practice deleted successfully.',
+        ]);
+    }
+
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $user = auth()->user();
+        $practice = Practice::find($id);
+
+        if (!$practice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Practice not found.',
+            ], 404);
+        }
+
+        if ($practice->created_by !== $user->id && $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to update this practice.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'subject_id' => 'sometimes|required|exists:subjects,id',
+            'description' => 'nullable|string',
+            'question_ids' => 'nullable|array',
+            'question_ids.*' => 'exists:questions,id',
+        ]);
+
+        $practice->update(array_filter([
+            'title' => $validated['title'] ?? null,
+            'subject_id' => isset($validated['subject_id']) ? (int)$validated['subject_id'] : null,
+            'description' => $validated['description'] ?? null,
+        ], fn($v) => $v !== null));
+
+        if (isset($validated['question_ids'])) {
+            $practice->questions()->delete();
+            foreach ($validated['question_ids'] as $index => $questionId) {
+                $practice->questions()->create([
+                    'question_id' => $questionId,
+                    'order_index' => $index,
+                ]);
+            }
+        }
+
+        $practice->load('subject:id,name');
+        $practice->loadCount('questions');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Practice updated successfully.',
+            'data' => $practice,
+        ]);
+    }
+
+    // Student endpoints
     public function getQuestion(int $id): JsonResponse
     {
         try {

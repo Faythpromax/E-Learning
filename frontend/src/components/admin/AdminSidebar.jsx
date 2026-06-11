@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiHome, FiUsers, FiMessageSquare, FiChevronDown, FiBook } from 'react-icons/fi';
+import { FiHome, FiUsers, FiMessageSquare, FiChevronDown, FiBook, FiFileText } from 'react-icons/fi';
 import './admin.css';
 
 const AdminSidebar = () => {
   const [isUsersOpen, setIsUsersOpen] = useState(true);
+  const [isTestsOpen, setIsTestsOpen] = useState(true);
   const location = useLocation();
 
   const toggleUsers = (e) => {
@@ -12,7 +13,13 @@ const AdminSidebar = () => {
     setIsUsersOpen(!isUsersOpen);
   };
 
+  const toggleTests = (e) => {
+    e.preventDefault();
+    setIsTestsOpen(!isTestsOpen);
+  };
+
   const isUsersActive = location.pathname.includes('/admin/teachers') || location.pathname.includes('/admin/students');
+  const isTestsActive = location.pathname.includes('/admin/tests');
 
   return (
     <div className="admin-sidebar">
@@ -66,6 +73,41 @@ const AdminSidebar = () => {
             className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
           >
             Danh sách học sinh
+          </NavLink>
+        </div>
+
+        <div 
+          className={`admin-menu-item ${isTestsActive ? 'active' : ''}`} 
+          onClick={toggleTests}
+        >
+          <div className="admin-menu-item-content">
+            <FiFileText size={18} />
+            Quản lý bài kiểm tra
+          </div>
+          <FiChevronDown 
+            size={16} 
+            style={{ 
+              transform: isTestsOpen ? 'rotate(180deg)' : 'rotate(0)', 
+              transition: 'transform 0.3s ease' 
+            }} 
+          />
+        </div>
+
+        <div 
+          className="admin-submenu" 
+          style={{ maxHeight: isTestsOpen ? '120px' : '0' }}
+        >
+          <NavLink 
+            to="/admin/tests" 
+            className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
+          >
+            Danh sách bài kiểm tra
+          </NavLink>
+          <NavLink 
+            to="/admin/tests/create" 
+            className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
+          >
+            Tạo bài kiểm tra mới
           </NavLink>
         </div>
 

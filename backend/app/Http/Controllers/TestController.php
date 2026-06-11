@@ -283,8 +283,20 @@ class TestController extends Controller
     public function available(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $tests = $this->testService->getAvailableTests($user->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $tests,
+        ]);
+    }
+
+    public function systemTests(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $tests = $this->testService->getSystemTests();
 
         return response()->json([
             'success' => true,

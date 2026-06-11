@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../../services/authService";
+import { useAuth } from "../../../contexts/AuthContext";
 import "../../../features/auth/auth.css";
 
 /**
@@ -8,6 +8,7 @@ import "../../../features/auth/auth.css";
  */
 function LoginStudentPage() {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   
   // 1. Quản lý State cho Email và Password (Chuẩn ES6)
   const [email, setEmail] = useState("");
@@ -23,16 +24,11 @@ function LoginStudentPage() {
     setLoading(true);
 
     try {
-      // Gọi API đăng nhập từ authService
-      const data = await authService.login(email, password, "student");
+      const result = await authLogin(email, password, "student");
 
-      // 4. Kiểm tra vai trò sau khi đăng nhập thành công
-      if (data.user && data.user.role === "student") {
-        // Chuyển hướng đến Dashboard học sinh
-        navigate("/student/dashboard");
+      if (result.success && result.user?.role === "student") {
+        // AuthContext.login() already navigates to the correct dashboard
       } else {
-        // Nếu không phải role student, logout ngay lập tức để xóa token
-        await authService.logout();
         setError("Tài khoản không hợp lệ. Vui lòng đăng nhập bằng tài khoản học sinh.");
       }
     } catch (err) {
@@ -41,7 +37,6 @@ function LoginStudentPage() {
         const firstErrorKey = Object.keys(validationErrors)[0];
         setError(validationErrors[firstErrorKey][0]);
       } else if (err.response && err.response.status === 401) {
-        // Bắt lỗi sai mật khẩu (invalid credentials) hoặc lỗi do authService ném ra khi sai role
         const msg = err.response.data.message;
         if (msg === "invalid credentials" || msg === "Invalid credentials") {
           setError("Mật khẩu nhập vào không chính xác. Vui lòng thử lại.");
@@ -49,7 +44,6 @@ function LoginStudentPage() {
           setError(msg || "Tài khoản hoặc mật khẩu không đúng.");
         }
       } else {
-        // Trường hợp bị sai Role do code bốc từ authService.js ném ra bằng lệnh `throw new Error(...)`
         setError(err.message || "Đăng nhập thất bại.");
       }
     } finally {

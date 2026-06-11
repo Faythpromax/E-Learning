@@ -12,25 +12,33 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Sử dụng Transaction để đảm bảo an toàn dữ liệu
-        DB::transaction(function () {
-            // 1. Xóa các môn học bị trùng tên, chỉ giữ lại môn có ID nhỏ nhất
-            DB::statement('
-                DELETE s1 FROM subjects s1
-                INNER JOIN subjects s2 ON s1.name = s2.name
-                WHERE s1.id > s2.id
-            ');
+        // Xóa các môn học bị trùng tên, chỉ giữ lại môn có ID nhỏ nhất
+        $duplicates = DB::table('subjects')
+            ->select('name')
+            ->groupBy('name')
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
 
-            // 2. Kiểm tra nếu chưa có unique index thì mới thêm vào để tránh lỗi trùng lặp index
-            Schema::table('subjects', function (Blueprint $table) {
-                // Lấy danh sách index hiện tại của bảng
-                $sm = Schema::getConnection()->getDoctrineSchemaManager();
-                $indexes = $sm->listTableIndexes('subjects');
-                
-                if (!array_key_exists('subjects_name_unique', $indexes)) {
-                    $table->unique('name', 'subjects_name_unique');
-                }
-            });
+        foreach ($duplicates as $duplicate) {
+            $toKeep = DB::table('subjects')
+                ->where('name', $duplicate->name)
+                ->orderBy('id')
+                ->first();
+
+            DB::table('subjects')
+                ->where('name', $duplicate->name)
+                ->where('id', '>', $toKeep->id)
+                ->delete();
+        }
+
+        // Thêm unique index cho cột name nếu chưa có
+        Schema::table('subjects', function (Blueprint $table) {
+            $indexes = DB::select("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='subjects'");
+            $indexNames = array_column($indexes, 'name');
+
+            if (!in_array('subjects_name_unique', $indexNames)) {
+                $table->unique('name', 'subjects_name_unique');
+            }
         });
     }
 
@@ -40,11 +48,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('subjects', function (Blueprint $table) {
-            // Kiểm tra xem index có tồn tại không trước khi drop để tránh crash khi rollback
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexes = $sm->listTableIndexes('subjects');
+            $indexes = DB::select("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='subjects'");
+            $indexNames = array_column($indexes, 'name');
 
-            if (array_key_exists('subjects_name_unique', $indexes)) {
+            if (in_array('subjects_name_unique', $indexNames)) {
                 $table->dropUnique('subjects_name_unique');
             }
         });

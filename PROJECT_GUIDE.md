@@ -15,7 +15,7 @@
 | Test Module | HOAN THIEN | Backend + Frontend |
 | Class Module | HOAN THIEN | Backend + Frontend |
 | User Module | HOAN THIEN | Backend + Frontend |
-| Admin Pages | HOAN THIEN | Dashboard, Users, Settings |
+| Admin Pages | HOAN THIEN | Dashboard, Users, Quiz Management |
 
 ## 1.2. Backend da co
 
@@ -44,7 +44,7 @@ backend/app/
 ```
 frontend/src/
 ├── features/auth/               [HOAN THIEN - Login/Register]
-├── features/admin/              [HOAN THIEN - Dashboard, Users]
+├── features/admin/              [HOAN THIEN - Dashboard, Users, Quiz Management]
 ├── features/teacher/
 │   ├── pages/QuestionListPage   [HOAN THIEN]
 │   ├── pages/CreateQuestionPage [HOAN THIEN - MCQ, FillBlank]
@@ -66,10 +66,11 @@ frontend/src/
 
 | STT | Loi | Doi tuong | Do uu tien |
 |------|-----|-----------|-------------|
-| 1 | Thieu truong `scope` (system/class) trong bang questions | Backend | CAO |
-| 2 | API routes khong co phan quyen cho Question | Backend | CAO |
-| 3 | Matching/TableFill form chua hoan thien | Frontend | TRUNG BINH |
-| 4 | Khong co trang Question cho Admin | Frontend | TRUNG BINH |
+| 1 | Thieu truong `scope` (system/class) trong bang questions | Backend | CAO | Fixed |
+| 2 | API routes khong co phan quyen cho Question | Backend | CAO | Fixed |
+| 3 | Matching/TableFill form chua hoan thien | Frontend | TRUNG BINH | Fixed |
+| 4 | Khong co trang Question cho Admin | Frontend | TRUNG BINH | Fixed |
+| 5 | He thong chua luu duoc nhieu dap an dung la cau hoi dang mcq | Frontend / API | TRUNG BINH
 
 ## 2.2. Chi tiet loi
 
@@ -118,6 +119,12 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->group(function () {
 
 **Can hoan thien form nhap cho Matching va TableFill**
 
+### Loi 5: Mo ta nhu sau:
+### Câu hỏi có nhiều đáp án đúng, đã test API và dữ liệu đã ghi nhận các đáp án đúng
+### Nhưng khi ấn sửa câu hỏi, trong đó ko hiện sẵn tất cả các đáp án đúng mà chỉ hiện 1 đáp án đúng (Bug)
+### Check các phần renderMcqField, {correct_answers: qData.data?.correct_answers || (qData.data?.correct_answer ? [qData.data.correct_answer] : []),} trong /features/teacher/pages/EditQuestionPage.jsx
+### Có thể AdminEditQuestionPage cũng bị lỗi tương tự, nếu sửa đc từ bên teacher thì áp dụng cho admin
+
 ---
 
 # 3. PHAN CHIA CONG VIEC SUA LOI
@@ -126,13 +133,13 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->group(function () {
 
 ### Nhiem vu: Them scope va phan quyen Question
 
-| Cong viec | Mo ta |
-|-----------|-------|
-| Tao migration them truong scope | `scope` = system/class |
-| Sua Question Model | Them scope vao fillable |
-| Sua QuestionController | Tach endpoint theo scope |
-| Tao middleware kiem tra quyen | Admin tao system, Teacher tao class |
-| Cap nhat routes | Phan quyen theo role |
+| Cong viec | Mo ta | Trang Thai |
+|-----------|-------|------------|
+| Tao migration them truong scope | `scope` = system/class | Da thuc hien, Da test |
+| Sua Question Model | Them scope vao fillable | Da thuc hien |
+| Sua QuestionController | Tach endpoint theo scope | Da thuc hien |
+| Tao middleware kiem tra quyen | Admin tao system, Teacher tao class | Da thuc hien |
+| Cap nhat routes | Phan quyen theo role | Con thieu Practice |
 
 ### Chi tiet thuc hien
 
@@ -188,12 +195,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 ### Nhiem vu: Hoan thien Question UI
 
-| Cong viec | Mo ta |
-|-----------|-------|
-| Hoan thien Matching form | Nhap cap doi, noi cot |
-| Hoan thien TableFill form | Nhap bang, dien o |
-| Tao trang Question cho Admin | Quan ly global questions |
-| Cap nhat routes | Admin vs Teacher question pages |
+| Cong viec | Mo ta | Trang Thai | Test? |
+|-----------|-------|------------|-------|
+| Hoan thien Matching form | Nhap cap doi, noi cot | Da thuc hien | Da Test |
+| Hoan thien TableFill form | Nhap bang, dien o | Da thuc hien | Da Test |
+| Tao trang Question cho Admin | Quan ly global questions | Da thuc hien | Da Test |
+| Cap nhat routes | Admin vs Teacher question pages | Da thuc hien | Da Test |
 
 ### Chi tiet thuc hien
 
@@ -226,7 +233,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 # Login admin
 curl -X POST http://localhost:8000/api/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@test.com","password":"password"}'
+  -d '{"email":"admin@school.edu","password":"password", "role":"admin"}'
+
+# Đã test thành công
 
 # Tao question (Admin - nen thanh cong)
 curl -X POST http://localhost:8000/api/admin/questions \
@@ -234,22 +243,26 @@ curl -X POST http://localhost:8000/api/admin/questions \
   -H "Content-Type: application/json" \
   -d '{"subject_id":1,"type":"mcq","content":"Test?","scope":"system","data":{...}}'
 
+# Đã test thành công
+
 # Login teacher
 # Tao question (Teacher - nen thanh cong)
 curl -X POST http://localhost:8000/api/teacher/questions \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"subject_id":1,"type":"mcq","content":"Test?","scope":"class","data":{...}}'
+
+# Đã test thành công
 ```
 
 ## 4.2. Test Frontend
 
-| Hanh dong | Ket qua mong muon |
-|-----------|-------------------|
-| Admin dang nhap -> Question page | Thay danh sach global questions |
-| Teacher dang nhap -> Tao question | Chon duoc MCQ, FillBlank, Matching, TableFill |
-| Tao question Matching | Luu thanh cong, hien thi dung |
-| Tao question TableFill | Luu thanh cong, hien thi dung |
+| Hanh dong | Ket qua mong muon | Test? |
+|-----------|-------------------|-------|
+| Admin dang nhap -> Question page | Thay danh sach global questions | Test Thanh Cong |
+| Teacher dang nhap -> Tao question | Chon duoc MCQ, FillBlank, Matching, TableFill | Test Thanh Cong |
+| Tao question Matching | Luu thanh cong, hien thi dung | Test Thanh Cong |
+| Tao question TableFill | Luu thanh cong, hien thi dung | Test Thanh Cong |
 
 ---
 
@@ -298,5 +311,5 @@ Neu co them thoi gian:
 
 ---
 
-**Cap nhat:** 24/05/2026
-**Trang thai:** Can sua Question Module (80% hoan thien)
+**Cap nhat:** 10/06/2026
+**Trang thai:** Admin Quiz Management - Hoan thien

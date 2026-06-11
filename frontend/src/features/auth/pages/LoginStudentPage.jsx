@@ -1,38 +1,40 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth, forceClearAuthSession } from "../../../contexts/AuthContext";
 import "../auth.css";
 
 function LoginStudentPage() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, user } = useAuth();
   const [formData, setFormData] = useState({ contact: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
+    setError("");
   };
 
-  const handleSubmit = (event) => {
-    const Email = document.querySelector(
-      'input[placeholder="Nhập email hoặc số điện thoại"]',
-    ).value;
-    const Password = document.querySelector(
-      'input[placeholder="Nhập mật khẩu"]',
-    ).value;
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const mockEmail = "student1@gmail.com";
-    const mockPassword = "123";
-
-    if (!Email || !Password) {
-      alert("Vui lòng nhập đầy đủ thông tin.");
+    // Clear any existing auth state before login (handles case where user changed URL without logout)
+    if (isAuthenticated && user) {
+      forceClearAuthSession();
+      window.location.href = '/login/student';
       return;
     }
-    if (Email === mockEmail && Password === mockPassword) {
-      navigate("/student/dashboard");
-    } else {
-      alert("Email hoặc mật khẩu không đúng. Vui lòng thử lại.");
+
+    const result = await login(formData.contact, formData.password, "student");
+
+    setLoading(false);
+
+    if (!result.success) {
+      setError(result.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     }
-    event.preventDefault();
-    alert(`Đăng nhập học sinh: ${formData.contact}`);
   };
 
   return (
@@ -55,6 +57,12 @@ function LoginStudentPage() {
           <p className="auth-subtitle">
             Chào mừng trở lại! Nhập thông tin tài khoản của bạn.
           </p>
+
+          {error && (
+            <div className="auth-alert auth-alert-error" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px' }}>
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
@@ -105,8 +113,9 @@ function LoginStudentPage() {
               id="btn-login-student"
               type="submit"
               className="auth-btn auth-btn-primary"
+              disabled={loading}
             >
-              Đăng nhập
+              {loading ? "Đang xác thực..." : "Đăng nhập"}
             </button>
           </form>
 
