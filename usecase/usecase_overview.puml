@@ -1,0 +1,53 @@
+@startuml usecase_overview
+title Use Case Diagram Overview - E-Learning System (High Level)
+
+left to right direction
+
+' ===== Actors =====
+actor Admin
+actor Teacher
+actor Student
+
+' ===== System Boundary =====
+rectangle "E-Learning System" {
+    
+    ' Admin System
+    package "Admin System" {
+        (Manage Users) as AdminUsers
+        (Assign Roles) as AssignRoles
+        (System Overview) as SysOverview
+    }
+    
+    ' Teacher System
+    package "Teacher System" {
+        (Manage Questions) as TeachQ
+        (Manage Tests) as TeachT
+        (Manage Classes) as TeachC
+        (View Analytics) as TeachAnalytics
+    }
+    
+    ' Student System
+    package "Student Learning" {
+        (Practice Questions) as StudentPractice
+        (Take Test) as StudentTest
+        (Join Class) as StudentClass
+        (View Progress) as StudentProgress
+    }
+}
+
+' ===== Actor Relationships =====
+Admin --> AdminUsers
+Admin --> AssignRoles
+Admin --> SysOverview
+
+Teacher --> TeachQ
+Teacher --> TeachT
+Teacher --> TeachC
+Teacher --> TeachAnalytics
+
+Student --> StudentPractice
+Student --> StudentTest
+Student --> StudentClass
+Student --> StudentProgress
+
+@enduml

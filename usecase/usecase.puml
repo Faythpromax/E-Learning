@@ -1,0 +1,35 @@
+@startuml use case tổng quát
+left to right direction
+
+' ===== Actors =====
+actor "Học sinh" as Student
+actor "Giáo viên" as Teacher
+actor Admin
+
+' ===== System Boundary =====
+rectangle "Hệ thống E-Learning" {
+
+    ' Học sinh use cases
+    (Làm bài) as DoLearning
+    (Xem kết quả) as Result
+
+    ' Giáo viên use cases
+    (Quản lý câu hỏi) as ManageQ
+    (Quản lý bài kiểm tra) as ManageT
+    (Quản lý lớp học) as ManageC
+
+    ' Admin use cases
+    (Quản lý người dùng) as ManageU
+}
+
+' ===== Relationships =====
+Student --> DoLearning
+Student --> Result
+
+Teacher --> ManageQ
+Teacher --> ManageT
+Teacher --> ManageC
+
+Admin --> ManageU
+
+@enduml

@@ -1,0 +1,19 @@
+@startuml xem điểm số tổng quan
+left to right direction
+
+actor "Học sinh" as Student
+
+rectangle "Hệ thống E-Learning" {
+
+    (Xem kết quả) as ViewResult
+    (Xem điểm số tổng quan) as ViewScore
+    (Xem số câu đúng/sai) as ViewStatistic
+    (Xem chi tiết câu làm sai) as ViewWrongAnswer
+}
+
+Student --> ViewResult
+Student --> ViewScore
+Student --> ViewStatistic
+Student --> ViewWrongAnswer
+
+@enduml

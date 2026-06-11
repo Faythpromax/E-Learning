@@ -1,0 +1,28 @@
+@startuml làm bài kiểm tra
+left to right direction
+
+actor "Học sinh" as Student
+
+rectangle "Hệ thống E-Learning" {
+
+    (Làm bài kiểm tra) as TakeTest
+
+    (Tìm kiếm bài kiểm tra) as SearchTest
+    (Nhập mã bài kiểm tra) as EnterCode
+    (Bắt đầu làm bài) as StartTest
+    (Trả lời câu hỏi) as AnswerQuestion
+    (Nộp bài) as SubmitTest
+    (Xem kết quả) as ViewResult
+}
+
+Student --> TakeTest
+
+TakeTest .> SearchTest : <<include>>
+TakeTest .> EnterCode : <<include>>
+TakeTest .> StartTest : <<include>>
+TakeTest .> AnswerQuestion : <<include>>
+TakeTest .> SubmitTest : <<include>>
+
+ViewResult .> TakeTest : <<extend>>
+
+@enduml

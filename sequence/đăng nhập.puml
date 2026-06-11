@@ -1,0 +1,51 @@
+@startuml login_sequence
+title Sequence Diagram - Login Flow
+
+actor User
+boundary "LoginPage" as UI <<boundary>>
+control AuthController
+control AuthService
+control UserRepository
+database DB
+
+User -> UI: Nhập email + password
+UI -> AuthController: Login(email, password)
+
+AuthController -> AuthService: Authenticate(email, password)
+
+AuthService -> UserRepository: FindByEmail(email)
+UserRepository -> DB: SELECT user
+DB --> UserRepository: user data / null
+UserRepository --> AuthService: user
+
+alt User không tồn tại
+
+
+AuthService --> AuthController: User not found
+AuthController --> UI: Hiển thị lỗi
+
+
+else User tồn tại
+
+
+AuthService -> AuthService: Verify password
+
+alt Sai mật khẩu
+
+    AuthService --> AuthController: Invalid password
+    AuthController --> UI: Hiển thị lỗi
+
+else Đúng mật khẩu
+
+    AuthService -> AuthService: Generate JWT Token
+
+    AuthService --> AuthController: Token + UserInfo
+    AuthController --> UI: Login Success
+    UI -> UI: Lưu JWT Token
+
+end
+
+
+end
+
+@enduml

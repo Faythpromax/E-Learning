@@ -1,0 +1,36 @@
+@startuml create_class_sequence
+title Sequence Diagram - Teacher Create Class Flow
+
+actor Teacher
+boundary "CreateClassPage" as UI <<boundary>>
+control ClassController
+control ClassService
+control ClassRepository
+database DB
+
+' =========================================================================
+' TIẾN HÀNH TẠO LỚP HỌC VÀ VALIDATE
+' =========================================================================
+
+Teacher -> UI: 1: Nhập thông tin lớp mới & Bấm "Tạo"
+UI -> ClassController: 1.1: POST /classes (Gửi thông tin lớp học)
+
+' Tự validate ngắn ngay tại Controller bằng ký hiệu ++ và --
+ClassController -> ClassController++: 1.2: validate(ClassRequest)
+ClassController --> ClassController--: Trả về kết quả validate
+
+alt Dữ liệu không hợp lệ
+    ClassController --> UI: 1.3: Thông báo thông tin không hợp lệ (422)
+else Dữ liệu hợp lệ
+    ClassController -> ClassService: 1.4: Gọi hàm tạo lớp (createClass)
+    
+    ClassService -> ClassRepository: 1.4.1: Thêm lớp học mới vào DB
+    ClassRepository -> DB: 1.4.1.1: INSERT INTO classes
+    DB --> ClassRepository: Xác nhận thành công & Trả về class_id
+    
+    ClassRepository --> ClassService: Trả về dữ liệu Class vừa tạo
+    ClassService --> ClassController: Success
+    ClassController --> UI: 1.5: Thông báo tạo lớp học thành công (201)
+end
+
+@enduml

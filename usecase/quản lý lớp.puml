@@ -1,0 +1,37 @@
+@startuml quản lý lớp học
+left to right direction
+
+actor "Giáo viên" as Teacher
+
+rectangle "Hệ thống E-Learning" {
+
+    package "Quản lý lớp học" {
+
+        (Xem danh sách lớp) as ViewC
+        (Xem chi tiết lớp) as DetailC
+        (Tìm kiếm lớp) as SearchC
+
+        (Thêm lớp) as CreateC
+        (Sửa lớp) as UpdateC
+        (Xóa lớp) as DeleteC
+
+        (Thêm học sinh vào lớp) as AddStudent
+        (Xóa học sinh khỏi lớp) as RemoveStudent
+        (Upload tài liệu) as UploadMat
+        (Gán bài test) as AssignTest
+    }
+}
+
+' ===== Actor connections =====
+Teacher --> ViewC
+Teacher --> DetailC
+Teacher --> SearchC
+Teacher --> CreateC
+Teacher --> UpdateC
+Teacher --> DeleteC
+Teacher --> AddStudent
+Teacher --> RemoveStudent
+Teacher --> UploadMat
+Teacher --> AssignTest
+
+@enduml

@@ -1,0 +1,21 @@
+@startuml assign_role
+title Sequence Diagram - Admin Assign Role
+
+actor Admin
+boundary "AdminRolePage" as UI <<boundary>>
+control UserController
+control UserService
+control UserRepository
+database DB
+
+Admin -> UI: assignRole()
+UI -> UserController: assignRole()
+UserController -> UserService: assignRole()
+UserService -> UserRepository: updateRole()
+UserRepository -> DB: UPDATE user role
+DB --> UserRepository: OK
+UserRepository --> UserService: success
+UserService --> UserController: success
+UserController --> UI: return success
+
+@enduml

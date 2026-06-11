@@ -1,0 +1,27 @@
+@startuml add user
+title Admin Manage User — Sequence Diagram
+
+actor Admin <<actor>>
+boundary "AdminUserManagePage" as UI <<boundary>>
+control "AdminUserController" as Controller <<control>>
+control "UserService" as Service <<control>>
+control "UserRepository" as Repository <<control>>
+entity "User" as UserModel <<entity>>
+database "MySQL" as DB <<entity>>
+
+Admin -> UI: Create or update user
+UI -> Controller: POST /admin/users or PUT /admin/users/{id}
+Controller -> Controller: validate(request)
+alt validation fails
+	Controller --> UI: 422 ValidationErrors
+else
+	Controller -> Service: upsertUser(request)
+	Service -> Repository: save(request.data)
+	Repository -> DB: INSERT/UPDATE users
+	UserModel --> Repository: OK
+	Repository --> Service: UserEntity
+	Service --> Controller: 200 OK {user_id}
+	Controller --> UI: show confirmation
+end
+
+@enduml

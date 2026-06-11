@@ -1,0 +1,21 @@
+@startuml generate_test_code
+title Sequence Diagram - Teacher Generate Test Code
+
+actor Teacher
+boundary "TestCodePage" as UI <<boundary>>
+control TestController
+control TestService
+control TestRepository
+database DB
+
+Teacher -> UI: generateCode()
+UI -> TestController: generateCode()
+TestController -> TestService: generateTestCode()
+TestService -> TestRepository: updateCode()
+TestRepository -> DB: UPDATE test code
+DB --> TestRepository: OK
+TestRepository --> TestService: code
+TestService --> TestController: code
+TestController --> UI: return code
+
+@enduml

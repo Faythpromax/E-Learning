@@ -1,0 +1,36 @@
+@startuml delete_class_sequence
+title Sequence Diagram - Teacher Delete Class Flow
+
+actor Teacher
+boundary "ClassPage" as UI <<boundary>>
+control ClassController
+control ClassService
+control ClassRepository
+database DB
+
+Teacher -> UI: Xóa lớp
+UI -> ClassController: Xóa lớp
+
+ClassController -> ClassService: Xóa lớp
+
+ClassService -> ClassRepository: Kiểm tra tồn tại
+ClassRepository -> DB: SELECT class
+DB --> ClassRepository: class data
+
+alt Không tồn tại
+    ClassRepository --> ClassService: Error (not found)
+    ClassService --> ClassController: Error
+    ClassController --> UI: 404 Not Found
+else Tồn tại
+    ClassService -> ClassRepository: Xóa class_user
+    ClassRepository -> DB: DELETE class_user
+
+    ClassService -> ClassRepository: Xóa class
+    ClassRepository -> DB: DELETE class
+
+    ClassRepository --> ClassService: Success
+    ClassService --> ClassController: Success
+    ClassController --> UI: Xóa thành công
+end
+
+@enduml

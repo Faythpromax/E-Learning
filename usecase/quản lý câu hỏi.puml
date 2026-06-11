@@ -1,0 +1,36 @@
+@startuml quản lý câu hỏi
+left to right direction
+
+actor "Giáo viên" as Teacher
+actor "Admin" as Admin
+
+rectangle "Hệ thống E-Learning" {
+
+    package "Quản lý câu hỏi" {
+
+        (Xem danh sách câu hỏi) as ViewQ
+        (Xem chi tiết câu hỏi) as DetailQ
+        (Tìm kiếm câu hỏi) as SearchQ
+        (Chọn câu hỏi cho bài kiểm tra) as SelectQ
+
+        (Thêm câu hỏi) as CreateQ
+        (Sửa câu hỏi) as UpdateQ
+        (Xóa câu hỏi) as DeleteQ
+    }
+}
+
+Teacher --> ViewQ
+Teacher --> DetailQ
+Teacher --> SearchQ
+Teacher --> SelectQ
+
+Admin --> ViewQ
+Admin --> DetailQ
+Admin --> SearchQ
+Admin --> CreateQ
+Admin --> UpdateQ
+Admin --> DeleteQ
+Teacher -left-> ViewQ
+Admin -right-> CreateQ
+
+@enduml

@@ -1,0 +1,24 @@
+@startuml luyện tập
+left to right direction
+
+actor "Học sinh" as Student
+
+rectangle "Chức năng luyện tập" {
+
+    (Chọn chủ đề) as SelectTopic
+    (Chọn độ khó) as SelectLevel
+    (Bắt đầu luyện tập) as StartPractice
+    (Trả lời câu hỏi) as AnswerQuestion
+    (Xem giải thích đáp án) as ViewExplanation
+    (Xem kết quả luyện tập) as ViewResult
+
+    StartPractice .> SelectTopic : <<include>>
+    StartPractice .> SelectLevel : <<include>>
+    AnswerQuestion .> ViewExplanation : <<extend>>
+}
+
+Student --> StartPractice
+Student --> AnswerQuestion
+Student --> ViewResult
+
+@enduml

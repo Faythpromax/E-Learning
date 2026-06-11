@@ -1,0 +1,21 @@
+@startuml search_test
+title Sequence Diagram - Teacher Search Test
+
+actor Teacher
+boundary "SearchTestPage" as UI <<boundary>>
+control TestController
+control TestService
+control TestRepository
+database DB
+
+Teacher -> UI: search()
+UI -> TestController: search()
+TestController -> TestService: searchTests()
+TestService -> TestRepository: search()
+TestRepository -> DB: SELECT tests
+DB --> TestRepository: results
+TestRepository --> TestService: results
+TestService --> TestController: results
+TestController --> UI: return result
+
+@enduml

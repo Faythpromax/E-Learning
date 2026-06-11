@@ -1,0 +1,33 @@
+@startuml quản lý người dùng
+left to right direction
+
+actor Admin
+
+rectangle "Hệ thống E-Learning" {
+
+    package "Quản lý người dùng" {
+
+        (Xem danh sách người dùng) as ViewU
+        (Xem chi tiết người dùng) as DetailU
+        (Tìm kiếm người dùng) as SearchU
+
+        (Thêm người dùng) as CreateU
+        (Sửa người dùng) as UpdateU
+        (Xóa người dùng) as DeleteU
+
+        (Gán quyền) as AssignRole
+        (Xem tổng quan hệ thống) as SysOverview
+    }
+}
+
+' ===== Actor connections =====
+Admin --> ViewU
+Admin --> DetailU
+Admin --> SearchU
+Admin --> CreateU
+Admin --> UpdateU
+Admin --> DeleteU
+Admin --> AssignRole
+Admin --> SysOverview
+
+@enduml

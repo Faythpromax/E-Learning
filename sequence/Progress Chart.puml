@@ -1,0 +1,35 @@
+@startuml progress_chart_sequence
+title Sequence Diagram - Student Progress Chart
+
+actor Student
+participant DashboardController
+participant DashboardService
+participant QuestionProgressRepository
+participant TestAttemptRepository
+database DB
+
+Student -> DashboardController: viewProgressChart(user_id)
+
+DashboardController -> DashboardService: getProgressData(user_id)
+
+' ===== Get Practice Progress =====
+DashboardService -> QuestionProgressRepository: getProgressHistory(user_id)
+QuestionProgressRepository -> DB: SELECT question_progress ORDER BY created_at
+DB --> QuestionProgressRepository: progress_history
+QuestionProgressRepository --> DashboardService: progress_history
+
+' ===== Get Test Performance =====
+DashboardService -> TestAttemptRepository: getTestHistory(user_id)
+TestAttemptRepository -> DB: SELECT test_attempt ORDER BY submitted_at
+DB --> TestAttemptRepository: test_history
+TestAttemptRepository --> DashboardService: test_history
+
+DashboardService -> DashboardService: aggregateByDate(progress_history, test_history)
+
+DashboardService -> DashboardService: calculateStats(aggregated_data)
+' Tính: correct_count, total_count, percentage, trend
+
+DashboardService --> DashboardController: {chart_data, stats}
+DashboardController --> Student: progress_chart_view
+
+@enduml

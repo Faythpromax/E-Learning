@@ -1,0 +1,46 @@
+@startuml delete_user_sequence
+title Sequence Diagram - Delete User Flow
+
+actor Admin
+boundary "UserPage" as UI <<boundary>>
+control UserController
+control UserService
+control UserRepository
+database DB
+
+Admin -> UI: Xóa User
+UI -> UserController: Xóa User
+
+UserController -> UserService: Xóa User
+
+UserService -> UserRepository: Kiểm tra tồn tại
+UserRepository -> DB: SELECT user
+DB --> UserRepository: user data
+
+alt Không tồn tại
+    UserRepository --> UserService: Error (not found)
+    UserService --> UserController: Error
+    UserController --> UI: 404 Not Found
+else Tồn tại
+
+    ' ===== Kiểm tra ràng buộc =====
+    UserService -> UserRepository: Kiểm tra liên quan dữ liệu
+    UserRepository -> DB: SELECT test_attempt / progress
+    DB --> UserRepository
+
+    alt Có dữ liệu liên quan
+        UserRepository --> UserService: Error (cannot delete)
+        UserService --> UserController: Error
+        UserController --> UI: Không thể xóa user
+    else Không có ràng buộc
+        UserService -> UserRepository: Delete user
+        UserRepository -> DB: DELETE user
+        DB --> UserRepository: OK
+
+        UserRepository --> UserService: Success
+        UserService --> UserController: Success
+        UserController --> UI: Xóa thành công
+    end
+end
+
+@enduml

@@ -1,0 +1,32 @@
+@startuml quản lý bài kiểm tra
+left to right direction
+
+actor "Giáo viên" as Teacher
+
+rectangle "Hệ thống E-Learning" {
+
+    package "Quản lý bài kiểm tra" {
+
+        (Xem danh sách bài kiểm tra) as ViewT
+        (Xem chi tiết bài kiểm tra) as DetailT
+        (Tìm kiếm bài kiểm tra) as SearchT
+
+        (Thêm bài kiểm tra) as CreateT
+        (Sửa bài kiểm tra) as UpdateT
+        (Xóa bài kiểm tra) as DeleteT
+
+        (Thêm câu hỏi vào bài kiểm tra) as AddQToTest
+        (Gán bài kiểm tra cho lớp) as AssignTest
+    }
+}
+
+' ===== Actor connections =====
+Teacher --> ViewT
+Teacher --> DetailT
+Teacher --> SearchT
+Teacher --> CreateT
+Teacher --> UpdateT
+Teacher --> DeleteT
+Teacher --> AddQToTest
+Teacher --> AssignTest
+@enduml

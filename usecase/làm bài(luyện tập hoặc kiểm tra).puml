@@ -1,0 +1,21 @@
+@startuml làm bài
+left to right direction
+
+actor "Học sinh" as Student
+
+rectangle "Hệ thống E-Learning" {
+
+    (Trả lời câu hỏi) as AnswerQuestion
+    (Làm bài kiểm tra) as TakeTest
+
+    (Tìm kiếm câu hỏi) as SearchQuestion
+    (Tìm kiếm bài kiểm tra) as SearchTest
+
+}
+
+Student --> AnswerQuestion
+Student --> TakeTest
+Student --> SearchQuestion
+Student --> SearchTest
+
+@enduml

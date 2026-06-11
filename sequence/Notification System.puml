@@ -1,0 +1,49 @@
+@startuml notification_system_sequence
+title Sequence Diagram - Notification System
+
+actor "Teacher/Admin/Student"
+participant EventService
+participant NotificationService
+participant NotificationRepository
+participant UserRepository
+database DB
+
+' ===== Case 1: New Test Created =====
+EventService -> EventService: testCreated(test_id, teacher_id)
+EventService -> NotificationService: notify(event_type, test_id)
+
+NotificationService -> UserRepository: getClassStudents(class_id)
+UserRepository -> DB: SELECT users WHERE class_id
+DB --> UserRepository: students
+UserRepository --> NotificationService: students
+
+loop for each student
+    NotificationService -> NotificationRepository: createNotification(user_id, message)
+    NotificationRepository -> DB: INSERT notification
+    DB --> NotificationRepository: notification_id
+end
+
+' ===== Case 2: Test Due Soon =====
+EventService -> EventService: checkExpiringTests()
+
+loop for each test expiring in 24h
+    EventService -> NotificationService: notify(event_type, test_id)
+    
+    NotificationService -> UserRepository: getClassStudents(class_id)
+    UserRepository -> DB: SELECT users
+    DB --> UserRepository: students
+    
+    loop for each student
+        NotificationService -> NotificationRepository: createNotification(user_id, expiring_message)
+        NotificationRepository -> DB: INSERT notification
+    end
+end
+
+' ===== Case 3: Added to Class =====
+EventService -> EventService: studentAddedToClass(student_id, class_id)
+EventService -> NotificationService: notify(event_type, class_id)
+
+NotificationService -> NotificationRepository: createNotification(student_id, class_message)
+NotificationRepository -> DB: INSERT notification
+
+@enduml

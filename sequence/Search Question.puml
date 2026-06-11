@@ -1,0 +1,22 @@
+@startuml teacher search question
+title Teacher Search Question — Sequence Diagram
+
+actor Teacher <<actor>>
+boundary "QuestionSearchPage" as UI <<boundary>>
+control "QuestionController" as Controller <<control>>
+control "QuestionService" as Service <<control>>
+control "QuestionRepository" as Repository <<control>>
+entity "Question" as Question <<entity>>
+database "MySQL" as DB <<entity>>
+
+Teacher -> UI: Enter search query
+UI -> Controller: GET /questions?query=...
+Controller -> Service: searchQuestions(query, filters)
+Service -> Repository: search(query, filters)
+Repository -> DB: SELECT ... WHERE MATCH
+Question --> Repository: resultSet
+Repository --> Service: questions
+Service --> Controller: questions
+Controller --> UI: render results
+
+@enduml

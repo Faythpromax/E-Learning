@@ -1,27 +1,67 @@
-@startuml add student to class
-title Teacher Add Student To Class — Sequence Diagram
+@startuml add_student_to_class_sequence
+title Sequence Diagram - Teacher Add Student To Class Flow
 
-actor Teacher <<actor>>
+actor Teacher
 boundary "ManageClassPage" as UI <<boundary>>
-control "ClassController" as Controller <<control>>
-control "ClassService" as Service <<control>>
-control "ClassRepository" as Repository <<control>>
-entity "Class" as ClassModel <<entity>>
-database "MySQL" as DB <<entity>>
+control ClassController
+control ClassService
+control ClassRepository
+database DB
 
-Teacher -> UI: Update class settings
-UI -> Controller: PUT /classes/{id}
-Controller -> Controller: validate(payload)
-alt validation fails
-	Controller --> UI: 422 ValidationErrors
-else
-	Controller -> Service: updateClass(id, payload)
-	Service -> Repository: update(id, payload)
-	Repository -> DB: UPDATE class
-	ClassModel --> Repository: OK
-	Repository --> Service: updatedClass
-	Service --> Controller: 200 OK
-	Controller --> UI: confirmation
+' =========================================================================
+' VÒNG 1: LOAD LỚP HỌC VÀ DANH SÁCH HỌC SINH CHƯA CÓ LỚP (HOẶC TẤT CẢ HỌC SINH)
+' =========================================================================
+== Vòng 1: Tải thông tin lớp & Danh sách học sinh để chọn ==
+
+Teacher -> UI: 1: Chọn chức năng "Thêm học sinh vào lớp"
+UI -> ClassController: 1.1: GET /classes/{classId}/students/setup
+
+ClassController -> ClassService: 1.2: Lấy thông tin lớp và danh sách học sinh
+ClassService -> ClassRepository: 1.2.1: Query thông tin Class & Students
+ClassRepository -> DB: 1.2.1.1: SELECT class_info & SELECT students
+DB --> ClassRepository: Trả về dữ liệu thô
+ClassRepository --> ClassService: Trả về ClassEntity & List<StudentEntity>
+ClassService --> ClassController: Dữ liệu hợp lệ
+Controller --> UI: 1.3: Hiển thị giao diện chọn học sinh cho lớp này
+
+' =========================================================================
+' VÒNG 2: CHỌN HỌC SINH, VALIDATE VÀ TIẾN HÀNH THÊM VÀO LỚP
+' =========================================================================
+== Vòng 2: Chọn học sinh & Tiến hành thêm vào lớp ==
+
+Teacher -> UI: 2: Chọn (các) Học sinh & Bấm "Xác nhận thêm"
+UI -> ClassController: 2.1: POST /classes/{classId}/students (Payload: student_ids)
+
+' Tự validate ngắn tại Controller bằng ký hiệu ++ và --
+ClassController -> ClassController++: 2.1.1: validate(AddStudentRequest)
+ClassController --> ClassController--: Trả về kết quả validate
+
+alt Dữ liệu không hợp lệ (Ví dụ: Danh sách student_ids trống)
+    ClassController --> UI: 2.1.2: Thông báo thông tin không hợp lệ (422)
+else Dữ liệu hợp lệ
+    ClassController -> ClassService: 2.1.3: Gọi hàm thêm học sinh (addStudentsToClass)
+    
+    ' Kiểm tra ràng buộc dưới DB xem học sinh/lớp có thực sự tồn tại không
+    ClassService -> ClassRepository: 2.1.3.1: Kiểm tra tồn tại của Class và Students
+    ClassRepository -> DB: SELECT kiểm tra ràng buộc
+    DB --> ClassRepository: Hợp lệ
+    
+    alt Học sinh hoặc Lớp không hợp lệ
+        ClassRepository --> ClassService: Error (Not found)
+        ClassService --> ClassController: Business Error
+        ClassController --> UI: 400 Bad Request
+    else Hợp lệ hoàn toàn
+        ' Thực hiện INSERT vào bảng trung gian lưu mối quan hệ lớp - học sinh
+        loop từng học sinh được chọn
+            ClassService -> ClassRepository: 2.1.3.2: Thêm liên kết học sinh - lớp học
+            ClassRepository -> DB: 2.1.3.2.1: INSERT INTO class_student (class_id, student_id)
+            DB --> ClassRepository: Xác nhận thành công
+        end
+        
+        ClassRepository --> ClassService: Thêm hoàn tất (Success)
+        ClassService --> ClassController: Success
+        ClassController --> UI: 2.1.4: Thông báo thêm học sinh vào lớp thành công (201)
+    end
 end
 
 @enduml

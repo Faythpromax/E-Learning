@@ -1,0 +1,34 @@
+@startuml delete_question_sequence
+title Sequence Diagram - Teacher Delete Question Flow
+
+actor Teacher
+boundary "QuestionPage" as UI <<boundary>>
+control QuestionController
+control QuestionService
+control QuestionRepository
+database DB
+
+Teacher -> UI: Xóa câu hỏi
+UI -> QuestionController: Xóa câu hỏi
+
+QuestionController -> QuestionService: Xóa câu hỏi
+
+QuestionService -> QuestionRepository: Kiểm tra tồn tại
+QuestionRepository -> DB: SELECT question
+DB --> QuestionRepository: question data
+
+alt Không tồn tại
+    QuestionRepository --> QuestionService: Error (not found)
+    QuestionService --> QuestionController: Error
+    QuestionController --> UI: 404 Not Found
+else Tồn tại
+    QuestionService -> QuestionRepository: Delete question
+    QuestionRepository -> DB: DELETE question
+    DB --> QuestionRepository: OK
+
+    QuestionRepository --> QuestionService: Success
+    QuestionService --> QuestionController: Success
+    QuestionController --> UI: Xóa thành công
+end
+
+@enduml

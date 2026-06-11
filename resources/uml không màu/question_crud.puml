@@ -1,0 +1,127 @@
+@startuml question_management_class_diagram
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Class Diagram - Question Management (SOLID / Layered Architecture)
+
+' ==================== LAYER 1: PRESENTATION LAYER ====================
+package "Presentation Layer" {
+    class QuestionForm <<boundary>> {
+        +questionData: Object
+        +handleSubmit(): void
+        +handleCheckAnswer(): void
+    }
+
+    class QuestionController <<controller>> {
+        -questionService: IQuestionService
+        +createQuestion(request: StoreQuestionRequest): JsonResponse
+        +checkAnswer(id: int, request: CheckAnswerRequest): JsonResponse
+    }
+}
+
+' ==================== LAYER 2: BUSINESS LOGIC LAYER ====================
+package "Business Logic Layer" {
+    interface IQuestionService <<service interface>> {
+        +createQuestion(request: StoreQuestionRequest): Question
+        +checkAnswer(request: CheckAnswerRequest): CheckResult
+    }
+
+    class QuestionService <<service>> {
+        -questionRepository: IQuestionRepository
+        -scoringFactory: ScoringFactory
+        +createQuestion(request: StoreQuestionRequest): Question
+        +checkAnswer(request: CheckAnswerRequest): CheckResult
+    }
+
+    ' --- STRATEGY & FACTORY PATTERNS ---
+    class ScoringFactory <<factory>> {
+        +createStrategy(type: String): IScoringStrategy
+    }
+
+    interface IScoringStrategy <<strategy interface>> {
+        +check(answer: String, correctAnswer: String): CheckResult
+    }
+
+    class MultipleChoiceScoringStrategy <<strategy>> {
+        +check(answer: String, correctAnswer: String): CheckResult
+    }
+
+    class ShortAnswerScoringStrategy <<strategy>> {
+        +check(answer: String, correctAnswer: String): CheckResult
+    }
+}
+
+' ==================== LAYER 3: DATA ACCESS LAYER ====================
+package "Data Access Layer" {
+    interface IQuestionRepository <<repository interface>> {
+        +save(data: StoreQuestionRequest): Question
+        +find(id: int): Question
+    }
+
+    class QuestionRepository <<repository>> {
+        +save(data: StoreQuestionRequest): Question
+        +find(id: int): Question
+    }
+}
+
+' ==================== LAYER 4: DATA TRANSFER OBJECTS (DTO) ====================
+package "Data Transfer Objects (DTO)" {
+    class StoreQuestionRequest <<dto>> {
+        +content: String
+        +type: String
+        +options: array
+        +correct_answer: String
+    }
+
+    class CheckAnswerRequest <<dto>> {
+        +question_id: int
+        +submitted_answer: String
+    }
+
+    class CheckResult <<dto>> {
+        +is_correct: bool
+        +score: float
+        +feedback: String
+    }
+}
+
+' ==================== LAYER 5: DOMAIN ENTITIES ====================
+package "Domain Entities" {
+    class Question <<entity>> {
+        -id: int
+        -content: string
+        -type: string
+        -options: array
+        -correct_answer: string
+    }
+}
+
+' ==================== RELATIONSHIPS & DEPENDENCIES ====================
+
+' UI Layer to Controller & DTOs
+QuestionForm ..> StoreQuestionRequest : constructs
+QuestionForm ..> CheckAnswerRequest : constructs
+QuestionForm --> QuestionController : calls
+
+' Controller Layer to Service & DTOs
+QuestionController --> IQuestionService : injects
+QuestionController ..> StoreQuestionRequest : dependency
+QuestionController ..> CheckAnswerRequest : dependency
+
+' Service Layer implements Interface & depends on Repositories / Factory
+QuestionService .up.|> IQuestionService : implements
+QuestionService --> IQuestionRepository : injects
+QuestionService --> ScoringFactory : injects
+QuestionService ..> CheckResult : dependency
+QuestionService ..> IScoringStrategy : delegates
+
+' Factory & Strategy Patterns Relationships (Căn chỉnh hướng ngang cho dễ nhìn)
+ScoringFactory .right.> IScoringStrategy : creates
+MultipleChoiceScoringStrategy -up.|> IScoringStrategy : implements
+ShortAnswerScoringStrategy -up.|> IScoringStrategy : implements
+
+' Data Access Layer implements Interfaces & interacts with Entities
+QuestionRepository .up.|> IQuestionRepository : implements
+QuestionRepository ..> Question : retrieves
+
+@enduml

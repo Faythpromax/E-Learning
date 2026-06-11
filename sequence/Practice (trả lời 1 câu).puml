@@ -1,0 +1,36 @@
+@startuml student practice
+title Student Practice — Sequence Diagram
+
+actor Student <<actor>>
+boundary "PracticePage" as UI <<boundary>>
+control "PracticeController" as Controller <<control>>
+control "PracticeService" as Service <<control>>
+control "ProgressRepository" as Repo <<control>>
+entity "QuestionProgress" as Progress <<entity>>
+database "MySQL" as DB <<entity>>
+
+Student -> UI: Open practice
+UI -> Controller: GET /practice
+Controller -> Service: getPracticeQuestions(userId)
+Service -> Repo: fetchProgressAndCandidates(userId)
+Repo -> DB: SELECT
+Progress --> Repo: rows
+Repo --> Service: questions
+Service --> Controller: questions
+Controller --> UI: render
+
+UI -> Controller: POST /practice/answer
+Controller -> Controller: validate(answer)
+alt invalid
+	Controller --> UI: 422 ValidationErrors
+else
+	Controller -> Service: recordAnswer(userId, questionId, answer)
+	Service -> Repo: upsertProgress(userId, questionId, result)
+	Repo -> DB: INSERT/UPDATE
+	Progress --> Repo: OK
+	Repo --> Service: ProgressEntity
+	Service --> Controller: 200 OK
+	Controller --> UI: feedback
+end
+
+@enduml

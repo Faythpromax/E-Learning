@@ -1,0 +1,73 @@
+@startuml teacher_assign_test_to_class
+title Sequence Diagram - Teacher Assign Test To Class Flow
+
+actor Teacher <<actor>>
+boundary "AssignTestPage" as UI <<boundary>>
+control "TestAssignmentController" as Controller <<control>>
+control "TestAssignmentRequest" as Request <<control>>
+control "TestAssignmentService" as Service <<control>>
+control "TestAssignmentRepository" as Repository <<control>>
+database "MySQL" as DB <<entity>>
+
+' =========================================================================
+' VÒNG 1: LOAD DANH SÁCH BÀI TEST VÀ LỚP HỌC LÊN GIAO DIỆN
+' =========================================================================
+== Vòng 1: Tải danh sách Bài test & Lớp học lên giao diện ==
+
+Teacher -> UI: 1: Truy cập trang Giao bài tập
+UI -> Controller: 1.1: GET /assignments/setup-data
+
+Controller -> Service: 1.2: Lấy danh sách Test và Class đang hoạt động
+Service -> Repository: 1.2.1: Query danh sách các bài Test & Lớp học
+Repository -> DB: 1.2.1.1: SELECT tests & SELECT classes
+DB --> Repository: Trả về dữ liệu thô
+Repository --> Service: Trả về List<Test> & List<Class>
+Service --> Controller: Dữ liệu danh sách hợp lệ
+Controller --> UI: 1.3: Hiển thị Form giao bài (đầy đủ danh sách để chọn)
+
+' =========================================================================
+' VÒNG 2: TIẾN HÀNH GIAO BÀI, VALIDATE VÀ LƯU RÀN BUỘC
+' =========================================================================
+== Vòng 2: Chọn thông tin, Validate và Tiến hành giao bài ==
+
+Teacher -> UI: 2: Chọn bài Test, chọn Lớp học, đặt thời gian & Bấm "Giao bài"
+UI -> Controller: 2.1: POST /classes/{classId}/assign-test (Payload dữ liệu)
+
+Controller -> Request: 2.1.1: Validate dữ liệu đầu vào (Format ngày, thời gian làm bài...)
+activate Request
+Request --> Controller: Trả về kết quả validate
+deactivate Request
+
+alt [Dữ liệu đầu vào KHÔNG hợp lệ]
+    Controller --> UI: 2.1.2: 422 Validation Errors (Thông báo lỗi nhập liệu)
+else [Dữ liệu đầu vào HỢP LỆ]
+    Controller -> Service: 2.1.3: Gọi hàm giao bài test cho lớp (assignTestToClass)
+    
+    ' Kiểm tra nghiệp vụ dưới DB
+    Service -> Repository: 2.1.3.1: Kiểm tra sự tồn tại của Test và Class
+    Repository -> DB: SELECT test_id, class_id
+    DB --> Repository: Trả về kết quả kiểm tra
+    
+    alt [Bài Test hoặc Lớp học không hợp lệ/không tồn tại]
+        Repository --> Service: Error (Not found)
+        Service --> Controller: Business Error
+        Controller --> UI: 400 Bad Request (Thông báo lỗi hệ thống)
+    else [Hợp lệ hoàn toàn]
+        Service -> Repository: 2.1.3.2: Tạo bản ghi giao bài mới
+        Repository -> DB: 2.1.3.2.1: INSERT INTO test_assignments
+        DB --> Repository: Xác nhận thành công & Sinh tự động assignment_id
+        
+        Repository --> Service: Trả về Đối tượng Assignment (Entity)
+        
+        ' Xử lý logic phụ thuộc (Gửi thông báo)
+        opt Hệ thống cấu hình bật thông báo tự động
+            Service -> Service: 2.1.3.3: notifyStudentsInClass(assignment)
+            note over Service: Gửi thông báo/Email \ncho học sinh trong lớp
+        end
+        
+        Service --> Controller: 200 OK (Thành công)
+        Controller --> UI: 2.1.4: Hiển thị thông báo giao bài cho lớp thành công
+    end
+end
+
+@enduml
