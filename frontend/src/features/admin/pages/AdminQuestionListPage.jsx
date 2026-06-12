@@ -18,7 +18,7 @@ const AdminQuestionListPage = () => {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const response = await questionApi.getQuestions();
+      const response = await questionApi.getSystemQuestions();
       if (response.success) {
         setQuestions(response.data || []);
       }
