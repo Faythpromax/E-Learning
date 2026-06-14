@@ -25,7 +25,9 @@ export function FillBlankQuestion({ question, onAnswer, answer = null, showResul
     return userAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
   };
 
-  const contentParts = question.content?.split('___') || [question.content];
+  const blankCount = (question.content?.match(/__BLANK_\d+__/g) || []).length;
+
+  const contentParts = question.content?.split(/__BLANK_\d+__/) || [question.content];
 
   return (
     <div className="space-y-4">

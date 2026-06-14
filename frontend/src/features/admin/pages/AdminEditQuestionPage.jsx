@@ -304,7 +304,7 @@ const AdminEditQuestionPage = () => {
         data: questionDataStructure,
       };
 
-      await questionApi.updateQuestion(questionId, payload);
+      await questionApi.updateSystemQuestion(questionId, payload);
       alert('Cap nhat thay doi cau hoi thanh cong!');
       navigate('/admin/questions');
     } catch (err) {

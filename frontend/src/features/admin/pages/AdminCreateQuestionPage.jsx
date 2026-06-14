@@ -308,10 +308,10 @@ const AdminCreateQuestionPage = () => {
       };
 
       if (isEditing && questionId) {
-        await questionApi.updateQuestion(questionId, payload);
+        await questionApi.updateSystemQuestion(questionId, payload);
         alert('Cap nhat thay doi cau hoi thanh cong!');
       } else {
-        await questionApi.createQuestion(payload);
+        await questionApi.createSystemQuestion(payload);
         alert('Tao cau hoi hoc tap moi thanh cong!');
       }
 

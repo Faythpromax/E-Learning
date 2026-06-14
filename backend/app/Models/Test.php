@@ -18,6 +18,7 @@ class Test extends Model
         'created_by',
         'test_code',
         'access_type',
+        'scope',
         'is_active',
         'expires_at',
         'max_attempts',
@@ -53,5 +54,15 @@ class Test extends Model
     public function attempts(): HasMany
     {
         return $this->hasMany(TestAttempt::class);
+    }
+
+    public function classes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ClassModel::class,
+            'class_tests',
+            'test_id',
+            'class_id'
+        );
     }
 }

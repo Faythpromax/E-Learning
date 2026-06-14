@@ -14,7 +14,7 @@ class UpdateTestRequest extends FormRequest
     public function rules(): array
     {
         $testId = $this->route('id');
-        
+
         return [
             'title' => 'sometimes|string|max:255',
             'subject_id' => 'sometimes|exists:subjects,id',
@@ -24,6 +24,13 @@ class UpdateTestRequest extends FormRequest
             'expires_at' => 'nullable|date',
             'max_attempts' => 'nullable|integer|min:1',
             'duration' => 'nullable|integer|min:1',
+            'class_ids' => [
+                'required_if:access_type,class_only',
+                'array'
+            ],
+            'class_ids.*' => [
+                'exists:classes,id'
+            ],
             'question_ids' => 'sometimes|array|min:1',
             'question_ids.*' => 'required|exists:questions,id',
             'question_scores' => 'nullable|array',

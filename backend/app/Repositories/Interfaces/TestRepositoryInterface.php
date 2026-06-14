@@ -2,9 +2,12 @@
 
 namespace App\Repositories\Interfaces;
 
+use App\Models\User;
+use Illuminate\Support\Collection;
+
 interface TestRepositoryInterface
 {
-    public function getAll(array $filters = []);
+    public function getAll(array $filters = [], User $user) : Collection;
     public function getById(int $id);
     public function getByCode(string $code);
     public function getQuestions(int $testId);
