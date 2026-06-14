@@ -6,6 +6,7 @@ const PracticeCompletePage = () => {
   const navigate = useNavigate();
 
   return (
+    //test
     <StudentLayout pageTitle="Hoan thanh luyen tap">
       <div className="max-w-xl mx-auto text-center">
         <div className="bg-white rounded-xl shadow p-8">
