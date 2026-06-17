@@ -12,10 +12,18 @@ class QuestionRepository
     {
         $query = Question::with(['subject']);
 
+        if (!empty($filters['scope'])) {
+            $query->where('scope', $filters['scope']);
+        }
+        
+        if (!empty($filters['created_by'])) {
+            $query->where('created_by', $filters['created_by']);
+        }
+        
         if (!empty($filters['subject_id'])) {
             $query->where('subject_id', $filters['subject_id']);
         }
-
+        
         if (!empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }

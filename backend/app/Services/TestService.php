@@ -14,11 +14,15 @@ class TestService
     public function __construct(
         private readonly TestRepository $testRepository,
         private readonly ScoringFactory $scoringFactory
-    ) {}
+    ) {
+    }
 
-    public function getAllTests(array $filters = []): Collection
+    public function getAllTests(array $filters = [], User $user): Collection
     {
-        return $this->testRepository->getAll($filters);
+        return $this->testRepository->getAll(
+            $filters,
+            $user
+        );
     }
 
     public function getTestById(int $id): mixed
@@ -48,7 +52,15 @@ class TestService
 
     public function createTest(int $userId, array $data): mixed
     {
+        $user = User::findOrFail($userId);
+
         $data['created_by'] = $userId;
+
+        $data['scope'] =
+            $user->role === 'admin'
+            ? 'system'
+            : 'class';
+
         return $this->testRepository->createTest($data);
     }
 
@@ -80,10 +92,10 @@ class TestService
         // Check max attempts
         $existingAttempts = $this->testRepository->getAttempts($userId, $testId);
         $completedAttempts = $existingAttempts->where('status', '!=', TestAttempt::STATUS_IN_PROGRESS)->count();
-        
+
         if ($test->max_attempts && $completedAttempts >= $test->max_attempts) {
             return [
-                'can_access' => false, 
+                'can_access' => false,
                 'error' => "You have reached the maximum number of attempts ({$test->max_attempts})."
             ];
         }
@@ -101,7 +113,7 @@ class TestService
     public function startTest(int $userId, int $testId): array
     {
         $access = $this->canAccessTest($userId, $testId);
-        
+
         if (!$access['can_access']) {
             return ['success' => false, 'error' => $access['error']];
         }
@@ -180,7 +192,7 @@ class TestService
 
         // Update attempt
         $percentageScore = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
-        
+
         $this->testRepository->updateAttempt($attemptId, [
             'status' => TestAttempt::STATUS_SUBMITTED,
             'submitted_at' => now(),
@@ -271,7 +283,7 @@ class TestService
     public function getMyAttempts(int $userId): array
     {
         $attempts = $this->testRepository->getAttempts($userId);
-        
+
         return $attempts->map(function ($attempt) {
             return [
                 'attempt_id' => $attempt->id,
@@ -298,7 +310,7 @@ class TestService
     private function formatAttemptResponse(TestAttempt $attempt): array
     {
         $test = $this->testRepository->getTestWithQuestions($attempt->test_id);
-        
+
         // Get existing answers for resume
         $existingAnswers = TestAnswer::where('attempt_id', $attempt->id)
             ->pluck('answer', 'question_id')
@@ -325,7 +337,7 @@ class TestService
             'duration' => $test->duration,
             'started_at' => $attempt->started_at,
             'expired_at' => $attempt->expired_at,
-            'remaining_time' => $attempt->expired_at 
+            'remaining_time' => $attempt->expired_at
                 ? max(0, $attempt->expired_at->diffInSeconds(now(), false) * -1)
                 : null,
             'questions' => $questions,
