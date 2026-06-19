@@ -287,7 +287,7 @@ const EditQuestionPage = () => {
             id: String.fromCharCode(97 + index),
             text: option,
           })),
-          correct_answer: formData.correct_answers?.[0] || '',
+          correct_answers: formData.correct_answers || [],
         };
       } else if (formData.type === 'fill_blank') {
         const blankCount = getBlankCount();

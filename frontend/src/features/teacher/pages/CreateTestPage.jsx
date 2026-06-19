@@ -137,7 +137,7 @@ export function CreateTestPage() {
         subject_id: formData.subject_id
           ? parseInt(formData.subject_id, 10)
           : null,
-        class_ids: formData.class_ids ? parseInt(formData.class_ids, 10) : null,
+        class_ids: Array.isArray(formData.class_ids) ? formData.class_ids.map(id => Number(id)) : [],
         max_attempts: formData.max_attempts
           ? parseInt(formData.max_attempts, 10)
           : null,
