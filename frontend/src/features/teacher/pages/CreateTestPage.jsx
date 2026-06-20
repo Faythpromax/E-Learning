@@ -160,12 +160,8 @@ export function CreateTestPage() {
   };
 
   const filteredQuestions = availableQuestions.filter((q) => {
-    const subjectMatches =
-      !formData.subject_id ||
-      q.subject?.id?.toString() === formData.subject_id.toString();
-    const searchMatches =
-      q.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.type?.toLowerCase().includes(searchQuery.toLowerCase());
+    const subjectMatches = !formData.subject_id || q.subject?.id?.toString() === formData.subject_id.toString();
+    const searchMatches = q.content?.toLowerCase().includes(searchQuery.toLowerCase()) || q.type?.toLowerCase().includes(searchQuery.toLowerCase());
     return subjectMatches && searchMatches;
   });
 

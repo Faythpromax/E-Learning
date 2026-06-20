@@ -69,6 +69,8 @@ class PracticeController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'subject_id' => 'required|exists:subjects,id',
+            'class_ids' => 'nullable|array',
+            'class_ids.*' => 'exists:classes,id',
             'description' => 'nullable|string',
             'question_ids' => 'nullable|array',
             'question_ids.*' => 'exists:questions,id',
@@ -87,6 +89,15 @@ class PracticeController extends Controller
                 $practice->questions()->create([
                     'question_id' => $questionId,
                     'order_index' => $index,
+                ]);
+            }
+        }
+
+        if (!empty($validated['class_ids'])) {
+            foreach ($validated['class_ids'] as $classId) {
+                \App\Models\ClassPractice::create([
+                    'class_id' => $classId,
+                    'practice_id' => $practice->id,
                 ]);
             }
         }
@@ -169,6 +180,10 @@ class PracticeController extends Controller
                     'order_index' => $index,
                 ]);
             }
+        }
+
+        if (isset($validated['class_ids'])) {
+            $practice->classes()->sync($validated['class_ids']);
         }
 
         $practice->load('subject:id,name');

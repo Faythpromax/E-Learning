@@ -1,11 +1,11 @@
 import React from 'react';
 
-const ExerciseCard = ({ exercise }) => {
+const PracticeCard = ({ practiceItem }) => {
   return (
     <div className="class-detail-card exercise-card">
-      <h3>{exercise.title}</h3>
-      <p className="exercise-description">{exercise.description}</p>
-      <p className="class-detail-meta">Hạn nộp: {exercise.dueDate}</p>
+      <h3>{practiceItem.title}</h3>
+      <p className="exercise-description">{practiceItem.description}</p>
+      <p className="class-detail-meta">Hạn nộp: {practiceItem.dueDate}</p>
       <div className="class-detail-action">
         <button type="button" className="class-detail-button">
           Làm bài
@@ -15,4 +15,4 @@ const ExerciseCard = ({ exercise }) => {
   );
 };
 
-export default ExerciseCard;
+export default PracticeCard;

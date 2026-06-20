@@ -51,7 +51,12 @@ class ClassRepository implements ClassRepositoryInterface
             'creator',
             'users',
             'materials',
-            'tests'
+            'practices' => function ($q) {
+                $q->withCount('questions');
+            },
+            'tests' => function ($q) {
+                $q->withCount('questions');
+            },
         ])->find($id);
     }
 
