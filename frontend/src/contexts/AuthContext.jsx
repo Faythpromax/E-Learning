@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
+import { disconnectEcho } from '../realtime/echo';
 
 const AuthContext = createContext(null);
 
@@ -154,6 +155,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    // Huỷ Echo instance trước để tránh dùng token cũ sau khi login lại
+    disconnectEcho();
+
     try {
       await apiClient.post('/logout');
     } catch (error) {

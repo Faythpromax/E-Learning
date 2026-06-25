@@ -6,6 +6,8 @@ use App\Repositories\Interfaces\ClassRepositoryInterface;
 use App\Repositories\Interfaces\TestRepositoryInterface;
 use App\Repositories\ClassRepository;
 use App\Repositories\TestRepository;
+use App\Models\ClassUser;
+use App\Observers\ClassUserObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,6 +33,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        ClassUser::observe(ClassUserObserver::class);
     }
 }

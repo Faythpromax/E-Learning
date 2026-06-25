@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { disconnectEcho } from '../realtime/echo';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -42,6 +43,9 @@ apiClient.interceptors.response.use(
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+
+      // Huỷ Echo instance để tránh dùng token cũ sau khi login lại
+      disconnectEcho();
     }
     return Promise.reject(error);
   }
