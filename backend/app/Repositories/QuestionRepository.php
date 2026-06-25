@@ -28,7 +28,9 @@ class QuestionRepository
             $query->where('type', $filters['type']);
         }
 
-        return $query->paginate(10);
+        return $query
+            ->orderByDesc('id')
+            ->paginate(20);
     }
 
     public function getById(int $id): Question

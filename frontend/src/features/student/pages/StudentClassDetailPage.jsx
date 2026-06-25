@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import StudentLayout from '../../../components/student/StudentLayout';
 import ClassTabs from '../../../components/student/ClassTabs';
 import AnnouncementCard from '../../../components/student/AnnouncementCard';
-import ExerciseCard from '../../../components/student/ExerciseCard';
+import PracticeCard from '../../../components/student/PracticeCard';
 import TestCard from '../../../components/student/TestCard';
 import StudentListItem from '../../../components/student/StudentListItem';
 import classApi from '../../../api/classApi';
 
 const tabOptions = [
   { id: 'overview', label: 'Về môn học' },
-  { id: 'exercises', label: 'Bài tập ôn tập' },
+  { id: 'practices', label: 'Bài tập ôn tập' },
   { id: 'tests', label: 'Bài kiểm tra' },
   { id: 'students', label: 'Danh sách lớp' },
 ];
@@ -44,8 +44,13 @@ const StudentClassDetailPage = () => {
     navigate(`/student/tests/${testId}`);
   };
 
+  const handleStartPractice = async (practiceId) => {
+    navigate(`/student/practices/${practiceId}`);
+  }
+
   const className = classData?.name || `Lớp học #${classIdParam || id || ''}`;
   const testsData = classData?.tests || [];
+  const practicesData = classData?.practices || [];
   const studentsData = classData?.users?.filter(u => u.pivot?.role === 'student') || [];
 
   if (loading) {
@@ -75,9 +80,32 @@ const StudentClassDetailPage = () => {
             <AnnouncementCard announcement={{ title: 'Thông báo', content: 'Chào mừng đến với lớp!' }} />
           )}
 
-          {activeTab === 'exercises' && (
+          {activeTab === 'practices' && (
             <div className="class-detail-grid">
-              <div className="text-center py-8 text-gray-500">Chưa có bài tập nào</div>
+              {practicesData.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 col-span-full">Chưa có bài tập nào</div>
+              ) : (
+                practicesData.map((practiceItem) => (
+                  <div key={practiceItem.id} className="class-detail-card practice-card">
+                    <h3>{practiceItem.title}</h3>
+                    <p className="practice-description">
+                      Thời lượng: {practiceItem.duration ? `${practiceItem.duration} phút` : 'Không giới hạn'}
+                    </p>
+                    <p className="class-detail-meta">
+                      Số câu hỏi: {practiceItem.questions_count || 0}
+                    </p>
+                    <div className="class-detail-action">
+                      <button 
+                        type="button" 
+                        className="class-detail-button"
+                        onClick={() => handleStartPractice(practiceItem.id)}
+                      >
+                        Bắt đầu
+                      </button>
+                    </div>
+                  </div>
+                ))
+               )}
             </div>
           )}
 
@@ -93,7 +121,7 @@ const StudentClassDetailPage = () => {
                       Thời lượng: {testItem.duration ? `${testItem.duration} phút` : 'Không giới hạn'}
                     </p>
                     <p className="class-detail-meta">
-                      Số câu hỏi: {testItem.questions?.length || 0}
+                      Số câu hỏi: {testItem.questions_count || 0}
                     </p>
                     <div className="class-detail-action">
                       <button 

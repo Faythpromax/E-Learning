@@ -4,7 +4,8 @@ import { FiPlus, FiTrash2, FiSearch, FiArrowLeft, FiSave, FiBookOpen, FiCheckSqu
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import { practiceApi } from '../../../api/practiceApi';
 import { questionApi } from '../../../api/questionApi';
-import subjectApi from '../../../api/subjectApi';
+import { subjectApi } from '../../../api/subjectApi';
+import { classApi } from '../../../api/classApi';
 
 export function CreatePracticePage() {
   const navigate = useNavigate();
@@ -14,11 +15,13 @@ export function CreatePracticePage() {
   const [formData, setFormData] = useState({
     title: '',
     subject_id: '',
+    class_ids: [],
     description: '',
     question_ids: [],
   });
 
   const [availableQuestions, setAvailableQuestions] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,21 +33,28 @@ export function CreatePracticePage() {
 
   const fetchData = async () => {
     try {
-      const [questionsRes, subjectsRes] = await Promise.all([
+      const [questionsRes, subjectsRes, classesRes] = await Promise.all([
         questionApi.getClassQuestions({ per_page: 1000 }),
         subjectApi.getSubjects(),
+        classApi.getClasses(),
       ]);
 
       setAvailableQuestions(questionsRes.data || questionsRes || []);
       setSubjects(subjectsRes.data || subjectsRes || []);
+      const classesData = classesRes?.data || classesRes;
+      setClasses(Array.isArray(classesData) ? classesData : []);
 
       if (isEditing) {
         const practiceRes = await practiceApi.getPracticeDetails(practiceId);
+
+        console.log('PRACTICE DATA:', practiceRes.data);
+
         const practice = practiceRes.data;
         
         setFormData({
           title: practice.title || '',
           subject_id: practice.subject_id?.toString() || '',
+          class_ids: practice.classes?.map(cls=> cls.id) || [],
           description: practice.description || '',
           question_ids: practice.questions?.map(q => q.id) || [],
         });
@@ -57,20 +67,33 @@ export function CreatePracticePage() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: type === "checkbox" ? checked : value
     }));
   };
 
   const handleToggleQuestion = (questionId) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const newIds = prev.question_ids.includes(questionId)
         ? prev.question_ids.filter(id => id !== questionId)
         : [...prev.question_ids, questionId];
       
       return { ...prev, question_ids: newIds };
+    });
+  };
+
+  const toggleClass = (classId) => {
+    setFormData(prev => {
+      const newClassIds = prev.class_ids.includes(classId)
+        ? prev.class_ids.filter(id => id !== classId)
+        : [...prev.class_ids, classId];
+  
+      return {
+        ...prev,
+        class_ids: newClassIds,
+      };
     });
   };
 
@@ -90,10 +113,13 @@ export function CreatePracticePage() {
     try {
       setSaving(true);
       const submitData = {
+        ...formData,
         title: formData.title.trim(),
-        subject_id: parseInt(formData.subject_id, 10),
+        subject_id: formData.subject_id ? parseInt(formData.subject_id, 10) : null,
+        class_ids: Array.isArray(formData.class_ids) ? formData.class_ids.map(id => Number(id)) : [],
         description: formData.description.trim() || null,
         question_ids: formData.question_ids,
+        class_ids: formData.class_ids,
       };
 
       if (isEditing) {
@@ -113,8 +139,7 @@ export function CreatePracticePage() {
 
   const filteredQuestions = availableQuestions.filter(q => {
     const subjectMatches = !formData.subject_id || q.subject?.id?.toString() === formData.subject_id.toString();
-    const searchMatches = q.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.type?.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchMatches = q.content?.toLowerCase().includes(searchQuery.toLowerCase()) || q.type?.toLowerCase().includes(searchQuery.toLowerCase());
     return subjectMatches && searchMatches;
   });
 
@@ -212,6 +237,32 @@ export function CreatePracticePage() {
                 ))}
               </select>
             </div>
+
+            <div>
+                <label
+                  style={{
+                    display: "block",
+                    textTransform: "uppercase",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    color: "#64748b",
+                    letterSpacing: "0.05em",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Lớp áp dụng
+                </label>
+                {classes.map((cls) => (
+                  <label key={cls.id}>
+                    <input
+                      type="checkbox"
+                      checked={(formData.class_ids || []).includes(cls.id)}
+                      onChange={() => toggleClass(cls.id)}
+                    />
+                    {cls.name}
+                  </label>
+                ))}
+              </div>
 
             {/* Mô tả */}
             <div>

@@ -73,6 +73,8 @@ class TestController extends Controller
     {
         $user = $request->user();
 
+        \Log::info('STORE TEST', $request->validated());
+
         // Only teachers and admins can create tests
         if (!in_array($user->role, ['teacher', 'admin'])) {
             return response()->json([

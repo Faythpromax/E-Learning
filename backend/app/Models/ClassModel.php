@@ -60,4 +60,15 @@ class ClassModel extends Model
             'test_id'
         );
     }
+
+    public function practices(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Practice::class,
+            'class_practices',
+            'class_id',
+            'practice_id'
+        );
+    }
+
 }
