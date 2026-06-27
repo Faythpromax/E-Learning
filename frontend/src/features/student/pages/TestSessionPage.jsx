@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -25,12 +25,24 @@ export function TestSessionPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showNav, setShowNav] = useState(true);
+  const [starting, setStarting] = useState(false);
+  const started = useRef(false);
 
   useEffect(() => {
+    if (started.current) return;
+
+    started.current = true;
+
     startTest();
-  }, [testId]);
+  }, []);
+
+  useEffect(() => {
+    fetchResult();
+  }, [attemptId]);
 
   const startTest = async () => {
+    if (starting) return;
+    setStarting(true);
     try {
       setLoading(true);
       const response = await testApi.startTest(testId);
@@ -55,15 +67,36 @@ export function TestSessionPage() {
     }
   };
 
+  const fetchResult = async () => {
+    const response = await testApi.getTestResults(attemptId);
+
+    setResult(response.data);
+
+    await fetchReview();
+
+    setLoading(false);
+  };
+
   const handleAnswer = useCallback(
-    (answer) => {
+    async (answer) => {
       const questionId = questions[currentIndex].id;
+
       setAnswers((prev) => ({
         ...prev,
+
         [questionId]: answer,
       }));
+
+      await testApi.saveAnswer(
+        testData.attempt_id,
+
+        questionId,
+
+        answer,
+      );
     },
-    [questions, currentIndex],
+
+    [questions, currentIndex, testData],
   );
 
   const handleNavigate = (index) => {
@@ -96,6 +129,7 @@ export function TestSessionPage() {
   }, [testId, answers]);
 
   const submitTest = async () => {
+    if (submitting) return;
     try {
       setSubmitting(true);
       setShowSubmitModal(false);
@@ -185,9 +219,10 @@ export function TestSessionPage() {
 
             <button
               onClick={() => setShowSubmitModal(true)}
+              disabled={isSubmitting}
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
             >
-              Noi bai
+              Nộp bài
             </button>
           </div>
         </div>

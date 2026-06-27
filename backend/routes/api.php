@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']);
     Route::post('/tests/{id}/start', [TestController::class, 'start']);
     Route::post('/tests/{id}/submit', [TestController::class, 'submit']);
+    Route::post('/tests/save-answer', [TestController::class,'saveAnswer']);
 
     Route::get('/tests/{id}', [TestController::class, 'show'])->whereNumber('id');
     Route::post('/tests', [TestController::class, 'store']);
