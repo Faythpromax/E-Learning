@@ -6,12 +6,15 @@ use App\Models\Question;
 use App\Repositories\QuestionRepository;
 use App\Strategies\Scoring\ScoringStrategyFactory;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\User;
+use App\Builders\Question\QuestionBuilderFactory;
 
 class QuestionService
 {
     public function __construct(
         private readonly QuestionRepository $questionRepository,
-        private readonly ScoringStrategyFactory $scoringFactory
+        private readonly ScoringStrategyFactory $scoringFactory,
+        private readonly QuestionBuilderFactory $builderFactory,
     ) {}
 
     public function getAllQuestions(array $filters = []): LengthAwarePaginator
@@ -26,23 +29,63 @@ class QuestionService
 
     public function createQuestion(array $data, int $creatorId): Question
     {
-        $data['created_by'] = $creatorId;
-        $this->validateQuestionData($data['type'], $data['data'] ?? []);
+        $user = User::findOrFail(
+            $creatorId
+        );
 
-        return $this->questionRepository->create($data);
+        $data['created_by'] = $creatorId;
+
+        $data['scope'] =
+            $user->role === 'admin'
+                ? 'system'
+                : 'class';
+
+        $builder = $this->builderFactory ->make($data['type']);
+
+        $questionData = $builder->build($data);
+
+        return $this->questionRepository ->create($questionData);
     }
 
     public function updateQuestion(int $id, array $data): Question
     {
         $question = $this->getQuestion($id);
-        
-        if (isset($data['type']) || isset($data['data'])) {
-            $type = $data['type'] ?? $question->type;
-            $questionData = $data['data'] ?? $question->data;
-            $this->validateQuestionData($type, $questionData);
-        }
 
-        return $this->questionRepository->update($id, $data);
+        $mergedData = [
+            'subject_id' => $data['subject_id']
+                ?? $question->subject_id,
+
+            'type' => $data['type']
+                ?? $question->type,
+
+            'content' => $data['content']
+                ?? $question->content,
+
+            'media_image' => $data['media_image']
+                ?? $question->media_image,
+
+            'media_audio' => $data['media_audio']
+                ?? $question->media_audio,
+
+            'explanation' => $data['explanation']
+                ?? $question->explanation,
+
+            'scope' => $question->scope,
+
+            'created_by' => $question->created_by,
+
+            'data' => $data['data']
+                ?? $question->data,
+        ];
+
+        $builder = $this->builderFactory ->make($mergedData['type']);
+
+        $questionData = $builder->build($mergedData);
+
+        return $this->questionRepository->update(
+            $id,
+            $questionData
+        );
     }
 
     public function deleteQuestion(int $id): bool
@@ -87,64 +130,5 @@ class QuestionService
     public function calculateScore(string $type, array $questionData, mixed $answer): float
     {
         return $this->scoringFactory->calculateScore($type, $questionData, $answer);
-    }
-
-    private function validateQuestionData(string $type, array $data): void
-    {
-        $validator = match ($type) {
-            'mcq' => $this->validateMcq($data),
-            'fill_blank' => $this->validateFillBlank($data),
-            'matching' => $this->validateMatching($data),
-            'table_fill' => $this->validateTableFill($data),
-            default => 'Loại câu hỏi không hợp lệ. Chỉ chấp nhận: mcq, fill_blank, matching, table_fill'
-        };
-
-        if ($validator !== true) {
-            throw new \InvalidArgumentException($validator);
-        }
-    }
-
-    private function validateMcq(array $data): bool|string
-    {
-        if (empty($data['options']) || !is_array($data['options'])) {
-            return 'MCQ yêu cầu mảng options';
-        }
-        if (empty($data['correct_answer'])) {
-            return 'MCQ yêu cầu correct_answer';
-        }
-        return true;
-    }
-
-    private function validateFillBlank(array $data): bool|string
-    {
-        if (empty($data['correct_answers']) || !is_array($data['correct_answers'])) {
-            return 'FillBlank yêu cầu mảng correct_answers';
-        }
-        return true;
-    }
-
-    private function validateMatching(array $data): bool|string
-    {
-        if (empty($data['left']) || !is_array($data['left'])) {
-            return 'Matching yêu cầu mảng left';
-        }
-        if (empty($data['right']) || !is_array($data['right'])) {
-            return 'Matching yêu cầu mảng right';
-        }
-        if (empty($data['correct_matches']) || !is_array($data['correct_matches'])) {
-            return 'Matching yêu cầu correct_matches';
-        }
-        return true;
-    }
-
-    private function validateTableFill(array $data): bool|string
-    {
-        if (empty($data['rows']) || !is_array($data['rows'])) {
-            return 'TableFill yêu cầu mảng rows';
-        }
-        if (empty($data['cols']) || !is_int($data['cols']) && !is_numeric($data['cols'])) {
-            return 'TableFill yêu cầu cols';
-        }
-        return true;
     }
 }

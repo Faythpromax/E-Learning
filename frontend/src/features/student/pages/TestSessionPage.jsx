@@ -1,16 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiFlag, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { testApi } from '../../../api/testApi';
-import { TestTimer } from '../../../components/student/TestTimer';
-import { TestQuestionNav } from '../../../components/student/TestQuestionNav';
-import { TestSubmitModal } from '../../../components/student/TestSubmitModal';
-import { QuestionRenderer } from '../../../components/student/QuestionRenderer';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  FiArrowLeft,
+  FiFlag,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
+import { testApi } from "../../../api/testApi";
+import { TestTimer } from "../../../components/student/TestTimer";
+import { TestQuestionNav } from "../../../components/student/TestQuestionNav";
+import { TestSubmitModal } from "../../../components/student/TestSubmitModal";
+import { QuestionRenderer } from "../../../components/student/QuestionRenderer";
 
 export function TestSessionPage() {
   const { testId } = useParams();
   const navigate = useNavigate();
-  
+
   const [testData, setTestData] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -20,43 +25,79 @@ export function TestSessionPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showNav, setShowNav] = useState(true);
+  const [starting, setStarting] = useState(false);
+  const started = useRef(false);
 
   useEffect(() => {
+    if (started.current) return;
+
+    started.current = true;
+
     startTest();
-  }, [testId]);
+  }, []);
+
+  useEffect(() => {
+    fetchResult();
+  }, [attemptId]);
 
   const startTest = async () => {
+    if (starting) return;
+    setStarting(true);
     try {
       setLoading(true);
       const response = await testApi.startTest(testId);
       console.log("START TEST RESPONSE:", response);
-      
+
       if (response.success && response.data) {
         const data = response.data;
         setTestData(data);
         setQuestions(data.questions || []);
-        
+
         // Restore existing answers
         if (data.existing_answers) {
           setAnswers(data.existing_answers);
         }
       }
     } catch (error) {
-      console.error('Failed to start test:', error);
-      alert('Khong the bat dau bai kiem tra. Vui long thu lai.');
-      navigate('/student/tests');
+      console.error("Failed to start test:", error);
+      alert("Khong the bat dau bai kiem tra. Vui long thu lai.");
+      navigate("/student/tests");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAnswer = useCallback((answer) => {
-    const questionId = questions[currentIndex].id;
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: answer
-    }));
-  }, [questions, currentIndex]);
+  const fetchResult = async () => {
+    const response = await testApi.getTestResults(attemptId);
+
+    setResult(response.data);
+
+    await fetchReview();
+
+    setLoading(false);
+  };
+
+  const handleAnswer = useCallback(
+    async (answer) => {
+      const questionId = questions[currentIndex].id;
+
+      setAnswers((prev) => ({
+        ...prev,
+
+        [questionId]: answer,
+      }));
+
+      await testApi.saveAnswer(
+        testData.attempt_id,
+
+        questionId,
+
+        answer,
+      );
+    },
+
+    [questions, currentIndex, testData],
+  );
 
   const handleNavigate = (index) => {
     setCurrentIndex(index);
@@ -76,10 +117,10 @@ export function TestSessionPage() {
 
   const toggleFlag = () => {
     const questionId = questions[currentIndex].id;
-    setFlaggedQuestions(prev => 
+    setFlaggedQuestions((prev) =>
       prev.includes(questionId)
-        ? prev.filter(id => id !== questionId)
-        : [...prev, questionId]
+        ? prev.filter((id) => id !== questionId)
+        : [...prev, questionId],
     );
   };
 
@@ -88,20 +129,28 @@ export function TestSessionPage() {
   }, [testId, answers]);
 
   const submitTest = async () => {
+    if (submitting) return;
     try {
       setSubmitting(true);
       setShowSubmitModal(false);
-      
-      const response = await testApi.submitTest(testId, testData.attempt_id, answers);
-      
+
+      const response = await testApi.submitTest(
+        testId,
+        testData.attempt_id,
+        answers,
+      );
+      console.log("TEST ID:", testId);
+      console.log("ATTEMPT ID:", testData?.attempt_id);
+      console.log("ANSWERS:", answers);
+
       if (response.success) {
         navigate(`/student/tests/${testData.attempt_id}/results`, {
-          state: { result: response.data }
+          state: { result: response.data },
         });
       }
     } catch (error) {
-      console.error('Failed to submit test:', error);
-      alert('Khong the noi bai. Vui long thu lai.');
+      console.error("Failed to submit test:", error);
+      alert("Khong the noi bai. Vui long thu lai.");
       setSubmitting(false);
     }
   };
@@ -119,7 +168,7 @@ export function TestSessionPage() {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <p className="text-gray-500 mb-4">Khong the tai bai kiem tra.</p>
         <button
-          onClick={() => navigate('/student/tests')}
+          onClick={() => navigate("/student/tests")}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg"
         >
           Quay lai
@@ -129,7 +178,9 @@ export function TestSessionPage() {
   }
 
   const currentQuestion = questions[currentIndex];
-  const answeredCount = Object.keys(answers).filter(id => answers[id] !== null && answers[id] !== undefined).length;
+  const answeredCount = Object.keys(answers).filter(
+    (id) => answers[id] !== null && answers[id] !== undefined,
+  ).length;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -138,7 +189,7 @@ export function TestSessionPage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/student/tests')}
+              onClick={() => navigate("/student/tests")}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               title="Quay lai"
             >
@@ -157,9 +208,9 @@ export function TestSessionPage() {
               onClick={() => setShowNav(!showNav)}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
             >
-              {showNav ? 'An danh sach' : 'Hien danh sach'}
+              {showNav ? "An danh sach" : "Hien danh sach"}
             </button>
-            
+
             <TestTimer
               expiredAt={testData.expired_at}
               initialSeconds={testData.remaining_time}
@@ -168,9 +219,10 @@ export function TestSessionPage() {
 
             <button
               onClick={() => setShowSubmitModal(true)}
+              disabled={isSubmitting}
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
             >
-              Noi bai
+              Nộp bài
             </button>
           </div>
         </div>
@@ -204,8 +256,8 @@ export function TestSessionPage() {
                   onClick={toggleFlag}
                   className={`p-2 rounded-lg transition-colors ${
                     flaggedQuestions.includes(currentQuestion.id)
-                      ? 'bg-yellow-100 text-yellow-600'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      ? "bg-yellow-100 text-yellow-600"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                   }`}
                   title="Danh dau de xem lai"
                 >
@@ -229,8 +281,8 @@ export function TestSessionPage() {
                 disabled={currentIndex === 0}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
                   currentIndex === 0
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 shadow'
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50 shadow"
                 }`}
               >
                 <FiChevronLeft />

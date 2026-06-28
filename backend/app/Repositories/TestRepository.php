@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Test;
+use App\Models\User;
 use App\Models\TestAttempt;
 use App\Models\TestAnswer;
 use App\Models\TestQuestion;
@@ -14,9 +15,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class TestRepository implements TestRepositoryInterface
 {
-    public function getAll(array $filters = []): Collection
+    public function getAll(array $filters = [], User $user): Collection
     {
-        $query = Test::with(['subject', 'creator', 'questions']);
+        $query = Test::with(['subject', 'creator', 'questions'])->withCount('questions');
 
         if (isset($filters['subject_id'])) {
             $query->where('subject_id', $filters['subject_id']);
@@ -28,6 +29,23 @@ class TestRepository implements TestRepositoryInterface
 
         if (isset($filters['is_active'])) {
             $query->where('is_active', $filters['is_active']);
+        }
+
+        if ($user->role === 'teacher') {
+
+            $query->where('scope', 'class')
+                  ->where('created_by', $user->id);
+        
+        }
+        
+        if ($user->role === 'admin') {
+        
+            $query->where('scope', 'system');
+        
+        }
+
+        if (isset($filters['scope'])) {
+            $query->where('scope', $filters['scope']);
         }
 
         return $query->orderBy('created_at', 'desc')->get();
@@ -57,7 +75,7 @@ class TestRepository implements TestRepositoryInterface
     public function getAttempts(int $userId, ?int $testId = null): Collection
     {
         $query = TestAttempt::where('user_id', $userId)
-            ->with(['test', 'test.subject']);
+            ->with(['test', 'test.subject', 'answers', 'test.questions']);
 
         if ($testId) {
             $query->where('test_id', $testId);
@@ -74,6 +92,14 @@ class TestRepository implements TestRepositoryInterface
             ->get();
     }
 
+    public function findLatestAttempt(int $userId, int $testId)
+    {
+        return TestAttempt::where('user_id', $userId)
+            ->where('test_id', $testId)
+            ->latest()
+            ->first();
+    }
+
     public function getTestWithQuestions(int $id): Model
     {
         return Test::with([
@@ -83,42 +109,67 @@ class TestRepository implements TestRepositoryInterface
         ])->findOrFail($id);
     }
 
-    public function getAvailableTestsForUser(int $userId): Collection
-    {
-        $user = \App\Models\User::findOrFail($userId);
+    public function getAvailableTestsForUser(int $userId): Collection {
 
-        $query = Test::with(['subject', 'creator', 'testQuestions'])
+        $classIds = ClassUser::where(
+            'user_id',
+            $userId
+        )->pluck('class_id');
+
+        return Test::with([
+            'subject',
+            'creator',
+            'classes'
+        ])->withCount('questions')
             ->where('is_active', true)
+
             ->where(function ($q) {
+
                 $q->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
-            });
+                    ->orWhere(
+                        'expires_at',
+                        '>',
+                        now()
+                    );
+            })
 
-        // System tests are available to everyone
-        $query->orWhere('scope', 'system');
+            ->where(function ($q) use ($classIds) {
 
-        // Access type: public_code or both
-        $query->orWhere(function ($q) {
-            $q->where('access_type', 'public_code')
-                ->orWhere('access_type', 'both');
-        });
+                $q->whereIn(
+                    'access_type',
+                    [
+                        'public_code',
+                        'both'
+                    ]
+                )
 
-        // If user is in any classes, also get class_only tests from those classes
-        $classIds = ClassUser::where('user_id', $userId)->pluck('class_id');
+                    ->orWhere(function ($q2) use ($classIds) {
 
-        if ($classIds->isNotEmpty()) {
-            $query->orWhere(function ($q) use ($classIds) {
-                $q->where('access_type', 'class_only')
-                    ->orWhere('access_type', 'both');
-            });
-        }
+                        $q2
+                            ->where(
+                                'access_type',
+                                'class_only'
+                            )
 
-        return $query->orderBy('created_at', 'desc')->get();
+                            ->whereHas(
+                                'classes',
+                                function ($c) use ($classIds) {
+
+                                    $c->whereIn(
+                                        'classes.id',
+                                        $classIds
+                                    );
+                                }
+                            );
+                    });
+            })
+
+            ->orderByDesc('created_at')
+            ->get();
     }
-
     public function getSystemTests(): Collection
     {
-        return Test::with(['subject', 'creator', 'testQuestions'])
+        return Test::with(['subject', 'creator', 'testQuestions'])->withCount('questions')
             ->where('scope', 'system')
             ->where('is_active', true)
             ->where(function ($q) {
@@ -150,6 +201,12 @@ class TestRepository implements TestRepositoryInterface
 
         $test = Test::create($data);
 
+        if (!empty($data['class_ids'])) {
+            $test->classes()->attach(
+                $data['class_ids']
+            );
+        }
+
         // Attach questions if provided
         if (isset($data['question_ids']) && is_array($data['question_ids'])) {
             $questions = [];
@@ -169,6 +226,14 @@ class TestRepository implements TestRepositoryInterface
     {
         $test = Test::findOrFail($id);
         $test->update($data);
+
+        if (isset($data['class_ids'])) {
+
+            $test->classes()->sync(
+                $data['class_ids']
+            );
+
+        }
 
         // Update questions if provided
         if (isset($data['question_ids']) && is_array($data['question_ids'])) {
@@ -194,11 +259,20 @@ class TestRepository implements TestRepositoryInterface
     public function createAttempt(int $userId, int $testId): Model
     {
         $test = Test::findOrFail($testId);
-        
+
         // Count existing attempts
-        $attemptNo = TestAttempt::where('user_id', $userId)
-            ->where('test_id', $testId)
-            ->max('attempt_no') + 1;
+        $attemptNo = TestAttempt::where(
+            'user_id',
+            $userId
+        )
+        ->where(
+            'test_id',
+            $testId
+        )
+        ->lockForUpdate()
+        ->max('attempt_no');
+
+        $attemptNo = ($attemptNo ?? 0) + 1;
 
         // Calculate expiration time
         $expiredAt = null;

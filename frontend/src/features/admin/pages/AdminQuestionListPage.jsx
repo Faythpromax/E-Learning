@@ -33,7 +33,7 @@ const AdminQuestionListPage = () => {
     if (!window.confirm('Ban co chan muon xoa cau hoi nay?')) return;
 
     try {
-      await questionApi.deleteQuestion(id);
+      await questionApi.deleteSystemQuestion(id);
       setQuestions(questions.filter(q => q.id !== id));
     } catch (error) {
       console.error('Failed to delete question:', error);

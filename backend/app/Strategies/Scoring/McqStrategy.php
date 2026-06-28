@@ -11,12 +11,24 @@ class McqStrategy implements ScoringStrategyInterface
 
     public function isCorrect(array $questionData, mixed $answer): bool
     {
-        $correctAnswer = $questionData['data']['correct_answer'] ?? null;
-        return $correctAnswer !== null && $correctAnswer === $answer;
+        $correctAnswers = $questionData['data']['correct_answers'] ?? [];
+
+        if (!is_array($correctAnswers)) {
+            return false;
+        }
+
+        if (!is_array($answer)) {
+            $answer = [$answer];
+        }
+
+        sort($correctAnswers);
+        sort($answer);
+
+        return $correctAnswers === $answer;
     }
 
     public function getCorrectAnswer(array $questionData): mixed
     {
-        return $questionData['data']['correct_answer'] ?? null;
+        return $questionData['data']['correct_answers'] ?? null;
     }
 }

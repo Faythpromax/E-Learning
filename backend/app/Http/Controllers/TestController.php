@@ -13,21 +13,36 @@ class TestController extends Controller
 {
     public function __construct(
         private readonly TestService $testService
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): JsonResponse
     {
         $filters = [];
-        
+
         if ($request->has('subject_id')) {
             $filters['subject_id'] = $request->input('subject_id');
         }
-        
+
         if ($request->has('is_active')) {
             $filters['is_active'] = $request->boolean('is_active');
         }
 
-        $tests = $this->testService->getAllTests($filters);
+        $user = $request->user();
+
+        if ($user->role === 'admin') {
+            $filters['scope'] = 'system';
+        }
+        
+        if ($user->role === 'teacher') {
+            $filters['scope'] = 'class';
+            $filters['created_by'] = $user->id;
+        }
+
+        $tests = $this->testService->getAllTests(
+            $filters,
+            $user
+        );
 
         return response()->json([
             'success' => true,
@@ -39,7 +54,7 @@ class TestController extends Controller
     {
         try {
             $test = $this->testService->getTestWithQuestions($id);
-            $test->load('subject');
+            $test->load(['subject', 'classes',]);
             $test->attempts_count = $test->attempts()->count();
 
             return response()->json([
@@ -57,7 +72,9 @@ class TestController extends Controller
     public function store(StoreTestRequest $request): JsonResponse
     {
         $user = $request->user();
-        
+
+        \Log::info('STORE TEST', $request->validated());
+
         // Only teachers and admins can create tests
         if (!in_array($user->role, ['teacher', 'admin'])) {
             return response()->json([
@@ -78,10 +95,10 @@ class TestController extends Controller
     public function update(UpdateTestRequest $request, int $id): JsonResponse
     {
         $user = $request->user();
-        
+
         try {
             $test = $this->testService->getTestById($id);
-            
+
             // Only creator or admin can update
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
                 return response()->json([
@@ -108,10 +125,10 @@ class TestController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        
+
         try {
             $test = $this->testService->getTestById($id);
-            
+
             // Only creator or admin can delete
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
                 return response()->json([
@@ -137,7 +154,7 @@ class TestController extends Controller
     public function start(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        
+
         $result = $this->testService->startTest($user->id, $id);
 
         if (!$result['success']) {
@@ -177,10 +194,10 @@ class TestController extends Controller
     public function allAttempts(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        
+
         try {
             $test = $this->testService->getTestById($id);
-            
+
             // Only creator or admin can view all attempts
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
                 return response()->json([
@@ -206,7 +223,7 @@ class TestController extends Controller
     public function myAttempts(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $attempts = $this->testService->getMyAttempts($user->id);
 
         return response()->json([
@@ -235,24 +252,20 @@ class TestController extends Controller
     public function review(int $attemptId): JsonResponse
     {
         try {
+
             $review = $this->testService->getReview($attemptId);
 
-            if (!$review['success']) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $review['error'],
-                ], 400);
-            }
+            return response()->json([
+                'success'=>true,
+                'data'=>$review
+            ]);
+
+        } catch (\Exception $e) {
 
             return response()->json([
-                'success' => true,
-                'data' => $review,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Attempt not found.',
-            ], 404);
+                'success'=>false,
+                'error'=>$e->getMessage(),
+            ],500);
         }
     }
 
@@ -301,6 +314,25 @@ class TestController extends Controller
         return response()->json([
             'success' => true,
             'data' => $tests,
+        ]);
+    }
+
+    public function saveAnswer(Request $request)
+    {
+        $this->testService->saveAnswer(
+
+            $request->attempt_id,
+
+            $request->question_id,
+
+            $request->answer
+
+        );
+
+        return response()->json([
+
+            'success'=>true
+
         ]);
     }
 }

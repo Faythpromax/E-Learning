@@ -78,7 +78,17 @@ class QuestionController extends Controller
 
     public function destroySystem(int $id): JsonResponse
     {
+        \Log::info('DELETE SYSTEM QUESTION', [
+            'question_id' => $id,
+            'user' => auth()->user()?->toArray()
+        ]);
+
         $question = $this->questionService->getQuestion($id);
+
+        \Log::info('QUESTION DATA', [
+            'scope' => $question->scope
+        ]);
+        
         if ($question->scope !== 'system') {
             return response()->json([
                 'success' => false,

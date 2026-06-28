@@ -6,8 +6,11 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\NotificationController;
 
 // Provide a friendly JSON response for accidental GET requests to /api/login
 // This prevents the default 405 HTML response when someone navigates to /api/login
@@ -22,6 +25,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
@@ -76,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']);
     Route::post('/tests/{id}/start', [TestController::class, 'start']);
     Route::post('/tests/{id}/submit', [TestController::class, 'submit']);
+    Route::post('/tests/save-answer', [TestController::class,'saveAnswer']);
 
     Route::get('/tests/{id}', [TestController::class, 'show'])->whereNumber('id');
     Route::post('/tests', [TestController::class, 'store']);
@@ -121,4 +126,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{id}', [UserController::class, 'show']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+    // Notifications
+    Route::get(
+        '/notifications',
+        [NotificationController::class, 'index']
+    );
+
+    Route::get(
+        '/notifications/unread-count',
+        [NotificationController::class, 'unreadCount']
+    );
+
+    Route::patch(
+        '/notifications/{id}/read',
+        [NotificationController::class, 'markAsRead']
+    );
 });
+
+// Broadcasting auth với Sanctum token (Bearer token từ frontend Echo client)
+// Route này thay thế /broadcasting/auth mặc định (dùng web/session auth)
+// để hỗ trợ SPA authentication qua API token
+Route::post('/broadcasting/auth', function (Request $request) {
+    return Broadcast::auth($request);
+})->middleware('auth:sanctum');

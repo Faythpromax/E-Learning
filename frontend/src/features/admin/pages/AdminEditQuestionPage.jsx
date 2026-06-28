@@ -273,7 +273,7 @@ const AdminEditQuestionPage = () => {
             id: String.fromCharCode(97 + index),
             text: option,
           })),
-          correct_answer: formData.correct_answers?.[0] || '',
+          correct_answers: formData.correct_answers || [],
         };
       } else if (formData.type === 'fill_blank') {
         const blankCount = getBlankCount();
@@ -304,7 +304,7 @@ const AdminEditQuestionPage = () => {
         data: questionDataStructure,
       };
 
-      await questionApi.updateQuestion(questionId, payload);
+      await questionApi.updateSystemQuestion(questionId, payload);
       alert('Cap nhat thay doi cau hoi thanh cong!');
       navigate('/admin/questions');
     } catch (err) {

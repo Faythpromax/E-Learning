@@ -8,17 +8,23 @@ use App\Models\User;
 use App\Repositories\TestRepository;
 use App\Strategies\ScoringFactory;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use App\Models\ClassUser;
 
 class TestService
 {
     public function __construct(
         private readonly TestRepository $testRepository,
         private readonly ScoringFactory $scoringFactory
-    ) {}
+    ) {
+    }
 
-    public function getAllTests(array $filters = []): Collection
+    public function getAllTests(array $filters = [], User $user): Collection
     {
-        return $this->testRepository->getAll($filters);
+        return $this->testRepository->getAll(
+            $filters,
+            $user
+        );
     }
 
     public function getTestById(int $id): mixed
@@ -48,7 +54,15 @@ class TestService
 
     public function createTest(int $userId, array $data): mixed
     {
+        $user = User::findOrFail($userId);
+
         $data['created_by'] = $userId;
+
+        $data['scope'] =
+            $user->role === 'admin'
+            ? 'system'
+            : 'class';
+
         return $this->testRepository->createTest($data);
     }
 
@@ -67,6 +81,24 @@ class TestService
         $test = $this->testRepository->getById($testId);
         $errors = [];
 
+        $classIds = ClassUser::where(
+            'user_id',
+            $userId
+        )->pluck('class_id');
+
+        if (
+            $test->access_type === 'class_only'
+            &&
+            !$test->classes()
+                ->whereIn('classes.id', $classIds)
+                ->exists()
+        ) {
+            return [
+                'can_access'=>false,
+                'error'=>'Bạn không thuộc lớp được phép làm bài.'
+            ];
+        }
+
         // Check if test is active
         if (!$test->is_active) {
             return ['can_access' => false, 'error' => 'This test is not active.'];
@@ -80,10 +112,10 @@ class TestService
         // Check max attempts
         $existingAttempts = $this->testRepository->getAttempts($userId, $testId);
         $completedAttempts = $existingAttempts->where('status', '!=', TestAttempt::STATUS_IN_PROGRESS)->count();
-        
+
         if ($test->max_attempts && $completedAttempts >= $test->max_attempts) {
             return [
-                'can_access' => false, 
+                'can_access' => false,
                 'error' => "You have reached the maximum number of attempts ({$test->max_attempts})."
             ];
         }
@@ -101,100 +133,192 @@ class TestService
     public function startTest(int $userId, int $testId): array
     {
         $access = $this->canAccessTest($userId, $testId);
-        
+
         if (!$access['can_access']) {
-            return ['success' => false, 'error' => $access['error']];
+            return [
+                'success' => false,
+                'error' => $access['error'],
+            ];
         }
 
-        // Return existing active attempt if any
         if ($access['active_attempt']) {
+
             $attempt = $access['active_attempt'];
+
             if ($attempt->isExpired()) {
+
                 $this->expireAttempt($attempt->id);
-                return ['success' => false, 'error' => 'Your previous attempt has expired.'];
+
+                return [
+                    'success'=>false,
+                    'error'=>'Attempt expired.'
+                ];
             }
+
             return $this->formatAttemptResponse($attempt);
         }
+        return DB::transaction(function () use ($userId, $testId) {
 
-        // Create new attempt
-        $attempt = $this->testRepository->createAttempt($userId, $testId);
+            $test = $this->testRepository->getById($testId);
 
-        return $this->formatAttemptResponse($attempt);
+            if (!$test->is_active) {
+                return [
+                    'success' => false,
+                    'error' => 'Test is inactive.'
+                ];
+            }
+
+            if ($test->expires_at && $test->expires_at->isPast()) {
+                return [
+                    'success' => false,
+                    'error' => 'Test expired.'
+                ];
+            }
+
+            $attempts = TestAttempt::where('user_id', $userId)
+                ->where('test_id', $testId)
+                ->lockForUpdate()
+                ->get();
+
+            $activeAttempt = $attempts
+                ->firstWhere('status', TestAttempt::STATUS_IN_PROGRESS);
+
+            if ($activeAttempt) {
+
+                if ($activeAttempt->isExpired()) {
+
+                    $this->expireAttempt($activeAttempt->id);
+
+                } else {
+
+                    return $this->formatAttemptResponse($activeAttempt);
+
+                }
+            }
+
+            $completedAttempts = $attempts
+                ->where('status', '!=', TestAttempt::STATUS_IN_PROGRESS)
+                ->count();
+
+            if (
+                $test->max_attempts &&
+                $completedAttempts >= $test->max_attempts
+            ) {
+
+                return [
+
+                    'success' => false,
+
+                    'error' => 'Maximum attempts reached.'
+
+                ];
+            }
+
+            $attempt = $this->testRepository
+                ->createAttempt($userId, $testId);
+
+            return $this->formatAttemptResponse($attempt);
+
+        });
     }
 
     public function submitTest(int $attemptId, array $answers): array
     {
-        $attempt = TestAttempt::with([
-            'test',
-            'test.questions'
-        ])->findOrFail($attemptId);
+        return DB::transaction(function () use ($attemptId, $answers) {
 
-        // Check if already submitted
-        if ($attempt->status === TestAttempt::STATUS_SUBMITTED) {
-            return ['success' => false, 'error' => 'This attempt has already been submitted.'];
-        }
+            $attempt = TestAttempt::with([
+                'test',
+                'test.questions'
+            ])->lockForUpdate()->findOrFail($attemptId);
 
-        // Check if expired
-        if ($attempt->isExpired()) {
-            $this->expireAttempt($attemptId);
-            return ['success' => false, 'error' => 'This attempt has expired.'];
-        }
+            // Nếu đã nộp thì không xử lý nữa
+            if ($attempt->status === TestAttempt::STATUS_SUBMITTED) {
+                return [
+                    'success' => false,
+                    'error' => 'This attempt has already been submitted.'
+                ];
+            }
 
-        $totalScore = 0;
-        $maxScore = 0;
-        $results = [];
+            // Nếu hết giờ
+            if ($attempt->isExpired()) {
+                $this->expireAttempt($attemptId);
 
-        // Grade each answer
-        foreach ($attempt->test->questions as $question) {
-            $questionId = $question->id;
-            $answer = $answers[$questionId] ?? null;
-            $questionData = $question->toArray();
+                return [
+                    'success' => false,
+                    'error' => 'This attempt has expired.'
+                ];
+            }
 
-            $isCorrect = $this->scoringFactory->isCorrect(
-                $question->type,
-                $questionData,
-                $answer
+            $totalScore = 0;
+            $maxScore = 0;
+            $results = [];
+
+            foreach ($attempt->test->questions as $question) {
+
+                $questionId = $question->id;
+                $answer = $answers[$questionId] ?? null;
+                $questionData = $question->toArray();
+
+                $isCorrect = $this->scoringFactory->isCorrect(
+                    $question->type,
+                    $questionData,
+                    $answer
+                );
+
+                $score = $this->scoringFactory->calculateScore(
+                    $question->type,
+                    $questionData,
+                    $answer
+                );
+
+                $this->testRepository->createAnswer(
+                    $attemptId,
+                    $questionId,
+                    $answer,
+                    $isCorrect
+                );
+
+                $questionMaxScore = $question->pivot->score ?? 1;
+
+                $maxScore += $questionMaxScore;
+
+                if ($isCorrect) {
+                    $totalScore += $questionMaxScore;
+                }
+
+                $results[] = [
+                    'question_id' => $questionId,
+                    'is_correct' => $isCorrect,
+                    'score' => $score,
+                    'max_score' => $questionMaxScore,
+                ];
+            }
+
+            $percentageScore =
+                $maxScore > 0
+                    ? ($totalScore / $maxScore) * 100
+                    : 0;
+
+            $this->testRepository->updateAttempt(
+                $attemptId,
+                [
+                    'status' => TestAttempt::STATUS_SUBMITTED,
+                    'submitted_at' => now(),
+                    'score' => $percentageScore,
+                ]
             );
 
-            $score = $this->scoringFactory->calculateScore(
-                $question->type,
-                $questionData,
-                $answer
-            );
-
-            // Save answer
-            $this->testRepository->createAnswer($attemptId, $questionId, $answer, $isCorrect);
-
-            // Calculate scores
-            $questionMaxScore = $question->pivot->score ?? 1;
-            $maxScore += $questionMaxScore;
-            $totalScore += $isCorrect ? $questionMaxScore : 0;
-
-            $results[] = [
-                'question_id' => $questionId,
-                'is_correct' => $isCorrect,
-                'score' => $score,
-                'max_score' => $questionMaxScore,
+            return [
+                'success' => true,
+                'attempt_id' => $attemptId,
+                'score' => round($percentageScore, 2),
+                'total_correct' => collect($results)
+                    ->where('is_correct', true)
+                    ->count(),
+                'total_questions' => count($results),
+                'results' => $results,
             ];
-        }
-
-        // Update attempt
-        $percentageScore = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
-        
-        $this->testRepository->updateAttempt($attemptId, [
-            'status' => TestAttempt::STATUS_SUBMITTED,
-            'submitted_at' => now(),
-            'score' => $percentageScore,
-        ]);
-
-        return [
-            'success' => true,
-            'attempt_id' => $attemptId,
-            'score' => round($percentageScore, 2),
-            'total_correct' => collect($results)->where('is_correct', true)->count(),
-            'total_questions' => count($results),
-            'results' => $results,
-        ];
+        });
     }
 
     public function getAllAttemptsForTest(int $testId): Collection
@@ -228,6 +352,7 @@ class TestService
     {
         $attempt = TestAttempt::with([
             'test.subject',
+            'test.questions',
             'answers.question'
         ])->findOrFail($attemptId);
 
@@ -271,7 +396,7 @@ class TestService
     public function getMyAttempts(int $userId): array
     {
         $attempts = $this->testRepository->getAttempts($userId);
-        
+
         return $attempts->map(function ($attempt) {
             return [
                 'attempt_id' => $attempt->id,
@@ -283,6 +408,8 @@ class TestService
                 'started_at' => $attempt->started_at,
                 'submitted_at' => $attempt->submitted_at,
                 'attempt_no' => $attempt->attempt_no,
+                'correct_count' => $attempt->answers->where('is_correct', true)->count(),
+                'total_questions' => $attempt->answers->count(),
             ];
         })->toArray();
     }
@@ -298,7 +425,7 @@ class TestService
     private function formatAttemptResponse(TestAttempt $attempt): array
     {
         $test = $this->testRepository->getTestWithQuestions($attempt->test_id);
-        
+
         // Get existing answers for resume
         $existingAnswers = TestAnswer::where('attempt_id', $attempt->id)
             ->pluck('answer', 'question_id')
@@ -325,11 +452,40 @@ class TestService
             'duration' => $test->duration,
             'started_at' => $attempt->started_at,
             'expired_at' => $attempt->expired_at,
-            'remaining_time' => $attempt->expired_at 
-                ? max(0, $attempt->expired_at->diffInSeconds(now(), false) * -1)
+            'remaining_time' => $attempt->expired_at
+                ? max(
+                    0,
+                    $attempt->expired_at->timestamp - now()->timestamp
+                )
                 : null,
             'questions' => $questions,
             'existing_answers' => $existingAnswers,
         ];
+    }
+
+    public function saveAnswer(int $attemptId, int $questionId, $answer)
+    {
+        $attempt = TestAttempt::findOrFail($attemptId);
+
+        if ($attempt->status != TestAttempt::STATUS_IN_PROGRESS) {
+            return;
+        }
+
+        TestAnswer::updateOrCreate(
+
+            [
+                'attempt_id'=>$attemptId,
+                'question_id'=>$questionId,
+            ],
+
+            [
+
+                'answer'=>$answer,
+
+                'is_correct'=>null
+
+            ]
+
+        );
     }
 }
