@@ -86,7 +86,6 @@ class UserService
     public function getTeachers(): \Illuminate\Database\Eloquent\Collection
     {
         return User::where('role', 'teacher')
-            ->orWhere('role', 'admin')
             ->orderBy('name')
             ->get();
     }
@@ -96,5 +95,13 @@ class UserService
         return User::where('role', 'student')
             ->orderBy('name')
             ->get();
+    }
+
+    public function getCounts(): array
+    {
+        return [
+            'teachers_count' => User::where('role', 'teacher')->orWhere('role', 'admin')->count(),
+            'students_count' => User::where('role', 'student')->count(),
+        ];
     }
 }

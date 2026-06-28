@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 
+const stripNumberPrefix = (text) => {
+  if (typeof text !== 'string') return text;
+  return text.replace(/^\s*\d+\.\s*/, '');
+};
+
 export function MatchingQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
   const { left = [], right = [], correct_matches = {} } = question.data || {};
   const [matches, setMatches] = useState(answer || {});
+  const [selectedLeft, setSelectedLeft] = useState(null);
 
   useEffect(() => {
     if (answer) {
@@ -15,6 +21,7 @@ export function MatchingQuestion({ question, onAnswer, answer = null, showResult
     const newMatches = { ...matches, [leftId]: rightId };
     setMatches(newMatches);
     onAnswer(newMatches);
+    setSelectedLeft(null);
   };
 
   const isCorrectMatch = (leftId, rightId) => {
@@ -35,20 +42,26 @@ export function MatchingQuestion({ question, onAnswer, answer = null, showResult
           {left.map((item, index) => (
             <div
               key={index}
-              className={`p-3 border-2 rounded-lg ${
+              onClick={() => {
+                if (!showResult) {
+                  setSelectedLeft(selectedLeft === index ? null : index);
+                }
+              }}
+              className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                 showResult
                   ? isCorrectMatch(index, matches[index])
                     ? 'border-green-500 bg-green-50'
                     : matches[index] !== undefined
                     ? 'border-red-500 bg-red-50'
                     : 'border-gray-200'
+                  : selectedLeft === index
+                  ? 'border-blue-600 bg-blue-100'
                   : matches[index] !== undefined
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200'
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-200 hover:border-blue-300'
               }`}
             >
-              <span className="font-medium mr-2">{index + 1}.</span>
-              <span>{item}</span>
+              <span>{stripNumberPrefix(item)}</span>
             </div>
           ))}
         </div>
@@ -60,15 +73,39 @@ export function MatchingQuestion({ question, onAnswer, answer = null, showResult
             return (
               <div
                 key={shuffledIndex}
-                className="p-3 border-2 border-gray-200 rounded-lg"
+                onClick={() => {
+                  if (showResult) return;
+                  if (selectedLeft === null) return;
+                  handleMatch(selectedLeft, originalIndex);
+                }}
+                className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                  showResult
+                    ? Object.values(matches).includes(originalIndex)
+                      ? 'border-gray-300 bg-gray-100'
+                      : 'border-gray-200 hover:border-blue-300'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                }`}
               >
-                <span className="font-medium mr-2">{originalIndex + 1}.</span>
-                <span>{item}</span>
+                <span>{stripNumberPrefix(item)}</span>
               </div>
             );
           })}
         </div>
       </div>
+
+      {showResult && (
+        <div className="mt-4">
+          {Object.keys(matches).every((k) =>
+            isCorrectMatch(parseInt(k), matches[k]),
+          ) ? (
+            <div className="text-green-600 font-medium">Chinh xac!</div>
+          ) : (
+            <div className="text-red-600 font-medium">
+              Con mot so cap chua dung. Hay kiem tra lai.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

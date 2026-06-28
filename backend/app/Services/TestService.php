@@ -228,7 +228,7 @@ class TestService
 
             $attempt = TestAttempt::with([
                 'test',
-                'test.questions'
+                'test.questions' => fn($q) => $q->withPivot('score')
             ])->lockForUpdate()->findOrFail($attemptId);
 
             // Nếu đã nộp thì không xử lý nữa
@@ -312,6 +312,8 @@ class TestService
                 'success' => true,
                 'attempt_id' => $attemptId,
                 'score' => round($percentageScore, 2),
+                'earned_points' => $totalScore,
+                'total_points' => $maxScore,
                 'total_correct' => collect($results)
                     ->where('is_correct', true)
                     ->count(),
@@ -330,8 +332,18 @@ class TestService
     {
         $attempt = TestAttempt::with([
             'test.subject',
-            'answers.question'
+            'test.testQuestions',
+            'answers.question',
         ])->findOrFail($attemptId);
+
+        $testQuestionMap = $attempt->test->testQuestions
+            ->keyBy('question_id');
+
+        $earnedPoints = $attempt->answers
+            ->filter(fn($a) => $a->is_correct)
+            ->sum(fn($a) => $testQuestionMap->get($a->question_id)?->score ?? 1);
+        $totalPoints = $attempt->answers
+            ->sum(fn($a) => $testQuestionMap->get($a->question_id)?->score ?? 1);
 
         return [
             'attempt_id' => $attempt->id,
@@ -340,6 +352,8 @@ class TestService
             'subject' => $attempt->test->subject->name ?? null,
             'status' => $attempt->status,
             'score' => $attempt->score,
+            'earned_points' => $earnedPoints,
+            'total_points' => $totalPoints,
             'started_at' => $attempt->started_at,
             'submitted_at' => $attempt->submitted_at,
             'attempt_no' => $attempt->attempt_no,
@@ -356,7 +370,6 @@ class TestService
             'answers.question'
         ])->findOrFail($attemptId);
 
-        // Only allow review for submitted attempts
         if ($attempt->status !== TestAttempt::STATUS_SUBMITTED) {
             return ['success' => false, 'error' => 'Cannot review this attempt yet.'];
         }
@@ -365,6 +378,13 @@ class TestService
         foreach ($attempt->test->questions as $question) {
             $answer = $attempt->answers->firstWhere('question_id', $question->id);
             $questionData = $question->toArray();
+            $maxScore = $question->pivot->score ?? 1;
+            $earnedPoints = $answer && $answer->is_correct ? $maxScore : 0;
+
+            $correctAnswer = $this->scoringFactory->getCorrectAnswer($question->type, $questionData);
+            $correctAnswerDisplay = is_array($correctAnswer)
+                ? implode(', ', $correctAnswer)
+                : (string) ($correctAnswer ?? '');
 
             $questions[] = [
                 'id' => $question->id,
@@ -376,8 +396,10 @@ class TestService
                 'explanation' => $question->explanation,
                 'user_answer' => $answer?->answer,
                 'is_correct' => $answer?->is_correct,
-                'correct_answer' => $this->scoringFactory->getCorrectAnswer($question->type, $questionData),
-                'score' => $question->pivot->score ?? 1,
+                'correct_answer' => $correctAnswer,
+                'correct_answer_display' => $correctAnswerDisplay,
+                'max_score' => $maxScore,
+                'earned_points' => $earnedPoints,
             ];
         }
 
@@ -387,6 +409,8 @@ class TestService
             'test_title' => $attempt->test->title,
             'subject' => $attempt->test->subject->name ?? null,
             'score' => $attempt->score,
+            'total_points' => $attempt->test->questions->sum(fn($q) => $q->pivot->score ?? 1),
+            'earned_points' => collect($questions)->sum('earned_points'),
             'started_at' => $attempt->started_at,
             'submitted_at' => $attempt->submitted_at,
             'questions' => $questions,

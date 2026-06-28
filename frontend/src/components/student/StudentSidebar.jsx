@@ -8,6 +8,7 @@ import {
   FiChevronDown,
   FiBook,
   FiFileText,
+  FiEdit,
 } from "react-icons/fi";
 import classApi from "../../api/classApi";
 
@@ -113,6 +114,15 @@ const StudentSidebar = ({ isOpen }) => {
         >
           <FiBarChart2 className="nav-icon" />
           <span className="nav-text">Kết quả học tập</span>
+        </div>
+
+        {/* Practice */}
+        <div
+          className={`nav-item ${isActive("/student/practice") ? "active" : ""}`}
+          onClick={() => navigate('/student/practice')}
+        >
+          <FiEdit className="nav-icon" />
+          <span className="nav-text">Bài tập ôn tập</span>
         </div>
 
         {/* Support */}

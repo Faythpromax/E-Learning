@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiTrendingUp, FiBookOpen, FiClock } from 'react-icons/fi';
+import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiTrendingUp, FiBookOpen, FiClock, FiHelpCircle } from 'react-icons/fi';
 import { useAuth } from '../../../contexts/AuthContext';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import ClassCard from '../../../components/teacher/ClassCard';
@@ -75,6 +75,10 @@ const TeacherDashboardPage = () => {
 
   const handleCreateClass = () => {
     navigate('/teacher/classes/create');
+  };
+
+  const handleManageQuestions = () => {
+    navigate('/teacher/questions');
   };
 
   const handleCreateTest = () => {
@@ -250,7 +254,7 @@ const TeacherDashboardPage = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 button-group">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 button-group">
             <button
               onClick={handleCreateTest}
               className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
@@ -274,6 +278,19 @@ const TeacherDashboardPage = () => {
               <div className="text-left">
                 <h4 className="font-semibold text-gray-800">Tạo lớp học mới</h4>
                 <p className="text-sm text-gray-500">Tạo lớp và thêm học sinh</p>
+              </div>
+            </button>
+
+            <button
+              onClick={handleManageQuestions}
+              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
+            >
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+                <FiHelpCircle className="text-xl text-yellow-600" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-semibold text-gray-800">Quản lý câu hỏi</h4>
+                <p className="text-sm text-gray-500">Xem và chỉnh sửa ngân hàng câu hỏi</p>
               </div>
             </button>
           </div>

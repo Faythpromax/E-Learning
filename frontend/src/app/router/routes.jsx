@@ -43,6 +43,10 @@ import ClassDetailPage from '../../features/teacher/pages/ClassDetailPage';
 import TeacherPracticeListPage from '../../features/teacher/pages/PracticeListPage';
 import CreatePracticePage from '../../features/teacher/pages/CreatePracticePage';
 import PracticeQuestionPage from '../../features/teacher/pages/PracticeQuestionPage';
+import TeacherSettingsPage from '../../features/teacher/pages/TeacherSettingsPage';
+import PracticeSessionPage from '../../features/student/pages/PracticeSessionPage';
+import PracticeListPage from '../../features/student/pages/PracticeListPage';
+import PracticeCompletePage from '../../features/student/pages/PracticeCompletePage';
 import ProtectedRoute from "../../components/auth/ProtectedRoute";
 
 export function AppRoutes() {
@@ -245,6 +249,30 @@ export function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/student/practices/:practiceId"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <PracticeSessionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/practice"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <PracticeListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/practice/complete"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <PracticeCompletePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Teacher Routes */}
         <Route
@@ -380,6 +408,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <PracticeQuestionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/settings"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherSettingsPage />
             </ProtectedRoute>
           }
         />

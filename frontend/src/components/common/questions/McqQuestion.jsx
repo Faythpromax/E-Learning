@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function McqQuestion({ question, onAnswer, showResult = false, userAnswer = null }) {
-  const [selectedAnswer, setSelectedAnswer] = useState(userAnswer || null);
-  const { options = [], correct_answer } = question.data || {};
-  const correctAnswer = correct_answer;
+export function McqQuestion({ question, onAnswer, answer = null, showResult = false, result = null, userAnswer = null }) {
+  const [selectedAnswer, setSelectedAnswer] = useState(answer || userAnswer || null);
+  const { options = [], correct_answers: correctAnswers = [] } = question.data || {};
+  const correctAnswer = correctAnswers[0] ?? null;
+
+  useEffect(() => {
+    setSelectedAnswer(answer || userAnswer || null);
+  }, [answer, userAnswer]);
 
   const handleSelect = (optionId) => {
     if (showResult) return;
@@ -61,7 +65,7 @@ export function McqQuestion({ question, onAnswer, showResult = false, userAnswer
             <div className="text-green-600 font-medium">Chính xác!</div>
           ) : (
             <div className="text-red-600 font-medium">
-              Sai. Đáp án đúng là: {correctAnswer}
+              Sai. Đáp án đúng là: {options.find(o => o.id === correctAnswer)?.text || correctAnswer}
             </div>
           )}
         </div>

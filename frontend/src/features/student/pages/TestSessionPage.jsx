@@ -36,9 +36,9 @@ export function TestSessionPage() {
     startTest();
   }, []);
 
-  useEffect(() => {
-    fetchResult();
-  }, [attemptId]);
+  // useEffect(() => {
+  //   fetchResult();
+  // }, [attemptId]);
 
   const startTest = async () => {
     if (starting) return;
@@ -67,15 +67,15 @@ export function TestSessionPage() {
     }
   };
 
-  const fetchResult = async () => {
-    const response = await testApi.getTestResults(attemptId);
+  // const fetchResult = async () => {
+  //   const response = await testApi.getTestResults(attemptId);
 
-    setResult(response.data);
+  //   setResult(response.data);
 
-    await fetchReview();
+  //   await fetchReview();
 
-    setLoading(false);
-  };
+  //   setLoading(false);
+  // };
 
   const handleAnswer = useCallback(
     async (answer) => {
@@ -116,6 +116,7 @@ export function TestSessionPage() {
   };
 
   const toggleFlag = () => {
+    if (!questions[currentIndex]) return;
     const questionId = questions[currentIndex].id;
     setFlaggedQuestions((prev) =>
       prev.includes(questionId)
@@ -219,7 +220,7 @@ export function TestSessionPage() {
 
             <button
               onClick={() => setShowSubmitModal(true)}
-              disabled={isSubmitting}
+              disabled={submitting}
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
             >
               Nộp bài

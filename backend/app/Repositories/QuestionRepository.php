@@ -68,4 +68,27 @@ class QuestionRepository
     {
         return Question::where('created_by', $userId)->get();
     }
+
+    public function getRandomQuestions(int $limit = 10, ?int $subjectId = null): Collection
+    {
+        $query = Question::query();
+
+        if ($subjectId !== null) {
+            $query->where('subject_id', $subjectId);
+        }
+
+        return $query
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getByPracticeId(int $practiceId): Collection
+    {
+        return Question::whereHas('practiceQuestions', function ($q) use ($practiceId) {
+                $q->where('practice_id', $practiceId);
+            })
+            ->with('subject:id,name')
+            ->get();
+    }
 }
