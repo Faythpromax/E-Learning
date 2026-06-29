@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiHome, FiUsers, FiMessageSquare, FiChevronDown, FiBook, FiFileText } from 'react-icons/fi';
+import { FiHome, FiUsers, FiMessageSquare, FiChevronDown, FiBook, FiFileText, FiHelpCircle } from 'react-icons/fi';
 import './admin.css';
 
 const AdminSidebar = () => {
@@ -20,6 +20,7 @@ const AdminSidebar = () => {
 
   const isUsersActive = location.pathname.includes('/admin/teachers') || location.pathname.includes('/admin/students');
   const isTestsActive = location.pathname.includes('/admin/tests');
+  const isQuestionsActive = location.pathname.includes('/admin/questions');
 
   return (
     <div className="admin-sidebar">
@@ -111,7 +112,17 @@ const AdminSidebar = () => {
           </NavLink>
         </div>
 
-        <NavLink 
+        <NavLink
+          to="/admin/questions"
+          className={({ isActive }) => `admin-menu-item ${isActive || isQuestionsActive ? 'active' : ''}`}
+        >
+          <div className="admin-menu-item-content">
+            <FiHelpCircle size={18} />
+            Quản lý câu hỏi
+          </div>
+        </NavLink>
+
+        <NavLink
           to="/admin/feedback" 
           className={({ isActive }) => `admin-menu-item ${isActive ? 'active' : ''}`}
         >

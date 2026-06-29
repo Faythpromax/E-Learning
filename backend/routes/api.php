@@ -35,6 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/questions', [QuestionController::class, 'storeSystem']);
         Route::put('/admin/questions/{id}', [QuestionController::class, 'updateSystem']);
         Route::delete('/admin/questions/{id}', [QuestionController::class, 'destroySystem']);
+        Route::get('/admin/stats', function () {
+            return response()->json([
+                'success' => true,
+                'data' => app(\App\Services\UserService::class)->getCounts(),
+            ]);
+        });
     });
 
     // Class Questions (Teacher + Admin)
@@ -50,10 +56,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/questions/{id}/check', [QuestionController::class, 'checkAnswer']);
 
     // Practice
-    Route::get('/practice/questions/{id}', [PracticeController::class, 'getQuestion']);
     Route::get('/practice/questions/random', [PracticeController::class, 'getRandomQuestions']);
+    Route::get('/practice/questions/{id}', [PracticeController::class, 'getQuestion']);
+    Route::get('/practices/{id}/questions', [PracticeController::class, 'getPracticeQuestions']);
     Route::post('/practice/check', [PracticeController::class, 'submitAnswer']);
     Route::get('/practice/progress', [PracticeController::class, 'getProgress']);
+    Route::get('/student/practices', [PracticeController::class, 'getStudentPractices']);
 
     // Teacher Practice Management
     Route::middleware(['auth:sanctum', 'role:teacher,admin'])->group(function () {

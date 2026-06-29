@@ -30,6 +30,11 @@ export const userApi = {
     const response = await apiClient.get('/users/students');
     return response.data;
   },
+
+  getStats: async () => {
+    const response = await apiClient.get('/admin/stats');
+    return response.data;
+  },
 };
 
 export default userApi;

@@ -32,6 +32,10 @@ export function TeacherPracticeListPage() {
     }
   };
 
+  const handleEdit = (practiceId) => {
+    navigate(`/teacher/practice/${practiceId}/edit`);
+  };
+
   const handleView = (practiceId) => {
     navigate(`/teacher/practice/${practiceId}`);
   };
@@ -191,6 +195,13 @@ export function TeacherPracticeListPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleEdit(practice.id)}
+                              className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Chỉnh sửa bài ôn tập"
+                            >
+                              <FiEdit className="text-base" />
+                            </button>
                             <button
                               onClick={() => handleView(practice.id)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { McqQuestion } from './McqQuestion';
-import { FillBlankQuestion } from './FillBlankQuestion';
-import { MatchingQuestion } from './MatchingQuestion';
-import { TableFillQuestion } from './TableFillQuestion';
+import { useState, useEffect } from "react";
+import { McqQuestion } from "./McqQuestion";
+import { FillBlankQuestion } from "./FillBlankQuestion";
+import { MatchingQuestion } from "./MatchingQuestion";
+import { TableFillQuestion } from "./TableFillQuestion";
 
 const questionComponents = {
   mcq: McqQuestion,
@@ -16,14 +16,15 @@ export function QuestionRenderer({
   onAnswer,
   answer: initialAnswer = null,
   showResult = false,
-  result = null
+  result = null,
+  userAnswer = null,
 }) {
-  const [answer, setAnswer] = useState(initialAnswer);
+  const [answer, setAnswer] = useState(initialAnswer ?? userAnswer ?? null);
   const QuestionComponent = questionComponents[question.type];
 
   useEffect(() => {
-    setAnswer(initialAnswer);
-  }, [initialAnswer]);
+    setAnswer(initialAnswer ?? userAnswer ?? null);
+  }, [initialAnswer, userAnswer]);
 
   const handleAnswer = (userAnswer) => {
     setAnswer(userAnswer);
@@ -33,6 +34,9 @@ export function QuestionRenderer({
   if (!QuestionComponent) {
     return <div className="text-red-500">Loai cau hoi khong xac dinh</div>;
   }
+
+  console.log(question);
+  console.log(answer);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">

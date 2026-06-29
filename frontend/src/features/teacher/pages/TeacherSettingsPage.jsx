@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FiUser, FiMail, FiPhone, FiSave } from 'react-icons/fi';
-import AdminLayout from '../../../components/admin/AdminLayout';
+import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import { authApi } from '../../../api/authApi';
 import { userApi } from '../../../api/userApi';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const SettingsPage = () => {
+const TeacherSettingsPage = () => {
   const { user, updateUser } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,7 @@ const SettingsPage = () => {
         const data = res.data || res;
         setForm({ name: data.name || '', email: data.email || '', phone: data.phone || '' });
       } catch {
+        // fallback from localStorage
         setForm({
           name: user?.name || '',
           email: user?.email || '',
@@ -50,14 +51,14 @@ const SettingsPage = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="Cài đặt tài khoản">
+      <TeacherLayout pageTitle="Cài đặt">
         <div className="text-center py-20 text-gray-500">Đang tải...</div>
-      </AdminLayout>
+      </TeacherLayout>
     );
   }
 
   return (
-    <AdminLayout title="Cài đặt tài khoản">
+    <TeacherLayout pageTitle="Cài đặt tài khoản">
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
         <form
           onSubmit={handleSubmit}
@@ -75,7 +76,7 @@ const SettingsPage = () => {
                 color: 'white', fontSize: 24, fontWeight: 700,
               }}
             >
-              {(form.name || user?.name || 'A').charAt(0).toUpperCase()}
+              {(form.name || user?.name || 'T').charAt(0).toUpperCase()}
             </div>
           </div>
 
@@ -141,8 +142,8 @@ const SettingsPage = () => {
           </button>
         </form>
       </div>
-    </AdminLayout>
+    </TeacherLayout>
   );
 };
 
-export default SettingsPage;
+export default TeacherSettingsPage;

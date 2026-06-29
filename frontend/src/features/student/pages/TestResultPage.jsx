@@ -109,10 +109,21 @@ export function TestResultPage() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {result.status === 'expired' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-center">
+            <p className="text-yellow-800 font-medium">
+              Bai kiem tra da het gio. Ban khong the lam lai bai nay.
+            </p>
+          </div>
+        )}
+
         {/* Score Card */}
         <div className={`${getScoreBgColor(result.score)} rounded-2xl p-8 mb-6 text-center`}>
           <div className={`text-6xl font-bold mb-2 ${getScoreColor(result.score)}`}>
-            {result.score?.toFixed(1) || 0}%
+            {result.earned_points ?? result.score?.toFixed(0)}
+          </div>
+          <div className="text-base font-medium text-gray-600 mb-1">
+            {result.score?.toFixed(1) || 0}% diem
           </div>
           <div className="text-xl font-semibold text-gray-700 mb-4">
             {getScoreMessage(result.score)}
@@ -199,6 +210,9 @@ export function TestResultPage() {
                       question.is_correct ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {question.is_correct ? 'Dung' : 'Sai'}
+                    </span>
+                    <span className="text-xs text-gray-500 ml-auto">
+                      {question.earned_points ?? (question.is_correct ? 1 : 0)}/{question.max_score ?? 1} diem
                     </span>
                   </div>
 

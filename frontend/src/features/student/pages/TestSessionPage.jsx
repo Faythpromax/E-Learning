@@ -36,9 +36,9 @@ export function TestSessionPage() {
     startTest();
   }, []);
 
-  useEffect(() => {
-    fetchResult();
-  }, [attemptId]);
+  // useEffect(() => {
+  //   fetchResult();
+  // }, [attemptId]);
 
   const startTest = async () => {
     if (starting) return;
@@ -67,15 +67,15 @@ export function TestSessionPage() {
     }
   };
 
-  const fetchResult = async () => {
-    const response = await testApi.getTestResults(attemptId);
+  // const fetchResult = async () => {
+  //   const response = await testApi.getTestResults(attemptId);
 
-    setResult(response.data);
+  //   setResult(response.data);
 
-    await fetchReview();
+  //   await fetchReview();
 
-    setLoading(false);
-  };
+  //   setLoading(false);
+  // };
 
   const handleAnswer = useCallback(
     async (answer) => {
@@ -116,6 +116,7 @@ export function TestSessionPage() {
   };
 
   const toggleFlag = () => {
+    if (!questions[currentIndex]) return;
     const questionId = questions[currentIndex].id;
     setFlaggedQuestions((prev) =>
       prev.includes(questionId)
@@ -124,24 +125,20 @@ export function TestSessionPage() {
     );
   };
 
-  const handleTimeUp = useCallback(async () => {
-    await submitTest();
-  }, [testId, answers]);
+  const handleTimeUp = useCallback(() => {
+    if (!testData?.attempt_id || submitting) return;
+    setSubmitting(true);
+    setShowSubmitModal(false);
+    submitTest();
+  }, [testData, submitting]);
 
   const submitTest = async () => {
-    if (submitting) return;
     try {
-      setSubmitting(true);
-      setShowSubmitModal(false);
-
       const response = await testApi.submitTest(
         testId,
         testData.attempt_id,
-        answers,
+        Object.keys(answers).length > 0 ? answers : [],
       );
-      console.log("TEST ID:", testId);
-      console.log("ATTEMPT ID:", testData?.attempt_id);
-      console.log("ANSWERS:", answers);
 
       if (response.success) {
         navigate(`/student/tests/${testData.attempt_id}/results`, {
@@ -149,8 +146,17 @@ export function TestSessionPage() {
         });
       }
     } catch (error) {
-      console.error("Failed to submit test:", error);
-      alert("Khong the noi bai. Vui long thu lai.");
+      const errorData = error?.response?.data;
+      console.error("[submitTest] Failed:", errorData);
+      if (errorData?.error === 'This attempt has expired.') {
+        const resultRes = await testApi.getTestResults(testData.attempt_id);
+        navigate(`/student/tests/${testData.attempt_id}/results`, {
+          state: { result: resultRes.data },
+        });
+      } else {
+        alert("Khong the noi bai. Vui long thu lai.");
+      }
+    } finally {
       setSubmitting(false);
     }
   };
@@ -219,7 +225,7 @@ export function TestSessionPage() {
 
             <button
               onClick={() => setShowSubmitModal(true)}
-              disabled={isSubmitting}
+              disabled={submitting}
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
             >
               Nộp bài

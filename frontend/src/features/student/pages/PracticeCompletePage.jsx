@@ -24,7 +24,7 @@ const PracticeCompletePage = () => {
               Quay lai
             </button>
             <button
-              onClick={() => navigate('/student/practice/random')}
+              onClick={() => navigate('/student/practice')}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
               Luyen tap tiep

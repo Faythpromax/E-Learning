@@ -15,7 +15,7 @@ class SubmitTestRequest extends FormRequest
     {
         return [
             'attempt_id' => 'required|exists:test_attempts,id',
-            'answers' => 'required|array',
+            'answers' => 'array',
             'answers.*' => 'nullable',
         ];
     }
@@ -25,7 +25,7 @@ class SubmitTestRequest extends FormRequest
         return [
             'attempt_id.required' => 'Thong tin buoc thi khong hop le.',
             'attempt_id.exists' => 'Buoc thi khong ton tai.',
-            'answers.required' => 'Vui long cung cap dap an.',
+            'answers.array' => 'Dap an phai la mot danh sach hop le.',
         ];
     }
 }

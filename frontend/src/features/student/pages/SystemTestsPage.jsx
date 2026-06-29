@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiClock, FiFileText, FiPlay } from 'react-icons/fi';
+import { FiClock, FiFileText, FiPlay, FiRotateCw } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import StudentLayout from '../../../components/student/StudentLayout';
 
 export function SystemTestsPage() {
   const navigate = useNavigate();
   const [tests, setTests] = useState([]);
+  const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,13 +16,29 @@ export function SystemTestsPage() {
 
   const fetchSystemTests = async () => {
     try {
-      const response = await testApi.getSystemTests();
-      setTests(response?.data || []);
+      const [testsRes, attemptsRes] = await Promise.all([
+        testApi.getSystemTests(),
+        testApi.getMyAttempts(),
+      ]);
+      setTests(testsRes?.data || []);
+      setAttempts(attemptsRes?.data || []);
     } catch (error) {
       console.error('Failed to fetch system tests:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getSubmittedCount = (testId) =>
+    attempts.filter((a) => a.test_id === testId && a.status === 'submitted').length;
+
+  const getActiveAttempt = (testId) =>
+    attempts.find((a) => a.test_id === testId && a.status === 'in_progress');
+
+  const getLatestAttemptId = (testId) => {
+    const submitted = attempts.filter((a) => a.test_id === testId && a.status === 'submitted');
+    if (submitted.length === 0) return null;
+    return submitted[submitted.length - 1].attempt_id || submitted[submitted.length - 1].id;
   };
 
   const handleStartTest = (testId) => {
@@ -58,6 +75,9 @@ export function SystemTestsPage() {
             <div className="space-y-4">
               {tests.map((test) => {
                 const isExpired = test.expires_at && new Date(test.expires_at) < new Date();
+                const submittedCount = getSubmittedCount(test.id);
+                const activeAttempt = getActiveAttempt(test.id);
+                const canRetake = test.max_attempts > 1 && submittedCount < (test.max_attempts || 999);
 
                 return (
                   <div key={test.id} className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all">
@@ -65,8 +85,14 @@ export function SystemTestsPage() {
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-2">
                           <h3 className="text-lg font-bold text-gray-800">{test.title}</h3>
+                          {submittedCount > 0 && (
+                            <span className="text-xs font-medium px-2.5 py-1 bg-green-100 text-green-700 rounded-full">Đã hoàn thành</span>
+                          )}
                           {isExpired && (
                             <span className="text-xs font-medium px-2.5 py-1 bg-red-100 text-red-700 rounded-full">Đã hết hạn</span>
+                          )}
+                          {activeAttempt && !isExpired && (
+                            <span className="text-xs font-medium px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full animate-pulse">Đang làm dở</span>
                           )}
                         </div>
                         <p className="text-sm text-gray-600 mb-3 font-medium">{test.subject?.name || 'Chưa phân môn'}</p>
@@ -87,6 +113,37 @@ export function SystemTestsPage() {
                         {isExpired ? (
                           <button disabled className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-lg cursor-not-allowed">
                             Đã khóa đề
+                          </button>
+                        ) : activeAttempt ? (
+                          <button
+                            onClick={() => handleStartTest(test.id)}
+                            className="w-full sm:w-auto px-5 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <FiPlay className="text-xs" />
+                            Tiếp tục làm
+                          </button>
+                        ) : submittedCount > 0 && canRetake ? (
+                          <div className="flex sm:flex-col items-end gap-2">
+                          <button
+                            onClick={() => navigate(`/student/tests/${getLatestAttemptId(test.id)}/results`)}
+                            className="w-full sm:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1"
+                          >
+                            Xem kết quả
+                          </button>
+                            <button
+                              onClick={() => handleStartTest(test.id)}
+                              className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                            >
+                              <FiRotateCw className="text-xs" />
+                              Làm lại
+                            </button>
+                          </div>
+                        ) : submittedCount > 0 ? (
+                          <button
+                            onClick={() => navigate(`/student/tests/${test.id}/results`)}
+                            className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1"
+                          >
+                            Xem kết quả
                           </button>
                         ) : (
                           <button

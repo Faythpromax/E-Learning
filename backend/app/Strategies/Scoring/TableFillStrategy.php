@@ -15,14 +15,13 @@ class TableFillStrategy implements ScoringStrategyInterface
         $correctCount = 0;
         $totalCells = 0;
 
-        foreach ($correctAnswers as $row => $cols) {
-            if (!is_array($cols)) continue;
-            foreach ($cols as $col => $correct) {
-                $totalCells++;
-                $userAnswer = $answer[$row][$col] ?? '';
-                if (mb_strtolower(trim($userAnswer)) === mb_strtolower(trim($correct))) {
-                    $correctCount++;
-                }
+        $answerValues = array_values($answer);
+
+        foreach ($correctAnswers as $rowIndex => $correct) {
+            $totalCells++;
+            $userAnswer = $answerValues[$rowIndex] ?? '';
+            if (mb_strtolower(trim($userAnswer)) === mb_strtolower(trim($correct))) {
+                $correctCount++;
             }
         }
 

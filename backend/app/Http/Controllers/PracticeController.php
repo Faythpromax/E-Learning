@@ -226,6 +226,21 @@ class PracticeController extends Controller
         ]);
     }
 
+    public function getPracticeQuestions(int $id): JsonResponse
+    {
+        $practice = Practice::find($id);
+        if (!$practice) {
+            return response()->json(['success' => false, 'message' => 'Practice not found.'], 404);
+        }
+
+        $questions = $this->practiceService->getPracticeQuestions($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $questions,
+        ]);
+    }
+
     public function submitAnswer(SubmitAnswerRequest $request): JsonResponse
     {
         $result = $this->practiceService->submitAnswer(
@@ -247,6 +262,33 @@ class PracticeController extends Controller
         return response()->json([
             'success' => true,
             'data' => $progress,
+        ]);
+    }
+
+    public function getStudentPractices(): JsonResponse
+    {
+        $user = auth()->user();
+
+        $classIds = \App\Models\ClassModel::whereHas('students', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->pluck('id');
+
+        $practices = Practice::whereHas('classes', function ($q) use ($classIds) {
+            $q->whereIn('classes.id', $classIds);
+        })
+            ->with(['subject:id,name', 'classes:id,name', 'creator:id,name'])
+            ->withCount('questions')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($practice) {
+                $practice->class_name = $practice->classes->first()?->name;
+                $practice->classes = null;
+                return $practice;
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $practices,
         ]);
     }
 }

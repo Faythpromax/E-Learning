@@ -1,18 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import '../../../components/admin/admin.css';
+import { userApi } from '../../../api/userApi';
 
 const TeacherListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const mockTeachers = [
-    { id: 'T001', name: 'Nguyễn Văn A', dob: '15/04/1985', email: 'nguyenvana@gmail.com', school: 'THPT Chuyên Hà Nội', role: 'Giáo viên' },
-    { id: 'T002', name: 'Trần Thị B', dob: '22/08/1990', email: 'tranthib@gmail.com', school: 'THPT Chu Văn An', role: 'Giáo viên' },
-    { id: 'T003', name: 'Lê Văn C', dob: '10/11/1988', email: 'levanc@gmail.com', school: 'THPT Ams', role: 'Giáo viên' }
-  ];
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const result = await userApi.getTeachers();
+        setTeachers(result.data || []);
+      } catch (error) {
+        console.error('Failed to fetch teachers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeachers();
+  }, []);
+
+  const filteredTeachers = teachers.filter((teacher) =>
+    teacher.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    teacher.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayRole = (role) => {
+    if (role === 'admin') return 'Quản trị';
+    if (role === 'teacher') return 'Giáo viên';
+    return role;
+  };
 
   return (
     <AdminLayout title="Danh sách giáo viên">
@@ -36,45 +58,54 @@ const TeacherListPage = () => {
               <tr>
                 <th>ID</th>
                 <th>Họ và tên</th>
-                <th>Ngày sinh</th>
                 <th>Email</th>
-                <th>Trường</th>
+                <th>SĐT</th>
                 <th>Role</th>
                 <th style={{ textAlign: 'center' }}>Hành động</th>
               </tr>
             </thead>
             <tbody>
-              {mockTeachers.map((teacher) => (
-                <tr key={teacher.id}>
-                  <td>{teacher.id}</td>
-                  <td>{teacher.name}</td>
-                  <td>{teacher.dob}</td>
-                  <td>{teacher.email}</td>
-                  <td>{teacher.school}</td>
-                  <td><span className="role-badge">{teacher.role}</span></td>
-                  <td className="action-cell">
-                    <button className="btn-edit" title="Sửa" onClick={() => navigate(`/admin/users/edit/${teacher.id}`)}>
-                      <FiEdit2 size={16} /> Sửa
-                    </button>
-                    <button className="btn-delete" title="Xóa">
-                      <FiTrash2 size={16} /> Xóa
-                    </button>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>Đang tải...</td>
                 </tr>
-              ))}
+              ) : filteredTeachers.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>Không có giáo viên nào.</td>
+                </tr>
+              ) : (
+                filteredTeachers.map((teacher) => (
+                  <tr key={teacher.id}>
+                    <td>{teacher.id}</td>
+                    <td>{teacher.name}</td>
+                    <td>{teacher.email}</td>
+                    <td>{teacher.phone || '-'}</td>
+                    <td><span className="role-badge">{displayRole(teacher.role)}</span></td>
+                    <td className="action-cell">
+                      <button className="btn-edit" title="Sửa" onClick={() => navigate(`/admin/users/edit/${teacher.id}`)}>
+                        <FiEdit2 size={16} /> Sửa
+                      </button>
+                      <button className="btn-delete" title="Xóa">
+                        <FiTrash2 size={16} /> Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        <div className="admin-pagination">
-          <span className="pagination-info">Hiển thị 1 đến 3 của 3 mục</span>
-          <div className="pagination-controls">
-            <button className="page-btn disabled">Trước</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">Tiếp</button>
+        {!loading && (
+          <div className="admin-pagination">
+            <span className="pagination-info">Hiển thị 1 đến {filteredTeachers.length} của {filteredTeachers.length} mục</span>
+            <div className="pagination-controls">
+              <button className="page-btn disabled">Trước</button>
+              <button className="page-btn active">1</button>
+              <button className="page-btn disabled">Tiếp</button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </AdminLayout>
   );
