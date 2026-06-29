@@ -1,0 +1,36 @@
+@startuml view_result_sequence
+title Sequence Diagram - View Result Flow
+
+actor Student
+boundary "ResultPage" as UI <<boundary>>
+control TestController
+control TestService
+control TestRepository
+entity "Test" as test
+database DB
+
+Student -> UI: Xem kết quả
+UI -> TestController: Xem kết quả
+
+TestController -> TestService: Lấy kết quả
+
+TestService -> TestRepository: Lấy danh sách test_attempt
+TestRepository -> DB: SELECT test_attempt
+DB --> TestRepository: attempt data
+TestRepository -> test: Khởi tạo đối tượng (Map)
+test --> TestRepository: Đối tượng Test
+TestRepository --> TestService: return attempts
+
+TestService -> TestRepository: Lấy chi tiết câu trả lời
+TestRepository -> DB: SELECT test_answers
+DB --> TestRepository: answers data
+TestRepository -> test: Khởi tạo đối tượng (Map)
+test --> TestRepository: Đối tượng Test
+TestRepository --> TestService: return answers
+
+TestService -> TestService: Tổng hợp kết quả (score, đúng/sai)
+
+TestService --> TestController: danh sách kết quả + chi tiết
+TestController --> UI: danh sách kết quả + chi tiết
+
+@enduml

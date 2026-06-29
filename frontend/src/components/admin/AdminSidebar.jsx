@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { FiHome, FiUsers, FiMessageSquare, FiChevronDown, FiBook, FiFileText } from 'react-icons/fi';
 import './admin.css';
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ isOpen, onClose }) => {
   const [isUsersOpen, setIsUsersOpen] = useState(true);
   const [isTestsOpen, setIsTestsOpen] = useState(true);
   const location = useLocation();
@@ -18,11 +18,17 @@ const AdminSidebar = () => {
     setIsTestsOpen(!isTestsOpen);
   };
 
+  const handleNavClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   const isUsersActive = location.pathname.includes('/admin/teachers') || location.pathname.includes('/admin/students');
   const isTestsActive = location.pathname.includes('/admin/tests');
 
   return (
-    <div className="admin-sidebar">
+    <div className={`admin-sidebar ${isOpen ? 'mobile-open' : 'admin-sidebar-mobile-hidden'}`}>
       <div className="admin-logo">
         <div className="admin-logo-icon">
           <FiBook size={20} />
@@ -34,6 +40,7 @@ const AdminSidebar = () => {
         <NavLink 
           to="/admin/dashboard" 
           className={({ isActive }) => `admin-menu-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <div className="admin-menu-item-content">
             <FiHome size={18} />
@@ -65,12 +72,14 @@ const AdminSidebar = () => {
           <NavLink 
             to="/admin/teachers" 
             className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
+            onClick={handleNavClick}
           >
             Danh sách giáo viên
           </NavLink>
           <NavLink 
             to="/admin/students" 
             className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
+            onClick={handleNavClick}
           >
             Danh sách học sinh
           </NavLink>
@@ -100,12 +109,14 @@ const AdminSidebar = () => {
           <NavLink 
             to="/admin/tests" 
             className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
+            onClick={handleNavClick}
           >
             Danh sách bài kiểm tra
           </NavLink>
           <NavLink 
             to="/admin/tests/create" 
             className={({ isActive }) => `admin-submenu-item ${isActive ? 'active' : ''}`}
+            onClick={handleNavClick}
           >
             Tạo bài kiểm tra mới
           </NavLink>
@@ -114,6 +125,7 @@ const AdminSidebar = () => {
         <NavLink 
           to="/admin/feedback" 
           className={({ isActive }) => `admin-menu-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <div className="admin-menu-item-content">
             <FiMessageSquare size={18} />

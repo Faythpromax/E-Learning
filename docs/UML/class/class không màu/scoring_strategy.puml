@@ -1,0 +1,179 @@
+@startuml scoring_strategy
+skinparam classAttributeIconSize 0
+
+title Test Scoring Architecture (Strategy Pattern)
+
+package "Presentation Layer" {
+    class TestTakePage <<boundary>>
+}
+
+package "Controller Layer" {
+    class TestController <<Controller>> {
+        -testService: TestService
+        +start(): JsonResponse
+        +submit(): JsonResponse
+        +results(): JsonResponse
+    }
+}
+
+package "Business Logic Layer" {
+    class TestService <<Service>> {
+        -testRepository: TestRepositoryInterface
+        -scoringFactory: ScoringFactory
+        +__construct(repository, factory)
+        +startTest(testId, userId): array
+        +submitTest(attemptId, answers): array
+        +getResults(attemptId): array
+    }
+
+    class ScoringFactory <<Factory>> {
+        -strategies: array
+        +__construct()
+        +make(type): ScoringStrategyInterface
+        +calculateScore(question, answer): float
+        +isCorrect(question, answer): bool
+        +getCorrectAnswer(question): mixed
+    }
+
+    interface ScoringStrategyInterface <<Interface>> {
+        +calculateScore(question, answer): float
+        +isCorrect(question, answer): bool
+        +getCorrectAnswer(question): mixed
+    }
+
+    class McqStrategy <<Strategy>> implements ScoringStrategyInterface {
+        +calculateScore(question, answer): float
+        +isCorrect(question, answer): bool
+        +getCorrectAnswer(question): mixed
+    }
+
+    class FillBlankStrategy <<Strategy>> implements ScoringStrategyInterface {
+        +calculateScore(question, answer): float
+        +isCorrect(question, answer): bool
+        +getCorrectAnswer(question): mixed
+    }
+
+    class MatchingStrategy <<Strategy>> implements ScoringStrategyInterface {
+        +calculateScore(question, answer): float
+        +isCorrect(question, answer): bool
+        +getCorrectAnswer(question): mixed
+    }
+
+    class TableFillStrategy <<Strategy>> implements ScoringStrategyInterface {
+        +calculateScore(question, answer): float
+        +isCorrect(question, answer): bool
+        +getCorrectAnswer(question): mixed
+    }
+}
+
+package "Data Access Layer" {
+    interface TestRepositoryInterface <<Repository Interface>> {
+        +createAttempt(testId, userId): TestAttempt
+        +updateAttempt(attemptId, data): TestAttempt
+        +createAnswer(attemptId, questionId, answer): TestAnswer
+        +getTestWithQuestions(testId): Test
+        +getAttemptWithAnswers(attemptId): TestAttempt
+    }
+
+    class TestRepository <<Repository>> implements TestRepositoryInterface {
+        -testModel: Test
+        -questionModel: Question
+        -attemptModel: TestAttempt
+        -answerModel: TestAnswer
+        +__construct()
+        +createAttempt(): TestAttempt
+        +updateAttempt(): TestAttempt
+        +createAnswer(): TestAnswer
+        +getTestWithQuestions(): Test
+        +getAttemptWithAnswers(): TestAttempt
+    }
+}
+
+package "Domain Entities" {
+    class Test <<Entity>> {
+        -id: int
+        -title: string
+        -description: string
+        -duration: int
+        -total_questions: int
+        -passing_score: float
+        +questions(): HasMany
+        +attempts(): HasMany
+    }
+
+    class Question <<Entity>> {
+        -id: int
+        -test_id: int
+        -type: string (mcq|fill_blank|matching|table_fill)
+        -content: string
+        -options: array
+        -correct_answer: mixed
+        -points: float
+        +isMcq(): bool
+        +isFillBlank(): bool
+        +isMatching(): bool
+        +isTableFill(): bool
+    }
+
+    class TestAttempt <<Entity>> {
+        -id: int
+        -test_id: int
+        -user_id: int
+        -started_at: timestamp
+        -submitted_at: timestamp
+        -score: float
+        -status: string
+        +answers(): HasMany
+        +isCompleted(): bool
+        +isInProgress(): bool
+    }
+
+    class TestAnswer <<Entity>> {
+        -id: int
+        -attempt_id: int
+        -question_id: int
+        -answer: mixed
+        -is_correct: bool
+        -points_earned: float
+        +getAnswerText(): string
+        +isCorrect(): bool
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+TestTakePage --> TestController : calls
+TestController --> TestService : delegates
+TestService --> TestRepositoryInterface : uses (DIP)
+TestService --> ScoringFactory : uses
+ScoringFactory --> ScoringStrategyInterface : creates and delegates (DIP)
+
+' Repository relationships
+TestRepository ..> Test : manages
+TestRepository ..> Question : manages
+TestRepository ..> TestAttempt : manages
+TestRepository ..> TestAnswer : manages
+
+' Domain Entity relationships
+Test "1" --> "n" Question : contains
+Test "1" --> "n" TestAttempt : has
+TestAttempt "1" --> "n" TestAnswer : has
+Question "1" --> "n" TestAnswer : answered in
+
+' Strategy Pattern notes
+note top of ScoringStrategyInterface
+  <b>Strategy Pattern Benefits:</b>
+  - Open/Closed Principle: Add new question types
+    without modifying existing code
+  - Encapsulates scoring algorithms
+  - Easy to test each strategy independently
+  - Runtime selection of algorithms
+end note
+
+note right of ScoringFactory
+  <b>Factory Pattern Benefits:</b>
+  - Centralizes strategy creation logic
+  - Decouples client from concrete strategies
+  - Easy to extend with new question types
+end note
+
+@enduml

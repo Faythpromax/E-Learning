@@ -12,6 +12,8 @@ class TestQuestion extends Model
 
     protected $table = 'test_questions';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'test_id',
         'question_id',

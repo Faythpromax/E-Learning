@@ -1,0 +1,88 @@
+@startuml login_sequence
+title Sequence Diagram - Login Flow
+
+actor "User" as user
+boundary "LoginPage" as UI
+control "AuthController" as controller
+control "AuthService" as service
+control "UserRepositoryInterface" as repository
+entity "User" as model
+database "Database" as db
+
+user -> UI: 1: Nhập email, password, role
+UI -> controller: 1.1: POST /api/login\n{email, password, role}
+activate controller
+
+controller -> controller++: 1.1.1: validate(LoginRequest)
+controller --> controller--: Kết quả validate
+
+alt Dữ liệu nhập vào không hợp lệ
+    controller --> UI: 1.1.2: 422 Validation Errors\n{success: false, errors: [...]}
+    UI --> user: Hiển thị lỗi nhập liệu
+else Dữ liệu hợp lệ
+    controller -> service: 1.1.3: login(array $credentials)
+    activate service
+    
+    service -> repository: 1.1.3.1: findByEmail(string $email)
+    activate repository
+    
+    repository -> db: 1.1.3.1.1: SELECT * FROM users WHERE email = ?
+    db --> repository: User data / null
+    
+    alt User không tồn tại
+        repository --> service: null
+        deactivate repository
+        
+        service --> controller: ['success' => false, 'message' => 'Invalid credentials']
+        controller --> UI: 1.1.3.2: 401 Unauthorized\n{success: false, message: 'Invalid credentials'}
+        UI --> user: Hiển thị thông báo đăng nhập thất bại
+    else User tồn tại
+        repository -> model: 1.1.3.1.2: Khởi tạo User entity
+        activate model
+        model --> repository: User object
+        deactivate model
+        repository --> service: 1.1.3.1.3: User entity
+        deactivate repository
+        
+        service -> service++: 1.1.3.2: Xác thực mật khẩu
+        note over service
+          Hash::check(
+            $credentials['password'],
+            $user->getPassword()
+          )
+        end note
+        service --> service--: Password valid / invalid
+        
+        alt Mật khẩu không đúng
+            service --> controller: ['success' => false, 'message' => 'Invalid credentials']
+            controller --> UI: 1.1.3.3: 401 Unauthorized\n{success: false, message: 'Invalid credentials'}
+            UI --> user: Hiển thị thông báo đăng nhập thất bại
+        else Mật khẩu đúng
+            service -> service++: 1.1.3.3: Kiểm tra role
+            service --> service--: Role valid / invalid
+            
+            alt Role không khớp
+                service --> controller: ['success' => false, 'message' => 'Invalid credentials']
+                controller --> UI: 1.1.3.4: 401 Unauthorized\n{success: false, message: 'Invalid credentials'}
+                UI --> user: Hiển thị thông báo đăng nhập thất bại
+            else Role khớp
+                service -> repository: 1.1.3.4: createToken(User $user, string $deviceName)
+                activate repository
+                
+                repository -> db: 1.1.3.4.1: INSERT INTO personal_access_tokens\n(user_id, token, abilities, ...)
+                db --> repository: Token created
+                repository --> service: 1.1.3.4.2: plainTextToken
+                deactivate repository
+                
+                service --> controller: 1.1.3.5: ['success' => true, 'user' => {...}, 'token' => '...']
+                deactivate service
+                
+                controller --> UI: 1.1.4: 200 OK\n{success: true, data: {user, token, redirect_to}}
+                UI --> user: 1.1.5: Chuyển hướng đến dashboard trang chủ
+            end
+        end
+    end
+end
+deactivate controller
+
+@enduml

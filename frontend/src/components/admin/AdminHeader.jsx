@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBell, FiMessageSquare, FiChevronDown, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiBell, FiMessageSquare, FiChevronDown, FiSettings, FiLogOut, FiMenu } from 'react-icons/fi';
 import './admin.css';
 
-const AdminHeader = ({ title }) => {
+const AdminHeader = ({ title, onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -26,9 +26,14 @@ const AdminHeader = ({ title }) => {
 
   return (
     <div className="admin-header">
-      <div className="admin-header-left">
-        <h2>{title || 'Dashboard'}</h2>
-        <p>Chào mừng trở lại, Admin</p>
+      <div className="admin-header-left" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button type="button" className="admin-menu-btn" onClick={onMenuClick} title="Menu">
+          <FiMenu size={22} />
+        </button>
+        <div>
+          <h2>{title || 'Dashboard'}</h2>
+          <p>Chào mừng trở lại, Admin</p>
+        </div>
       </div>
 
       <div className="admin-header-right">

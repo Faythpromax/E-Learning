@@ -1,0 +1,164 @@
+@startuml question_management_class_diagram
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Class Diagram - Question Management (SOLID / Layered Architecture)
+
+' ==================== PRESENTATION LAYER ====================
+package "Presentation Layer" {
+    class QuestionForm <<boundary>> {
+        +questionData: Object
+        +handleSubmit(): void
+        +handleCheckAnswer(): void
+    }
+
+    class QuestionController <<controller>> {
+        -questionService: QuestionService
+        +show(): JsonResponse
+        +checkAnswer(): JsonResponse
+    }
+}
+
+' ==================== BUSINESS LOGIC LAYER ====================
+package "Business Logic Layer" {
+    class QuestionService <<service>> {
+        -questionRepository: QuestionRepository
+        -scoringFactory: ScoringStrategyFactory
+        -builderFactory: QuestionBuilderFactory
+        +getQuestion(): Question
+        +checkAnswer(): array
+        +calculateScore(): float
+    }
+
+    ' --- BUILDER PATTERN FOR QUESTIONS ---
+    interface QuestionBuilderInterface <<interface>> {
+        +build(): array
+    }
+
+    class QuestionBuilderFactory <<factory>> {
+        +make(): QuestionBuilderInterface
+    }
+
+    class BaseQuestionBuilder <<abstract>> {
+        #buildCommonFields(): array
+    }
+
+    class McqQuestionBuilder <<builder>> {
+        +build(): array
+    }
+
+    class FillBlankQuestionBuilder <<builder>> {
+        +build(): array
+    }
+
+    class MatchingQuestionBuilder <<builder>> {
+        +build(): array
+    }
+
+    class TableFillQuestionBuilder <<builder>> {
+        +build(): array
+    }
+
+    ' --- STRATEGY & FACTORY PATTERNS FOR SCORING ---
+    class ScoringStrategyFactory <<factory>> {
+        -scoringFactory: ScoringStrategyFactory
+        +make(): ScoringStrategyInterface
+        +isCorrect(): bool
+        +calculateScore(): float
+        +getCorrectAnswer(): mixed
+    }
+
+    interface ScoringStrategyInterface <<strategy interface>> {
+        +isCorrect(): bool
+        +calculateScore(): float
+        +getCorrectAnswer(): mixed
+    }
+
+    class McqStrategy <<strategy>> {
+        +isCorrect(): bool
+        +calculateScore(): float
+        +getCorrectAnswer(): mixed
+    }
+
+    class FillBlankStrategy <<strategy>> {
+        +isCorrect(): bool
+        +calculateScore(): float
+        +getCorrectAnswer(): mixed
+    }
+
+    class MatchingStrategy <<strategy>> {
+        +isCorrect(): bool
+        +calculateScore(): float
+        +getCorrectAnswer(): mixed
+    }
+
+    class TableFillStrategy <<strategy>> {
+        +isCorrect(): bool
+        +calculateScore(): float
+        +getCorrectAnswer(): mixed
+    }
+}
+
+' ==================== DATA ACCESS LAYER ====================
+package "Data Access Layer" {
+    class QuestionRepository <<repository>> {
+        +getById(): Question
+        +create(): Question
+        +update(): Question
+        +delete(): bool
+    }
+}
+
+' ==================== DOMAIN ENTITIES ====================
+package "Domain Entities" {
+    class Question <<entity>> {
+        +id: int
+        +subject_id: int
+        +type: string
+        +content: string
+        +media_image: string
+        +media_audio: string
+        +data: array
+        +explanation: string
+        +created_by: int
+        +created_at: datetime
+        +updated_at: datetime
+    }
+}
+
+' ==================== RELATIONSHIPS & DEPENDENCIES ====================
+
+' UI Layer to Controller
+QuestionForm --> QuestionController : calls
+
+' Controller Layer to Service
+QuestionController --> QuestionService : delegates
+
+' Service Layer depends on Repositories, Builder Factory and Scoring Factory
+QuestionService --> QuestionRepository : uses
+QuestionService --> QuestionBuilderFactory : uses
+QuestionService --> ScoringStrategyFactory : uses
+
+' Builder Pattern Relationships
+QuestionBuilderFactory .right.> QuestionBuilderInterface : creates
+McqQuestionBuilder .up.|> QuestionBuilderInterface : implements
+FillBlankQuestionBuilder .up.|> QuestionBuilderInterface : implements
+MatchingQuestionBuilder .up.|> QuestionBuilderInterface : implements
+TableFillQuestionBuilder .up.|> QuestionBuilderInterface : implements
+
+BaseQuestionBuilder <|-- McqQuestionBuilder : inherits
+BaseQuestionBuilder <|-- FillBlankQuestionBuilder : inherits
+BaseQuestionBuilder <|-- MatchingQuestionBuilder : inherits
+BaseQuestionBuilder <|-- TableFillQuestionBuilder : inherits
+
+' Strategy & Factory Patterns Relationships
+ScoringStrategyFactory .right.> ScoringStrategyInterface : creates
+McqStrategy .up.|> ScoringStrategyInterface : implements
+FillBlankStrategy .up.|> ScoringStrategyInterface : implements
+MatchingStrategy .up.|> ScoringStrategyInterface : implements
+TableFillStrategy .up.|> ScoringStrategyInterface : implements
+
+' Data Access Layer interacts with Entities
+QuestionRepository ..> Question : manages
+
+@enduml

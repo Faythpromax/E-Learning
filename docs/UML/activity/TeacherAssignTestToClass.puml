@@ -1,0 +1,26 @@
+@startuml Teacher_Assign_Test_To_Class
+title Activity Diagram - Giảng viên gán bài kiểm tra cho lớp
+
+|Giảng viên|
+start
+:Chọn lớp học;
+:Chọn bài kiểm tra;
+:Nhấn "Gán bài kiểm tra";
+
+|Hệ thống|
+:Kiểm tra dữ liệu;
+
+if (Dữ liệu hợp lệ?) then (Không)
+    :Thông báo lỗi;
+    stop
+else (Có)
+    :Lưu thông tin gán bài thi;
+    :Tạo danh sách bài thi cho lớp;
+    :Gửi thông báo cho học sinh;
+endif
+
+|Giảng viên|
+:Nhận thông báo thành công;
+
+stop
+@enduml

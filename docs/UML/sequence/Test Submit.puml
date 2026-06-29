@@ -1,0 +1,81 @@
+@startuml test_submit
+title Student Submit Test
+
+actor Student
+boundary "TestTakePage" as UI
+control "TestController" as Controller
+control "TestService" as Service
+control "ScoringFactory" as Factory
+control "ScoringStrategy" as Strategy
+entity "TestRepository" as Repo
+database "Database" as DB
+
+Student -> UI: Nộp bài
+UI -> Controller: POST /tests/{id}/submit
+
+Controller -> Controller: Validate dữ liệu
+
+alt Dữ liệu không hợp lệ
+Controller --> UI: 422 Validation Error
+UI --> Student: Hiển thị lỗi
+else Hợp lệ
+
+
+Controller -> Service: submitTest()
+
+Service -> Repo: getAttempt(attemptId)
+Repo -> DB: SELECT attempt
+DB --> Repo: Attempt
+Repo --> Service: Attempt
+
+alt Attempt không hợp lệ
+    Service --> Controller: Error
+    Controller --> UI: 400 Bad Request
+    UI --> Student: Thông báo lỗi
+else Attempt hợp lệ
+
+    loop Mỗi câu trả lời
+
+        Service -> Factory: make(questionType)
+        Factory --> Service: Strategy
+
+        Service -> Strategy: calculateScore()
+        Strategy --> Service: Score
+
+        Service -> Repo: saveAnswer()
+        Repo -> DB: INSERT answer
+        DB --> Repo: OK
+
+    end
+
+    Service -> Repo: updateAttempt(score,status)
+    Repo -> DB: UPDATE test_attempts
+    DB --> Repo: OK
+
+    Repo --> Service: Result
+
+    Service -> Service: Dispatch TestSubmitted Event
+
+    Service --> Controller: Submission Result
+
+    Controller --> UI: 200 OK
+
+    UI --> Student: Hiển thị kết quả
+
+end
+
+
+end
+
+note right of Service
+Factory Pattern:
+Tạo Strategy phù hợp
+
+Strategy Pattern:
+Chấm điểm theo loại câu hỏi
+
+Event Pattern:
+Phát sự kiện sau khi nộp bài
+end note
+
+@enduml

@@ -1,0 +1,79 @@
+@startuml admin_create_question
+title Sequence Diagram: Admin Tạo Câu Hỏi Hệ Thống
+
+actor "Admin" as admin
+boundary "CreateQuestionPage" as UI
+control "QuestionController" as controller
+control "QuestionService" as service
+control "QuestionBuilderFactory" as factory
+control "QuestionBuilderInterface" as builder
+control "McqBuilder" as mcqBuilder
+control "FillBlankBuilder" as fillBlankBuilder
+entity "QuestionRepositoryInterface" as repository
+entity "Question" as question
+database "Database" as db
+
+admin -> UI: 1: Điền form tạo câu hỏi và nhấn "Lưu"
+UI -> controller: 1.1: POST /api/admin/questions\n{content, type, data, ...}
+activate controller
+
+controller -> controller++: 1.1.1: validate(CreateQuestionRequest)
+controller --> controller--: Kết quả validate
+
+alt Dữ liệu nhập vào không hợp lệ
+    controller --> UI: 1.1.2: Thông báo lỗi dữ liệu không hợp lệ (422)
+else Dữ liệu hợp lệ
+    controller -> service: 1.1.3: createQuestion(array $data, int $adminId)
+    activate service
+
+    ' Builder Factory - Chọn builder phù hợp theo loại câu hỏi
+    service -> factory: 1.1.3.1: make(string $type)
+    activate factory
+    
+    alt Loại câu hỏi: mcq
+        factory --> service: McqBuilder
+    else Loại câu hỏi: fill_blank
+        factory --> service: FillBlankBuilder
+    else Loại câu hỏi: matching
+        factory --> service: MatchingBuilder
+    else Loại câu hỏi: table_fill
+        factory --> service: TableFillBuilder
+    end
+    deactivate factory
+
+    ' Builder pattern - Xây dựng cấu trúc dữ liệu câu hỏi
+    service -> builder: 1.1.3.2: build(array $data)
+    activate builder
+    builder -> builder++: 1.1.3.2.1: Xây dựng nội dung câu hỏi
+    builder -> builder++: 1.1.3.2.2: Xây dựng đáp án đúng
+    builder -> builder++: 1.1.3.2.3: Xây dựng cấu trúc dữ liệu đặc thù
+    builder --> builder--: 
+    builder --> builder--: 
+    builder --> builder--: 
+    builder --> service: 1.1.3.2.4: structuredQuestionData
+    deactivate builder
+
+    ' Repository - Lưu vào database
+    service -> repository: 1.1.3.3: create(array $structuredData)
+    activate repository
+    
+    repository -> repository++: 1.1.3.3.1: Map dữ liệu thành Question Entity
+    repository -> question: 1.1.3.3.2: Khởi tạo Question object
+    activate question
+    question --> repository: Question entity
+    deactivate question
+    repository --> repository--: 
+    
+    repository -> db: 1.1.3.3.3: INSERT INTO questions\n(content, type, data, admin_id, ...)
+    db --> repository: 1.1.3.3.4: Question ID & Timestamps
+    repository --> service: 1.1.3.3.5: Question object (with ID)
+    deactivate repository
+
+    service --> controller: 1.1.4: Question object
+    deactivate service
+
+    controller --> UI: 1.1.5: 201 Created\n{id, content, type, data, ...}
+end
+deactivate controller
+
+@enduml

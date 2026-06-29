@@ -1,0 +1,27 @@
+@startuml Admin_Search_User
+
+|Admin|
+start
+:Nhập từ khóa tìm kiếm;
+:Gửi yêu cầu tìm kiếm;
+
+|System|
+:Kiểm tra từ khóa;
+:Truy vấn danh sách User;
+:Hiển thị kết quả;
+
+|Admin|
+if (Tiếp tục tìm kiếm?) then (Có)
+    :Nhập từ khóa mới;
+    :Gửi yêu cầu tìm kiếm;
+
+    |System|
+    :Truy vấn danh sách User;
+    :Hiển thị kết quả;
+
+    |Admin|
+endif
+
+stop
+
+@enduml

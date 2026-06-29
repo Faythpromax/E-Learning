@@ -5,13 +5,13 @@ namespace App\Services;
 use App\Models\Question;
 use App\Models\QuestionProgress;
 use App\Repositories\QuestionRepository;
-use App\Strategies\ScoringFactory;
+use App\Strategies\Scoring\ScoringStrategyFactory;
 
 class PracticeService
 {
     public function __construct(
         private readonly QuestionRepository $questionRepository,
-        private readonly ScoringFactory $scoringFactory
+        private readonly ScoringStrategyFactory $scoringFactory
     ) {}
 
     public function getQuestion(int $questionId): Question
@@ -21,7 +21,13 @@ class PracticeService
 
     public function getRandomQuestions(int $limit = 10, ?int $subjectId = null)
     {
-        return $this->questionRepository->getRandomQuestions($limit, $subjectId);
+        $query = Question::query();
+        
+        if ($subjectId !== null) {
+            $query->where('subject_id', $subjectId);
+        }
+        
+        return $query->inRandomOrder()->limit($limit)->get();
     }
 
     public function submitAnswer(int $userId, int $questionId, mixed $answer): array

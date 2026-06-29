@@ -1,0 +1,51 @@
+@startuml view_class_sequence
+title Sequence Diagram - Teacher View Class Flow
+
+actor Teacher
+boundary "ClassPage" as UI <<boundary>>
+control ClassController
+control ClassService
+control ClassRepository
+entity "Class" as class
+database DB
+
+' ===== Xem danh sách lớp =====
+Teacher -> UI: Xem danh sách lớp
+UI -> ClassController: Xem danh sách lớp
+
+ClassController -> ClassService: Lấy danh sách lớp
+
+ClassService -> ClassRepository: Query classes
+ClassRepository -> DB: SELECT classes
+DB --> ClassRepository: class list
+ClassRepository -> class: Khởi tạo đối tượng (Map)
+class --> ClassRepository: Đối tượng Class
+ClassRepository --> ClassService: return list
+ClassService --> ClassController: return list
+
+ClassController --> UI: danh sách lớp
+
+' ===== Xem chi tiết lớp =====
+Teacher -> UI: Xem chi tiết lớp
+UI -> ClassController: Xem chi tiết lớp
+
+ClassController -> ClassService: Lấy chi tiết lớp
+
+ClassService -> ClassRepository: Query class
+ClassRepository -> DB: SELECT class
+DB --> ClassRepository: class data
+ClassRepository -> class: Khởi tạo đối tượng (Map)
+class --> ClassRepository: Đối tượng Class
+
+ClassService -> ClassRepository: Query students
+ClassRepository -> DB: SELECT class_users
+DB --> ClassRepository: students data
+ClassRepository -> class: Khởi tạo đối tượng (Map)
+class --> ClassRepository: Đối tượng Class
+
+ClassRepository --> ClassService: class + students
+ClassService --> ClassController: class + students
+
+ClassController --> UI: class + students
+
+@enduml

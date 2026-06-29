@@ -1,0 +1,51 @@
+@startuml test_start
+title Sequence Diagram: Học sinh bắt đầu làm bài thi
+
+actor "Student" as student
+boundary "TestTakePage" as UI
+control "TestController" as controller
+control "TestService" as service
+entity "TestRepository" as repository
+entity "Test" as test
+database "Database" as db
+
+student -> UI: Click bắt đầu làm bài
+UI -> controller: POST /api/tests/{id}/start
+activate controller
+
+controller -> service: startTest($userId, $testId)
+activate service
+
+service -> service: canAccessTest($userId, $testId)
+activate service
+deactivate service
+
+alt Can access test is false
+    service --> controller: ['success' => false, 'error' => '...']
+    controller --> UI: 400 Bad Request\n{success: false, message: '...'}
+else Can access test is true
+    service -> repository: getActiveAttempt($userId, $testId)
+    activate repository
+    repository --> service: Active attempt / null
+    deactivate repository
+    
+    alt Active attempt exists
+        service --> controller: formatted active attempt details
+    else No active attempt
+        service -> repository: createAttempt($userId, $testId)
+        activate repository         repository -> test: Khởi tạo/Gán dữ liệu
+
+        repository -> db: INSERT INTO test_attempts
+        db --> repository: saved attempt
+        repository --> service: TestAttempt object
+        deactivate repository
+        
+        service --> controller: formatted new attempt details
+    end
+    
+    deactivate service
+    controller --> UI: 200 OK\n{success: true, attempt_id, duration, questions, ...}
+    deactivate controller
+end
+
+@enduml

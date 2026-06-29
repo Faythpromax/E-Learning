@@ -1,0 +1,157 @@
+@startuml authentication_class_diagram
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Class Diagram - Authentication (SOLID / Layered Architecture)
+
+' ==================== LAYER 1: PRESENTATION LAYER ====================
+package "Presentation Layer" {
+    class LoginPage <<boundary>> {
+        +email: String
+        +password: String
+        +role: String
+        +handleSubmit(): void
+    }
+
+    class RegisterPage <<boundary>> {
+        +name: String
+        +email: String
+        +phone: String
+        +password: String
+        +role: String
+        +handleSubmit(): void
+    }
+
+    class AuthController <<controller>> {
+        -authService: AuthServiceInterface
+        +__construct(authService)
+        +login(request): JsonResponse
+        +logout(request): JsonResponse
+        +me(request): JsonResponse
+        +register(request): JsonResponse
+    }
+}
+
+' ==================== LAYER 2: BUSINESS LOGIC LAYER ====================
+package "Business Logic Layer" {
+    interface AuthServiceInterface <<interface>> {
+        +login(credentials): array
+        +logout(): void
+        +getCurrentUser(): array
+        +register(data): array
+    }
+
+    class AuthService <<service>> implements AuthServiceInterface {
+        -userRepository: UserRepositoryInterface
+        -auth: Auth
+        -hash: Hash
+        +__construct(userRepository)
+        +login(credentials): array
+        +logout(): void
+        +getCurrentUser(): array
+        +register(data): array
+        -formatUser(user): array
+    }
+}
+
+' ==================== LAYER 3: REQUEST / VALIDATION LAYER ====================
+package "Request Layer" {
+    class LoginRequest <<form request>> {
+        +rules(): array
+        +messages(): array
+        +authorize(): bool
+    }
+
+    class RegisterRequest <<form request>> {
+        +rules(): array
+        +messages(): array
+        +authorize(): bool
+    }
+}
+
+' ==================== LAYER 4: DATA ACCESS LAYER ====================
+package "Data Access Layer" {
+    interface UserRepositoryInterface <<interface>> {
+        +findByEmail(email): ?User
+        +findById(id): ?User
+        +create(data): User
+        +update(id, data): bool
+        +delete(id): bool
+        +findByRole(role): Collection
+    }
+
+    class UserRepository <<repository>> implements UserRepositoryInterface {
+        -model: User
+        +__construct(model)
+        +findByEmail(email): ?User
+        +findById(id): ?User
+        +create(data): User
+        +update(id, data): bool
+        +delete(id): bool
+        +findByRole(role): Collection
+    }
+}
+
+' ==================== LAYER 5: DOMAIN ENTITIES ====================
+package "Domain Entities" {
+    class User <<entity>> {
+        -id: int
+        -name: string
+        -email: string
+        -phone: string
+        -password: string
+        -role: string
+        -school: string
+        -avatar: string
+        -created_at: timestamp
+        -updated_at: timestamp
+        +feedbacks(): HasMany
+        +announcements(): HasMany
+        +isAdmin(): bool
+        +isTeacher(): bool
+        +isStudent(): bool
+        +setPassword(password): void
+        +verifyPassword(password): bool
+    }
+}
+
+' ==================== RELATIONSHIPS & DEPENDENCIES ====================
+
+' UI Layer Relationships
+LoginPage --> AuthController : calls
+RegisterPage --> AuthController : calls
+
+' Controller Layer Relationships
+AuthController --> AuthServiceInterface : depends on (DIP)
+AuthController ..> LoginRequest : uses
+AuthController ..> RegisterRequest : uses
+
+' Service Layer Relationships
+AuthService --> UserRepositoryInterface : depends on (DIP)
+AuthService ..> User : creates/returns
+
+' Repository Layer Relationships
+UserRepository --> User : persists/queries
+
+' Dependency Inversion Principle (DIP)
+' High-level modules should not depend on low-level modules
+' Both should depend on abstractions
+
+note top of AuthServiceInterface
+  <b>SOLID Principles Applied:</b>
+  1. Single Responsibility (SRP)
+  2. Open/Closed (OCP)
+  3. Liskov Substitution (LSP)
+  4. Interface Segregation (ISP)
+  5. Dependency Inversion (DIP)
+end note
+
+note right of UserRepositoryInterface
+  <b>Repository Pattern Benefits:</b>
+  - Decouples business logic from data access
+  - Easy to swap implementations
+  - Testable with mocks
+  - Centralizes query logic
+end note
+
+@enduml

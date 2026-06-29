@@ -1,0 +1,21 @@
+@startuml Teacher_Search_Question
+title Activity Diagram - Giảng viên tìm kiếm câu hỏi
+
+|Giảng viên|
+start
+
+repeat
+    :Nhập từ khóa / bộ lọc;
+    :Gửi yêu cầu tìm kiếm;
+
+|Hệ thống|
+    :Tìm kiếm câu hỏi;
+    :Trả về kết quả;
+
+|Giảng viên|
+    :Xem danh sách câu hỏi;
+
+repeat while (Tiếp tục tìm kiếm?)
+
+stop
+@enduml

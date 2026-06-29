@@ -42,7 +42,7 @@ Write-Host "[1/2] Starting Backend (Laravel)..." -ForegroundColor Yellow
 
 # Kiểm tra xem port 8000 có đang được sử dụng không
 $backendPort = 8000
-$backendInUse = Get-NetTCPConnection -LocalPort $backendPort -ErrorAction SilentlyContinue
+$backendInUse = Get-NetTCPConnection -LocalPort $backendPort -State Listen -ErrorAction SilentlyContinue
 
 if ($backendInUse) {
     Write-Host "  Port $backendPort is already in use. Backend may already be running." -ForegroundColor Yellow
@@ -66,11 +66,21 @@ Write-Host "[2/2] Starting Frontend (React)..." -ForegroundColor Yellow
 
 # Kiểm tra xem port 5173 có đang được sử dụng không
 $frontendPort = 5173
-$frontendInUse = Get-NetTCPConnection -LocalPort $frontendPort -ErrorAction SilentlyContinue
+$frontendInUse = Get-NetTCPConnection -LocalPort $frontendPort -State Listen -ErrorAction SilentlyContinue
 
 if ($frontendInUse) {
     Write-Host "  Port $frontendPort is already in use. Frontend may already be running." -ForegroundColor Yellow
 } else {
+    # Dọn dẹp cache của Vite nếu tồn tại để tránh lỗi cache dependencies cũ
+    try {
+        if (Test-Path "$FRONTEND_DIR\node_modules\.vite") {
+            Write-Host "  Clearing Vite cache..." -ForegroundColor Yellow
+            Remove-Item -Path "$FRONTEND_DIR\node_modules\.vite" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    } catch {
+        Write-Host "  Warning: Could not clear Vite cache automatically (files might be locked). Proceeding..." -ForegroundColor Yellow
+    }
+
     # Mở cmd mới để chạy Vite
     $frontendJob = Start-Process -FilePath "cmd.exe" `
         -ArgumentList "/c cd /d $FRONTEND_DIR && npm run dev" `

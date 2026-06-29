@@ -12,6 +12,8 @@ class TestAnswer extends Model
 
     protected $table = 'test_answers';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'attempt_id',
         'question_id',

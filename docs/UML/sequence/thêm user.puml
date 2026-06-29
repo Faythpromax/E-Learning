@@ -1,0 +1,86 @@
+@startuml add_user
+title Sequence Diagram - Admin Manage User
+
+actor "Admin" as admin
+boundary "AdminUserManagePage" as UI
+control "AdminUserController" as controller
+control "UserService" as service
+control "UserRepositoryInterface" as repository
+entity "User" as user
+database "Database" as db
+
+admin -> UI: 1: Mở trang quản lý người dùng
+UI -> controller: 1.1: GET /admin/users/create
+activate controller
+controller --> UI: 1.2: Hiển thị form tạo người dùng
+deactivate controller
+
+admin -> UI: 2: Điền thông tin user và nhấn "Lưu"
+UI -> controller: 2.1: POST /api/admin/users\n{name, email, phone, password, role, ...}
+activate controller
+
+controller -> controller++: 2.1.1: validate(CreateUserRequest)
+note over controller
+  Kiểm tra:
+  - name: bắt buộc, max 255
+  - email: bắt buộc, email format
+  - phone: optional
+  - password: bắt buộc, min 8
+  - role: bắt buộc, in [admin, teacher, student]
+end note
+controller --> controller--: Kết quả validate
+
+alt Dữ liệu nhập vào không hợp lệ
+    controller --> UI: 2.1.2: 422 Validation Errors
+    UI --> admin: Hiển thị lỗi nhập liệu
+else Dữ liệu hợp lệ
+    controller -> service: 2.1.3: createUser(array $data)
+    activate service
+    
+    ' Kiểm tra email đã tồn tại chưa
+    service -> repository: 2.1.3.1: findByEmail(string $email)
+    activate repository
+    
+    repository -> db: 2.1.3.1.1: SELECT * FROM users WHERE email = ?
+    db --> repository: User data / null
+    
+    alt Email đã tồn tại
+        repository --> service: User entity
+        deactivate repository
+        service --> controller: Duplicate email
+        controller --> UI: 2.1.3.2: 409 Conflict\n{message: 'Email đã được sử dụng'}
+        UI --> admin: Hiển thị thông báo email trùng
+    else Email chưa tồn tại
+        repository --> service: null
+        deactivate repository
+        
+        ' Hash password
+        service -> service++: 2.1.3.3: Hash::make($data['password'])
+        service --> service--: Password hashed
+        
+        ' Tạo user mới
+        service -> repository: 2.1.3.4: create(array $data)
+        activate repository
+        
+        repository -> user: 2.1.3.4.1: Khởi tạo User entity
+        activate user
+        user --> repository: User object
+        deactivate user
+        
+        repository -> db: 2.1.3.4.2: INSERT INTO users\n(name, email, phone, password, role, created_at, updated_at)
+        db --> repository: 2.1.3.4.3: User ID & Timestamps
+        
+        repository --> service: 2.1.3.4.4: User entity (with ID)
+        deactivate repository
+        
+        service --> controller: 2.1.3.5: User entity
+        deactivate service
+        
+        controller --> UI: 2.1.4: 201 Created\n{message: 'Tạo người dùng thành công', data: user}
+        deactivate controller
+        
+        UI --> admin: 2.1.5: Hiển thị thông báo thành công
+    end
+end
+
+@enduml

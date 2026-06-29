@@ -1,0 +1,24 @@
+@startuml remove_student_from_class
+title Sequence Diagram - Teacher Remove Student from Class
+
+actor Teacher
+boundary "ManageClassPage" as UI <<boundary>>
+control ClassController <<control>>
+control ClassService <<control>>
+control ClassRepository <<control>>
+entity "Class" as class
+database DB
+
+Teacher -> UI: removeStudent()
+UI -> ClassController: removeStudent()
+ClassController -> ClassService: removeStudentFromClass()
+ClassService -> ClassRepository: removeUser()
+ClassRepository -> class: Khởi tạo/Gán dữ liệu
+
+ClassRepository -> DB: DELETE class_user
+DB --> ClassRepository: OK
+ClassRepository --> ClassService: success
+ClassService --> ClassController: success
+ClassController --> UI: return success
+
+@enduml

@@ -1,0 +1,154 @@
+@startuml ERD_Elearning
+hide methods
+hide stereotypes
+
+entity users {
+    * id : bigint <<PK>>
+    --
+    name : varchar
+    email : varchar
+    password : varchar
+    role : enum
+}
+
+entity subjects {
+    * id : bigint <<PK>>
+    --
+    name : varchar
+    class_level : varchar
+}
+
+entity questions {
+    * id : bigint <<PK>>
+    --
+    subject_id : bigint <<FK>>
+    created_by : bigint <<FK>>
+    type : varchar
+    content : text
+    data : json
+    explanation : text
+}
+
+entity question_progress {
+    * id : bigint <<PK>>
+    --
+    user_id : bigint <<FK>>
+    question_id : bigint <<FK>>
+    is_correct : boolean
+    attempt_count : int
+}
+
+entity tests {
+    * id : bigint <<PK>>
+    --
+    subject_id : bigint <<FK>>
+    created_by : bigint <<FK>>
+    title : varchar
+    test_code : varchar
+    duration : int
+    max_attempts : int
+    is_active : boolean
+}
+
+entity test_questions {
+    * id : bigint <<PK>>
+    --
+    test_id : bigint <<FK>>
+    question_id : bigint <<FK>>
+    order_index : int
+    score : decimal
+}
+
+entity test_attempts {
+    * id : bigint <<PK>>
+    --
+    user_id : bigint <<FK>>
+    test_id : bigint <<FK>>
+    attempt_no : int
+    score : decimal
+    status : varchar
+}
+
+entity test_answers {
+    * id : bigint <<PK>>
+    --
+    attempt_id : bigint <<FK>>
+    question_id : bigint <<FK>>
+    answer : json
+    is_correct : boolean
+}
+
+entity classes {
+    * id : bigint <<PK>>
+    --
+    created_by : bigint <<FK>>
+    name : varchar
+}
+
+entity class_users {
+    * id : bigint <<PK>>
+    --
+    class_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    role : varchar
+}
+
+entity class_materials {
+    * id : bigint <<PK>>
+    --
+    class_id : bigint <<FK>>
+    title : varchar
+    file_url : varchar
+}
+
+entity class_tests {
+    * id : bigint <<PK>>
+    --
+    class_id : bigint <<FK>>
+    test_id : bigint <<FK>>
+}
+
+entity notifications {
+    * id : bigint <<PK>>
+    --
+    user_id : bigint <<FK>>
+    type : varchar
+    message : text
+    read_at : datetime
+}
+
+'====================
+' RELATIONSHIPS
+'====================
+
+users ||--o{ questions : creates
+subjects ||--o{ questions : contains
+
+users ||--o{ question_progress
+questions ||--o{ question_progress
+
+users ||--o{ tests : creates
+subjects ||--o{ tests
+
+tests ||--o{ test_questions
+questions ||--o{ test_questions
+
+users ||--o{ test_attempts
+tests ||--o{ test_attempts
+
+test_attempts ||--o{ test_answers
+questions ||--o{ test_answers
+
+users ||--o{ classes : creates
+
+classes ||--o{ class_users
+users ||--o{ class_users
+
+classes ||--o{ class_materials
+
+classes ||--o{ class_tests
+tests ||--o{ class_tests
+
+users ||--o{ notifications
+
+@enduml

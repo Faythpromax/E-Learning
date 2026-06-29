@@ -1,0 +1,56 @@
+@startuml student_practice
+title Sequence Diagram: Học sinh luyện tập tự do
+
+actor "Student" as student
+boundary "PracticePage" as UI
+control "PracticeController" as controller
+control "PracticeService" as service
+entity "QuestionRepository" as repository
+control "ScoringStrategyFactory" as scoringFactory
+control "ScoringStrategy" as strategy
+entity "QuestionProgress" as progress
+database "Database" as db
+
+student -> UI: Lựa chọn câu hỏi và trả lời
+UI -> controller: POST /api/practice/check\n{question_id, answer}
+activate controller
+
+controller -> controller: validate request
+controller -> service: submitAnswer($userId, $questionId, $answer)
+activate service
+
+service -> repository: getById($questionId)
+activate repository
+repository --> service: Question object
+deactivate repository
+
+service -> scoringFactory: isCorrect($type, $questionArray, $answer)
+activate scoringFactory
+scoringFactory --> service: is_correct
+deactivate scoringFactory
+
+service -> scoringFactory: calculateScore($type, $questionArray, $answer)
+activate scoringFactory
+scoringFactory --> service: score
+deactivate scoringFactory
+
+service -> service: updateProgress($userId, $questionId, $isCorrect, $answer)
+activate service
+
+service -> db: SELECT FROM question_progress
+db --> service: progress record / null
+
+alt progress record exists
+    service -> db: UPDATE question_progress
+else progress record does not exist
+    service -> db: INSERT INTO question_progress
+end
+deactivate service
+
+service --> controller: check result details
+deactivate service
+
+controller --> UI: 200 OK\n{is_correct, score, correct_answer, explanation}
+deactivate controller
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml Student_Take_Test
+title Activity Diagram - Học sinh làm bài kiểm tra
+
+|Học sinh|
+start
+:Nhập mã bài test;
+
+|Hệ thống|
+:Kiểm tra mã bài test;
+
+if (Mã hợp lệ?) then (Không)
+    :Thông báo lỗi;
+    stop
+else (Có)
+    :Kiểm tra số lần làm bài;
+endif
+
+if (Được phép làm bài?) then (Không)
+    :Thông báo đã hết lượt làm;
+    stop
+else (Có)
+    :Tạo Test Attempt;
+    :Hiển thị thông tin bài thi;
+endif
+
+|Học sinh|
+:Bắt đầu làm bài;
+
+repeat
+    :Xem câu hỏi;
+    :Nhập câu trả lời;
+
+    |Hệ thống|
+    :Lưu câu trả lời;
+
+    |Học sinh|
+repeat while (Còn câu hỏi?)
+
+:Nhấn Nộp bài;
+
+|Hệ thống|
+:Chấm điểm;
+:Lưu kết quả;
+:Cập nhật điểm số;
+
+:Hiển thị kết quả bài thi;
+
+|Học sinh|
+:Xem điểm và kết quả;
+
+stop
+@enduml

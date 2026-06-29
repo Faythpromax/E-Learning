@@ -1,0 +1,57 @@
+@startuml view_user_sequence
+title Sequence Diagram - View User Flow
+
+actor "Admin" as admin
+boundary "UserPage" as UI
+control "UserController" as controller
+control "UserService" as service
+entity "UserRepository" as repository
+database "Database" as db
+
+' =========================
+' CASE 1: Xem danh sách User
+' =========================
+== Xem danh sách User ==
+
+admin -> UI: Mở trang User
+UI -> controller: GET /api/admin/users
+
+controller -> service: getUsers()
+service -> repository: getAll()
+
+repository -> db: SELECT users
+db --> repository: User list
+
+repository --> service: User list
+service --> controller: User list
+
+controller --> UI: 200 OK
+UI --> admin: Hiển thị danh sách User
+
+' =========================
+' CASE 2: Xem chi tiết User
+' =========================
+== Xem chi tiết User ==
+
+admin -> UI: Chọn User
+UI -> controller: GET /api/admin/users/{id}
+
+controller -> service: getUserById(id)
+service -> repository: findById(id)
+
+repository -> db: SELECT user
+db --> repository: User data
+
+alt User không tồn tại
+    repository --> service: null
+    service --> controller: Not Found
+    controller --> UI: 404 Not Found
+    UI --> admin: Thông báo lỗi
+else User tồn tại
+    repository --> service: User
+    service --> controller: User
+    controller --> UI: 200 OK
+    UI --> admin: Hiển thị thông tin User
+end
+
+@enduml

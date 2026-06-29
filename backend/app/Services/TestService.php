@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TestAttempt;
 use App\Models\TestAnswer;
 use App\Models\User;
+use App\Models\QuestionProgress;
 use App\Repositories\TestRepository;
 use App\Strategies\ScoringFactory;
 use Illuminate\Support\Collection;
@@ -13,7 +14,7 @@ class TestService
 {
     public function __construct(
         private readonly TestRepository $testRepository,
-        private readonly ScoringFactory $scoringFactory
+        private readonly \App\Strategies\Scoring\ScoringStrategyFactory $scoringFactory
     ) {
     }
 
@@ -61,7 +62,12 @@ class TestService
             ? 'system'
             : 'class';
 
-        return $this->testRepository->createTest($data);
+        $test = $this->testRepository->createTest($data);
+
+        // Dispatch Event (Observer Pattern)
+        event(new \App\Events\TestCreated($test));
+
+        return $test;
     }
 
     public function updateTest(int $testId, array $data): mixed
@@ -176,6 +182,9 @@ class TestService
 
             // Save answer
             $this->testRepository->createAnswer($attemptId, $questionId, $answer, $isCorrect);
+            
+            // Update question progress (learning results)
+            $this->updateProgress($attempt->user_id, $questionId, $isCorrect, $answer);
 
             // Calculate scores
             $questionMaxScore = $question->pivot->score ?? 1;
@@ -343,5 +352,30 @@ class TestService
             'questions' => $questions,
             'existing_answers' => $existingAnswers,
         ];
+    }
+
+    private function updateProgress(int $userId, int $questionId, bool $isCorrect, mixed $answer): void
+    {
+        $progress = QuestionProgress::where('user_id', $userId)
+            ->where('question_id', $questionId)
+            ->first();
+
+        if ($progress) {
+            $progress->update([
+                'is_correct' => $isCorrect,
+                'last_answer' => $answer,
+                'attempt_count' => $progress->attempt_count + 1,
+                'last_attempt_at' => now(),
+            ]);
+        } else {
+            QuestionProgress::create([
+                'user_id' => $userId,
+                'question_id' => $questionId,
+                'is_correct' => $isCorrect,
+                'last_answer' => $answer,
+                'attempt_count' => 1,
+                'last_attempt_at' => now(),
+            ]);
+        }
     }
 }

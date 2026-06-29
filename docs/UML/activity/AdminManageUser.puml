@@ -1,0 +1,49 @@
+@startuml Admin_Manage_User
+
+|Admin|
+start
+:Mở trang quản lý User;
+:Xem danh sách User;
+:Chọn chức năng;
+
+if (Thao tác?) then (Thêm/Sửa)
+
+    :Nhập thông tin User;
+
+    |System|
+    :Kiểm tra dữ liệu;
+
+    if (Hợp lệ?) then (Có)
+        :Lưu dữ liệu;
+        :Thông báo thành công;
+    else (Không)
+        :Hiển thị lỗi;
+    endif
+
+elseif (Xóa)
+
+    |System|
+    :Yêu cầu xác nhận;
+
+    |Admin|
+    :Xác nhận xóa;
+
+    |System|
+    :Xóa User;
+    :Thông báo thành công;
+
+else (Gán quyền)
+
+    |Admin|
+    :Chọn quyền mới;
+
+    |System|
+    :Cập nhật quyền;
+    :Thông báo thành công;
+
+endif
+
+|Admin|
+stop
+
+@enduml

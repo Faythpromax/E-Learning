@@ -77,6 +77,9 @@ class ClassService
 
         $this->classRepository->addStudent($class->id, $userId);
 
+        $student = User::findOrFail($userId);
+        event(new \App\Events\StudentJoinedClass($student, $class));
+
         return [
             'success' => true,
             'message' => 'Tham gia lop thanh cong.',

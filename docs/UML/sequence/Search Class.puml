@@ -1,0 +1,24 @@
+@startuml search_class
+title Sequence Diagram - Teacher Search Class
+
+actor Teacher
+boundary "SearchClassPage" as UI <<boundary>>
+control ClassController
+control ClassService
+control ClassRepository
+entity "Class" as class
+database DB
+
+Teacher -> UI: search()
+UI -> ClassController: search()
+ClassController -> ClassService: searchClasses()
+ClassService -> ClassRepository: search()
+ClassRepository -> DB: SELECT classes
+DB --> ClassRepository: results
+ClassRepository -> class: Khởi tạo đối tượng (Map)
+class --> ClassRepository: Đối tượng Class
+ClassRepository --> ClassService: results
+ClassService --> ClassController: results
+ClassController --> UI: return result
+
+@enduml

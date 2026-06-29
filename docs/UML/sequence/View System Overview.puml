@@ -1,0 +1,34 @@
+@startuml view_system_overview
+title Sequence Diagram - Admin View System Overview
+
+actor Admin
+boundary "DashboardPage" as UI
+control DashboardController
+control DashboardService
+entity "User" as User
+entity "TestRepository" as TestRepository
+entity "ClassRepository" as ClassRepository
+database "Database" as DB
+
+Admin -> UI: getOverview()
+UI -> DashboardController: getOverview()
+DashboardController -> DashboardService: getOverview()
+DashboardService -> User: countUsers()
+User -> DB: SELECT COUNT users
+DB --> User: count
+User --> DashboardService: count
+
+DashboardService -> TestRepository: countTests()
+TestRepository -> DB: SELECT COUNT tests
+DB --> TestRepository: count
+TestRepository --> DashboardService: count
+
+DashboardService -> ClassRepository: countClasses()
+ClassRepository -> DB: SELECT COUNT classes
+DB --> ClassRepository: count
+ClassRepository --> DashboardService: count
+
+DashboardService --> DashboardController: statistics
+DashboardController --> UI: return statistics
+
+@enduml

@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiCheckCircle, FiXCircle, FiArrowLeft, FiClock, FiAward } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import { QuestionRenderer } from '../../../components/student/QuestionRenderer';
+import StudentLayout from '../../../components/student/StudentLayout';
 
 export function TestResultPage() {
   const { attemptId } = useParams();
@@ -56,33 +57,37 @@ export function TestResultPage() {
   };
 
   const getScoreMessage = (score) => {
-    if (score >= 90) return 'Xuat sac!';
-    if (score >= 80) return 'Rat tot!';
-    if (score >= 70) return 'Kha!';
-    if (score >= 60) return 'Trung binh';
-    if (score >= 50) return 'Can co gang them';
-    return 'Chua dat';
+    if (score >= 90) return 'Xuất sắc!';
+    if (score >= 80) return 'Rất tốt!';
+    if (score >= 70) return 'Khá!';
+    if (score >= 60) return 'Trung bình';
+    if (score >= 50) return 'Cần cố gắng thêm';
+    return 'Chưa đạt';
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Dang tai ket qua...</div>
-      </div>
+      <StudentLayout pageTitle="Kết quả bài kiểm tra">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-gray-500">Đang tải kết quả...</div>
+        </div>
+      </StudentLayout>
     );
   }
 
   if (!result) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-500 mb-4">Khong tim thay ket qua.</p>
-        <button
-          onClick={() => navigate('/student/tests')}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg"
-        >
-          Quay lai
-        </button>
-      </div>
+      <StudentLayout pageTitle="Kết quả bài kiểm tra">
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <p className="text-gray-500 mb-4">Không tìm thấy kết quả.</p>
+          <button
+            onClick={() => navigate('/student/tests')}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg"
+          >
+            Quay lại
+          </button>
+        </div>
+      </StudentLayout>
     );
   }
 
@@ -90,24 +95,7 @@ export function TestResultPage() {
   const totalCount = review?.questions?.length || result.total_questions || 0;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={() => navigate('/student/tests')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <FiArrowLeft className="text-xl text-gray-600" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">Ket qua bai kiem tra</h1>
-            <p className="text-sm text-gray-500">{result.test_title}</p>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+    <StudentLayout pageTitle="Kết quả bài kiểm tra">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Score Card */}
         <div className={`${getScoreBgColor(result.score)} rounded-2xl p-8 mb-6 text-center`}>
@@ -121,19 +109,19 @@ export function TestResultPage() {
             <div className="flex items-center gap-2">
               <FiCheckCircle className="text-green-600" />
               <span className="text-gray-700">
-                <strong>{correctCount}</strong> cau dung
+                <strong>{correctCount}</strong> câu đúng
               </span>
             </div>
             <div className="flex items-center gap-2">
               <FiXCircle className="text-red-600" />
               <span className="text-gray-700">
-                <strong>{totalCount - correctCount}</strong> cau sai
+                <strong>{totalCount - correctCount}</strong> câu sai
               </span>
             </div>
             <div className="flex items-center gap-2">
               <FiClock className="text-gray-600" />
               <span className="text-gray-700">
-                Lan thi thu <strong>{result.attempt_no}</strong>
+                Lần thi thứ <strong>{result.attempt_no}</strong>
               </span>
             </div>
           </div>
@@ -141,24 +129,24 @@ export function TestResultPage() {
 
         {/* Test Info */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="font-bold text-gray-800 mb-4">Thong tin bai kiem tra</h2>
+          <h2 className="font-bold text-gray-800 mb-4">Thông tin bài kiểm tra</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-gray-500">Mon hoc:</span>
-              <span className="ml-2 font-medium text-gray-800">{result.subject || 'Khong ro'}</span>
+              <span className="text-gray-500">Môn học:</span>
+              <span className="ml-2 font-medium text-gray-800">{result.subject || 'Không rõ'}</span>
             </div>
             <div>
-              <span className="text-gray-500">Tong so cau:</span>
+              <span className="text-gray-500">Tổng số câu:</span>
               <span className="ml-2 font-medium text-gray-800">{totalCount}</span>
             </div>
             <div>
-              <span className="text-gray-500">Bat dau:</span>
+              <span className="text-gray-500">Bắt đầu:</span>
               <span className="ml-2 font-medium text-gray-800">
                 {new Date(result.started_at).toLocaleString('vi-VN')}
               </span>
             </div>
             <div>
-              <span className="text-gray-500">Nop bai:</span>
+              <span className="text-gray-500">Nộp bài:</span>
               <span className="ml-2 font-medium text-gray-800">
                 {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : '-'}
               </span>
@@ -169,12 +157,12 @@ export function TestResultPage() {
         {/* Review Section */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b flex items-center justify-between">
-            <h2 className="font-bold text-gray-800">Xem lai dap an</h2>
+            <h2 className="font-bold text-gray-800">Xem lại đáp án</h2>
             <button
               onClick={() => setShowReview(!showReview)}
               className="px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors"
             >
-              {showReview ? 'An di' : 'Hien thi'}
+              {showReview ? 'Ẩn đi' : 'Hiển thị'}
             </button>
           </div>
 
@@ -193,12 +181,12 @@ export function TestResultPage() {
                       </div>
                     )}
                     <span className="font-semibold text-gray-800">
-                      Cau {index + 1}
+                      Câu {index + 1}
                     </span>
                     <span className={`text-sm ${
                       question.is_correct ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {question.is_correct ? 'Dung' : 'Sai'}
+                      {question.is_correct ? 'Đúng' : 'Sai'}
                     </span>
                   </div>
 
@@ -225,17 +213,17 @@ export function TestResultPage() {
             onClick={() => navigate('/student/tests')}
             className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
           >
-            Quay lai danh sach
+            Quay lại danh sách
           </button>
           <button
             onClick={() => navigate('/student/practice')}
             className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
           >
-            Luyen tap them
+            Luyện tập thêm
           </button>
         </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 }
 

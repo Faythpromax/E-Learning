@@ -1,0 +1,115 @@
+@startuml assign_role
+title Sequence Diagram - Admin Assign Role
+
+actor Admin
+boundary "AdminRolePage" as UI
+control "UserController" as controller
+control "UserService" as service
+control "UserRepositoryInterface" as repository
+entity "User" as user
+database "Database" as db
+
+Admin -> UI: 1: Chọn chức năng phân quyền
+UI -> controller: 1.1: GET /api/admin/users/{userId}/roles
+activate controller
+
+controller -> service: 1.1.1: getCurrentRole(int $userId)
+activate service
+
+service -> repository: 1.1.1.1: findById(int $userId)
+activate repository
+
+repository -> db: 1.1.1.1.1: SELECT * FROM users WHERE id = ?
+db --> repository: User data
+repository -> user: 1.1.1.1.2: Khởi tạo User entity
+activate user
+user --> repository: User object
+deactivate user
+repository --> service: 1.1.1.1.3: User entity
+deactivate repository
+
+service --> controller: 1.1.2: User data (current role)
+deactivate service
+
+controller --> UI: 1.1.3: Hiển thị giao diện phân quyền\n(User info & available roles)
+deactivate controller
+
+== Thay đổi role ==
+
+Admin -> UI: 2: Chọn role mới và nhấn "Cập nhật"
+UI -> controller: 2.1: PUT /api/admin/users/{userId}/roles\n{role: "teacher"}
+activate controller
+
+controller -> controller++: 2.1.1: validate(AssignRoleRequest)
+controller --> controller--: Kết quả validate
+
+alt Dữ liệu nhập vào không hợp lệ
+    controller --> UI: 2.1.2: Thông báo lỗi dữ liệu không hợp lệ (422)
+else Dữ liệu hợp lệ
+    controller -> service: 2.1.3: assignRole(int $userId, string $newRole)
+    activate service
+
+    ' Kiểm tra user tồn tại
+    service -> repository: 2.1.3.1: findById(int $userId)
+    activate repository
+    
+    repository -> db: 2.1.3.1.1: SELECT * FROM users WHERE id = ?
+    db --> repository: User data
+    
+    alt User không tồn tại
+        repository --> service: null
+        deactivate repository
+        service --> controller: User not found
+        controller --> UI: 2.1.3.2: Thông báo người dùng không tồn tại (404)
+    else User tồn tại
+        repository -> user: 2.1.3.1.2: Khởi tạo User entity
+        activate user
+        user --> repository: User object
+        deactivate user
+        repository --> service: 2.1.3.1.3: User entity
+        deactivate repository
+
+        ' Kiểm tra role hợp lệ
+        service -> service++: 2.1.3.2: validateRole(string $newRole)
+        service --> service--: Kết quả
+
+        alt Role không hợp lệ
+            service --> controller: Invalid role
+            controller --> UI: 2.1.3.3: Thông báo role không hợp lệ (400)
+        else Role hợp lệ
+            ' Kiểm tra user hiện tại có phải admin cuối cùng không
+            service -> repository: 2.1.3.3: countAdmins()
+            activate repository
+            repository -> db: 2.1.3.3.1: SELECT COUNT(*) FROM users WHERE role = 'admin'
+            db --> repository: Count
+            repository --> service: Admin count
+            deactivate repository
+            
+            alt Chỉ còn 1 admin và đang cố gắng đổi role admin này
+                service --> controller: Cannot remove last admin
+                controller --> UI: 2.1.3.4: Thông báo không thể xóa admin cuối cùng (400)
+            else Vẫn còn ít nhất 2 admin
+                ' Cập nhật role mới
+                service -> repository: 2.1.3.4: updateRole(User $user, string $newRole)
+                activate repository
+                
+                repository -> user: 2.1.3.4.1: setRole(string $newRole)
+                user --> repository: Updated entity
+                
+                repository -> db: 2.1.3.4.2: UPDATE users SET role = ? WHERE id = ?
+                db --> repository: Update success
+                
+                repository --> service: 2.1.3.4.3: Updated User entity
+                deactivate repository
+
+                service --> controller: 2.1.3.5: Success (Updated user)
+            end
+        end
+        deactivate service
+    end
+
+    controller --> UI: 2.1.4: Return kết quả
+end
+deactivate controller
+
+@enduml

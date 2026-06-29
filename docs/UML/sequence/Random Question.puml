@@ -1,0 +1,37 @@
+@startuml random_question_sequence
+title Sequence Diagram - Random Question in Test
+
+actor Student
+participant TestController
+participant TestService
+participant QuestionRepository
+participant ScoringStrategy
+entity "Question" as question
+database DB
+
+Student -> TestController: POST /api/tests/{id}/submit
+
+TestController -> TestService: submitTest(user_id, test_id, answers)
+
+TestService -> QuestionRepository: getQuestions(test_id)
+QuestionRepository -> DB: SELECT questions
+DB --> QuestionRepository: questions
+QuestionRepository -> question: Khởi tạo đối tượng (Map)
+question --> QuestionRepository: Đối tượng Question
+QuestionRepository --> TestService: questions
+
+TestService -> TestService: randomizeQuestions(questions)
+
+loop for each question
+    TestService -> ScoringStrategy: checkAnswer(randomized_question, answer)
+    ScoringStrategy --> TestService: score
+    TestService -> QuestionRepository: saveAnswer(attempt_id, question_id, answer, score)
+    QuestionRepository -> question: Khởi tạo/Gán dữ liệu
+
+    QuestionRepository -> DB: INSERT test_answers
+end
+
+TestService --> TestController: result
+TestController --> Student: {score, details}
+
+@enduml

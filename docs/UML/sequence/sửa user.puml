@@ -1,0 +1,102 @@
+@startuml update_user_sequence
+title Sequence Diagram - Update User Flow
+
+actor "Admin" as admin
+boundary "UpdateUserPage" as UI
+control "UserController" as controller
+control "UserService" as service
+control "UserRepositoryInterface" as repository
+entity "User" as user
+database "Database" as db
+
+admin -> UI: 1: Sửa thông tin User
+UI -> controller: 1.1: PUT /api/admin/users/{id}\n{name, email, phone, role, password, ...}
+activate controller
+
+controller -> controller++: 1.1.1: validateRequest(array $data)
+note over controller
+  Kiểm tra:
+  - name: bắt buộc, max 255
+  - email: bắt buộc, email format
+  - phone: optional
+  - role: bắt buộc, in [admin, teacher, student]
+  - password: optional, min 8
+end note
+controller --> controller--: Kết quả validate
+
+alt Dữ liệu nhập vào không hợp lệ
+    controller --> UI: 1.1.2: 422 Validation Errors
+    UI --> admin: Hiển thị lỗi nhập liệu
+else Dữ liệu hợp lệ
+    controller -> service: 1.1.3: updateUser(int $id, array $data)
+    activate service
+    
+    ' Kiểm tra user tồn tại
+    service -> repository: 1.1.3.1: findById(int $id)
+    activate repository
+    
+    repository -> db: 1.1.3.1.1: SELECT * FROM users WHERE id = ?
+    db --> repository: User data
+    
+    alt User không tồn tại
+        repository --> service: null
+        deactivate repository
+        service --> controller: User not found
+        controller --> UI: 1.1.3.2: 404 Not Found\n{message: 'Người dùng không tồn tại'}
+        UI --> admin: Hiển thị thông báo lỗi
+    else User tồn tại
+        repository -> user: 1.1.3.1.2: Khởi tạo User entity
+        activate user
+        user --> repository: User object
+        deactivate user
+        repository --> service: 1.1.3.1.3: User entity
+        deactivate repository
+        
+        ' Kiểm tra email trùng lặp
+        service -> repository: 1.1.3.2: findByEmail(string $email)
+        activate repository
+        
+        repository -> db: 1.1.3.2.1: SELECT * FROM users WHERE email = ? AND id != ?
+        db --> repository: User data / null
+        
+        alt Email đã tồn tại (khác user hiện tại)
+            repository --> service: User entity
+            deactivate repository
+            service --> controller: Duplicate email
+            controller --> UI: 1.1.3.3: 409 Conflict\n{message: 'Email đã được sử dụng'}
+            UI --> admin: Hiển thị thông báo email trùng
+        else Email chưa tồn tại
+            repository --> service: null
+            deactivate repository
+            
+            ' Xử lý password nếu có thay đổi
+            alt Có thay đổi password
+                service -> service++: 1.1.3.3: Hash::make($data['password'])
+                service --> service--: Password hashed
+            end
+            
+            ' Cập nhật user
+            service -> repository: 1.1.3.4: update(User $user, array $data)
+            activate repository
+            
+            repository -> user: 1.1.3.4.1: setAttributes(array $data)
+            user --> repository: Updated entity
+            
+            repository -> db: 1.1.3.4.2: UPDATE users SET\nname = ?, email = ?, phone = ?, role = ?, password = ?, updated_at = ?\nWHERE id = ?
+            db --> repository: Update success
+            
+            repository --> service: 1.1.3.4.3: Updated User entity
+            deactivate repository
+            
+            service --> controller: 1.1.3.4: Success (Updated user)
+            deactivate service
+            
+            controller --> UI: 1.1.4: 200 OK\n{message: 'Cập nhật thành công', data: user}
+            deactivate controller
+            
+            UI --> admin: 1.1.5: Hiển thị thông báo thành công
+        end
+    end
+end
+
+@enduml

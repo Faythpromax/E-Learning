@@ -1,0 +1,29 @@
+@startuml Teacher_Create_Test
+title Activity Diagram - Giảng viên tạo bài kiểm tra
+
+|Giảng viên|
+start
+
+:Nhập thông tin bài kiểm tra;
+:Chọn câu hỏi;
+:Sắp xếp thứ tự câu hỏi;
+:Thiết lập thời gian làm bài;
+:Thiết lập số lần làm bài;
+:Nhấn Lưu;
+
+|Hệ thống|
+:Kiểm tra dữ liệu;
+
+if (Hợp lệ?) then (Không)
+    :Thông báo lỗi;
+else (Có)
+    :Lưu bài kiểm tra;
+    :Liên kết câu hỏi với bài kiểm tra;
+    :Thông báo thành công;
+endif
+
+|Giảng viên|
+:Xem kết quả;
+
+stop
+@enduml

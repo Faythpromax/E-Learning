@@ -1,0 +1,134 @@
+@startuml notification_system_sequence
+title Notification System
+
+actor User
+actor Teacher
+actor Student
+
+boundary "NotificationPage" as UI
+control "NotificationController" as Controller
+control "NotificationService" as NotificationService
+control "TestService" as TestService
+control "ClassService" as ClassService
+control "EventService" as EventService
+entity "NotificationRepository" as Repository
+database "Database" as DB
+
+' =====================================================
+' CASE 1: XEM THÔNG BÁO
+' =====================================================
+== Xem danh sách thông báo ==
+
+User -> UI: Mở trang thông báo
+UI -> Controller: GET /api/notifications
+
+Controller -> NotificationService: getNotifications(userId)
+NotificationService -> Repository: getByUserId(userId)
+
+Repository -> DB: SELECT notifications
+DB --> Repository: Notifications
+
+Repository --> NotificationService: List Notifications
+NotificationService --> Controller: Notifications
+
+Controller --> UI: 200 OK
+UI --> User: Hiển thị danh sách
+
+' =====================================================
+' CASE 2: ĐÁNH DẤU ĐÃ ĐỌC
+' =====================================================
+== Đánh dấu đã đọc ==
+
+User -> UI: Chọn thông báo
+
+UI -> Controller: PUT /api/notifications/{id}/read
+
+Controller -> NotificationService: markAsRead(id)
+
+NotificationService -> Repository: updateReadStatus(id)
+
+Repository -> DB: UPDATE notifications
+DB --> Repository: Success
+
+Repository --> NotificationService: Success
+NotificationService --> Controller: Success
+
+Controller --> UI: 200 OK
+UI --> User: Cập nhật trạng thái
+
+' =====================================================
+' CASE 3.1: GIÁO VIÊN TẠO BÀI KIỂM TRA
+' =====================================================
+== Giáo viên tạo bài kiểm tra ==
+
+Teacher -> UI: Tạo bài kiểm tra
+UI -> Controller: POST /api/tests
+
+Controller -> TestService: createTest()
+
+TestService -> DB: INSERT test
+DB --> TestService: Test Created
+
+TestService -> EventService: dispatch(TestCreated)
+
+EventService -> NotificationService: handleTestCreated()
+
+NotificationService -> Repository: createNotification()
+
+Repository -> DB: INSERT notifications
+DB --> Repository: Success
+
+Repository --> NotificationService: Success
+
+TestService --> Controller: Success
+Controller --> UI: 201 Created
+
+UI --> Teacher: Tạo bài thi thành công
+
+' =====================================================
+' CASE 3.2: HỌC SINH THAM GIA LỚP HỌC
+' =====================================================
+== Học sinh tham gia lớp học ==
+
+Student -> UI: Tham gia lớp học
+UI -> Controller: POST /api/classes/join
+
+Controller -> ClassService: joinClass()
+
+ClassService -> DB: INSERT class_student
+DB --> ClassService: Success
+
+ClassService -> EventService: dispatch(StudentJoinedClass)
+
+EventService -> NotificationService: handleStudentJoinedClass()
+
+NotificationService -> Repository: createNotification()
+
+Repository -> DB: INSERT notifications
+DB --> Repository: Success
+
+Repository --> NotificationService: Success
+
+ClassService --> Controller: Success
+Controller --> UI: 200 OK
+
+UI --> Student: Tham gia lớp thành công
+
+note right of EventService
+
+Observer Pattern
+
+- TestCreated Event
+- StudentJoinedClass Event
+
+Tách biệt nghiệp vụ chính
+và nghiệp vụ gửi thông báo
+
+Dễ mở rộng:
+- Email
+- Realtime
+- SMS
+
+end note
+
+@enduml

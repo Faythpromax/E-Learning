@@ -266,9 +266,10 @@ class TestController extends Controller
                 'data' => $review,
             ]);
         } catch (\Exception $e) {
+            \Log::error('FAILED GET REVIEW', ['exception' => $e]);
             return response()->json([
                 'success' => false,
-                'error' => 'Attempt not found.',
+                'error' => 'Attempt not found. Error: ' . $e->getMessage(),
             ], 404);
         }
     }

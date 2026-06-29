@@ -1,0 +1,119 @@
+@startuml test_flow_class_diagram
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Class Diagram - Test Flow Management (SOLID / Layered Architecture)
+
+' ==================== LAYER 1: PRESENTATION LAYER ====================
+package "Presentation Layer" {
+    class TestTakePage <<boundary>> {
+        +timer: int
+        +questionsList: Array
+        +renderTestUI(): void
+        +handleStartTest(): void
+        +handleSubmitTest(): void
+    }
+
+    class TestController <<controller>> {
+        -testService: TestService
+        +__construct()
+        +index(): JsonResponse
+        +available(): JsonResponse
+        +systemTests(): JsonResponse
+    }
+}
+
+' ==================== LAYER 2: BUSINESS LOGIC LAYER ====================
+package "Business Logic Layer" {
+    class TestService <<service>> {
+        -testRepository: TestRepositoryInterface
+        -scoringFactory: ScoringFactory
+        +__construct()
+        +getAllTests(): Collection
+        +getTestById(): Test
+        +getAvailableTests(): Collection
+        +getSystemTests(): Collection
+    }
+
+    ' --- FACTORY & STRATEGY PATTERNS ---
+    class ScoringFactory <<factory>> {
+        -strategies: array
+        +make(): ScoringStrategyInterface
+        +calculateScore(): float
+        +isCorrect(): bool
+        +getCorrectAnswer(): mixed
+    }
+
+    interface ScoringStrategyInterface <<strategy interface>> {
+        +calculateScore(): float
+        +isCorrect(): bool
+        +getCorrectAnswer(): mixed
+    }
+}
+
+' ==================== LAYER 3: DATA ACCESS LAYER ====================
+package "Data Access Layer" {
+    interface TestRepositoryInterface <<repository interface>> {
+        +getAll(): Collection
+        +getById(): Test
+        +getByCode(): Test
+        +getQuestions(): Collection
+    }
+
+    class TestRepository <<repository>> {
+        ' Implements TestRepositoryInterface
+    }
+}
+
+' ==================== LAYER 4: DOMAIN ENTITIES ====================
+package "Domain Entities" {
+    class TestAttempt <<entity>> {
+        -id: int
+        -user_id: int
+        -test_id: int
+        -attempt_no: int
+        -started_at: DateTime
+        -submitted_at: DateTime
+        -expired_at: DateTime
+        -status: string
+        -score: float
+        +user(): BelongsTo
+        +test(): BelongsTo
+        +answers(): HasMany
+        +isExpired(): bool
+        +isInProgress(): bool
+    }
+
+    class Test <<entity>> {
+        -id: int
+        -title: string
+        -subject_id: int
+        -created_by: int
+        -test_code: string
+        -access_type: string
+        -is_active: bool
+        -expires_at: DateTime
+        -max_attempts: int
+        -duration: int
+    }
+}
+
+' ==================== RELATIONSHIPS & DEPENDENCIES ====================
+
+' UI Layer to Controller
+TestTakePage --> TestController : calls
+
+' Controller Layer to Service
+TestController --> TestService : delegates
+
+' Service Layer depends on Repositories / Factory
+TestService --> TestRepositoryInterface : uses
+TestService --> ScoringFactory : uses
+
+TestRepository ..|> TestRepositoryInterface : implements
+
+' Repositories dependencies with Entities
+TestRepository ..> TestAttempt : manages
+TestRepository ..> Test : manages
+
+@enduml

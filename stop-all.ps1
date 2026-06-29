@@ -5,7 +5,7 @@
 
 $ErrorActionPreference = "Continue"
 
-$PROJECT_ROOT = "d:\Ai Tee\doan"
+$PROJECT_ROOT = $PSScriptRoot
 $PID_FILE = "$PROJECT_ROOT\.pids.txt"
 
 Write-Host "============================================" -ForegroundColor Cyan
@@ -23,13 +23,13 @@ if (Test-Path $PID_FILE) {
     
     $pids = Get-Content $PID_FILE
     
-    foreach ($pid in $pids) {
-        if ($pid -and $pid -ne "") {
+    foreach ($p in $pids) {
+        if ($p -and $p -ne "") {
             try {
-                $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                $process = Get-Process -Id $p -ErrorAction SilentlyContinue
                 if ($process) {
-                    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-                    Write-Host "  Killed process ID: $pid ($( $process.ProcessName ))" -ForegroundColor Green
+                    Stop-Process -Id $p -Force -ErrorAction SilentlyContinue
+                    Write-Host "  Killed process ID: $p ($( $process.ProcessName ))" -ForegroundColor Green
                     $killedCount++
                 }
             }
@@ -57,7 +57,7 @@ foreach ($proc in $cmdProcesses) {
         $commandLine = $proc.CommandLine
         if ($commandLine) {
             # Kiá»ƒm tra náº¿u cmd cháº¡y Laravel hoáº·c Vite
-            if ($commandLine -match "php artisan|composer|vite|npm run dev" -and $commandLine -match "Ai.Tee|doan") {
+            if ($commandLine -match "php artisan|composer|vite|npm run dev" -and $commandLine -match "E-Learning") {
                 Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
                 Write-Host "  Killed cmd.exe (ID: $($proc.Id)) - Laravel/Vite process" -ForegroundColor Green
                 $killedCount++
@@ -80,7 +80,7 @@ $phpProcesses = Get-Process -Name "php" -ErrorAction SilentlyContinue
 foreach ($proc in $phpProcesses) {
     try {
         $commandLine = $proc.CommandLine
-        if ($commandLine -match "artisan serve" -and $commandLine -match "Ai.Tee|doan") {
+        if ($commandLine -match "artisan serve" -and $commandLine -match "E-Learning") {
             Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
             Write-Host "  Killed php.exe (ID: $($proc.Id)) - Laravel server" -ForegroundColor Green
             $killedCount++
@@ -96,7 +96,7 @@ $nodeProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue
 foreach ($proc in $nodeProcesses) {
     try {
         $commandLine = $proc.CommandLine
-        if ($commandLine -match "vite|react" -and $commandLine -match "Ai.Tee|doan") {
+        if ($commandLine -match "vite|react" -and $commandLine -match "E-Learning") {
             Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
             Write-Host "  Killed node.exe (ID: $($proc.Id)) - Vite dev server" -ForegroundColor Green
             $killedCount++

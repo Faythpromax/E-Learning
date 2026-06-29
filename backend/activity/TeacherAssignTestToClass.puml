@@ -1,9 +1,0 @@
-@startuml giảng viên gán bài test cho lớp
-start
-:Chọn lớp;
-:Chọn bài test;
-:Gán bài test cho lớp;
-:Lưu vào hệ thống;
-:Thông báo thành công;
-stop
-@enduml

@@ -1,0 +1,46 @@
+@startuml view_test_sequence
+title Sequence Diagram - Teacher View Test Flow
+
+actor Teacher
+boundary "TestPage" as UI <<boundary>>
+control TestController
+control TestService
+control TestRepository
+entity "Test" as test
+database DB
+
+Teacher -> UI: Xem danh sách Test
+UI -> TestController: Xem danh sách Test
+
+TestController -> TestService: Lấy danh sách Test
+
+TestService -> TestRepository: Query tests
+TestRepository -> DB: SELECT tests
+DB --> TestRepository: test list
+TestRepository -> test: Khởi tạo đối tượng (Map)
+test --> TestRepository: Đối tượng Test
+TestRepository --> TestService: return list
+TestService --> TestController: return list
+
+TestController --> UI: danh sách Test
+
+' ===== Xem chi tiết =====
+Teacher -> UI: Xem chi tiết Test
+UI -> TestController: Xem chi tiết Test
+
+TestController -> TestService: Lấy chi tiết Test
+
+TestService -> TestRepository: Query test
+TestRepository -> DB: SELECT test
+DB --> TestRepository
+
+TestService -> TestRepository: Query questions
+TestRepository -> DB: SELECT test_questions + questions
+DB --> TestRepository
+
+TestRepository --> TestService: test + questions
+TestService --> TestController: test + questions
+
+TestController --> UI: test + questions
+
+@enduml

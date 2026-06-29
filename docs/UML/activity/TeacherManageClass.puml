@@ -1,0 +1,32 @@
+@startuml Teacher_Manage_Class
+title Activity Diagram - Giảng viên quản lý lớp học
+
+|Giảng viên|
+start
+
+:Chọn lớp học;
+:Chọn chức năng quản lý học sinh;
+
+if (Thêm học sinh?) then (Có)
+    :Chọn học sinh cần thêm;
+else (Không)
+    :Chọn học sinh cần xóa;
+endif
+
+:Gửi yêu cầu;
+
+|Hệ thống|
+:Kiểm tra dữ liệu;
+
+if (Hợp lệ?) then (Không)
+    :Thông báo lỗi;
+else (Có)
+    :Cập nhật danh sách lớp;
+    :Thông báo thành công;
+endif
+
+|Giảng viên|
+:Xem kết quả;
+
+stop
+@enduml

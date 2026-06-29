@@ -1,0 +1,51 @@
+@startuml delete_test_sequence
+title Sequence Diagram - Teacher Delete Test Flow
+
+actor Teacher
+boundary "TestPage" as UI <<boundary>>
+control TestController
+control TestService
+control TestRepository
+entity "Test" as test
+database DB
+
+Teacher -> UI: 1: Yêu cầu xóa bài Test
+UI -> TestController: 1.1: Gửi yêu cầu xóa (Test ID)
+
+TestController -> TestService: 1.2: Thực hiện xóa bài Test
+TestService -> TestRepository: 1.2.1: Kiểm tra tồn tại của bài Test
+TestRepository -> DB: 1.2.1.1: SELECT FROM test WHERE id = ?
+DB --> TestRepository: Trả về thông tin bài Test
+TestRepository -> test: Khởi tạo đối tượng (Map)
+test --> TestRepository: Đối tượng Test
+
+alt [Bài Test KHÔNG tồn tại]
+    TestRepository --> TestService: Null / Error (Not found)
+    TestService --> TestController: Error
+    TestController --> UI: 1.3: Thông báo lỗi 404 Not Found
+else [Bài Test CÓ tồn tại]
+    
+    note over TestService, DB
+        <b>Lưu ý thiết kế hệ thống:</b>
+        Xóa ở bảng trung gian 'test_question' để gỡ liên kết câu hỏi ra khỏi đề.
+        Hành động này KHÔNG xóa câu hỏi gốc ở bảng 'question' (Global).
+    end note
+
+    TestService -> TestRepository: 1.2.2: Xóa liên kết câu hỏi trong bài Test
+    TestRepository -> test: Khởi tạo/Gán dữ liệu
+
+    TestRepository -> DB: 1.2.2.1: DELETE FROM test_question WHERE test_id = ?
+    DB --> TestRepository: Xác nhận đã xóa liên kết
+
+    TestService -> TestRepository: 1.2.3: Xóa thông tin bài Test chính thức
+    TestRepository -> test: Khởi tạo/Gán dữ liệu
+
+    TestRepository -> DB: 1.2.3.1: DELETE FROM test WHERE id = ?
+    DB --> TestRepository: Xác nhận đã xóa bài Test
+
+    TestRepository --> TestService: Xóa thành công (Success)
+    TestService --> TestController: Success
+    TestController --> UI: 1.4: Thông báo xóa bài Test thành công
+end
+
+@enduml

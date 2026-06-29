@@ -1,0 +1,29 @@
+@startuml Teacher_Create_Question
+title Activity Diagram - Giảng viên tạo câu hỏi
+
+|Giảng viên|
+start
+
+repeat
+    :Nhập thông tin câu hỏi;
+    :Nhấn Lưu;
+
+|Hệ thống|
+    :Kiểm tra dữ liệu;
+
+    if (Hợp lệ?) then (Không)
+        :Thông báo lỗi;
+    endif
+
+|Giảng viên|
+repeat while (Chưa hợp lệ?)
+
+|Hệ thống|
+:Lưu câu hỏi vào hệ thống;
+:Thông báo thành công;
+
+|Giảng viên|
+:Xem kết quả;
+
+stop
+@enduml

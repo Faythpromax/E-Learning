@@ -1,0 +1,68 @@
+@startuml anti_cheat_sequence
+title Sequence Diagram - Anti-Cheat Detection
+
+actor Student
+control "TestController" as controller
+control "TestService" as service
+control "AntiCheatService" as antiCheatService
+entity "TestTestRepository" as repository
+entity "EventLogRepository" as eventLogRepository
+entity "EventLog" as eventlog
+database DB
+
+Student -> TestController: startTest(user_id, test_id)
+TestController -> TestService: createAttempt(user_id, test_id)
+TestService -> TestTestRepository: insertAttempt(user_id, test_id)
+TestTestRepository -> DB: INSERT test_attempt
+TestService --> TestController: attempt_id
+
+' ===== During Test =====
+loop every 5 seconds
+    Student -> TestController: detectActivity()
+    
+    TestController -> AntiCheatService: checkActivity(attempt_id)
+    
+    alt Tab Switched
+        AntiCheatService -> EventLogRepository: logSuspiciousActivity(attempt_id, tab_switch)
+        eventLogRepository -> eventlog: Khởi tạo/Gán dữ liệu
+
+        EventLogRepository -> DB: INSERT event_log
+        AntiCheatService --> TestController: warning
+    end
+    
+    alt Copy Detected
+        AntiCheatService -> EventLogRepository: logSuspiciousActivity(attempt_id, copy_attempt)
+        eventLogRepository -> eventlog: Khởi tạo/Gán dữ liệu
+
+        EventLogRepository -> DB: INSERT event_log
+        AntiCheatService --> TestController: warning
+    end
+    
+    TestController --> Student: {warning}
+end
+
+' ===== On Submit =====
+Student -> TestController: submitTest(attempt_id, answers)
+TestController -> TestService: submitTest(attempt_id, answers)
+
+TestService -> EventLogRepository: getActivityLog(attempt_id)
+EventLogRepository -> DB: SELECT event_log
+DB --> EventLogRepository: activity_log
+eventLogRepository -> eventlog: Khởi tạo đối tượng (Map)
+eventlog --> eventLogRepository: Đối tượng EventLog
+EventLogRepository --> TestService: activity_log
+
+TestService -> AntiCheatService: analyzeRiskScore(activity_log)
+AntiCheatService -> AntiCheatService: calculateRiskScore()
+
+alt risk_score > threshold
+    AntiCheatService --> TestService: FLAGGED_FOR_REVIEW
+    TestService -> TestTestRepository: updateAttemptStatus(attempt_id, flagged)
+    TestTestRepository -> DB: UPDATE test_attempt
+else risk_score <= threshold
+    AntiCheatService --> TestService: OK
+end
+
+TestService --> TestController: result
+
+@enduml

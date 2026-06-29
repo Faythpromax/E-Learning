@@ -1,0 +1,35 @@
+@startuml Student_Practice
+
+|Học sinh|
+start
+:Chọn chế độ luyện tập;
+
+repeat
+
+|Hệ thống|
+:Lấy câu hỏi;
+:Hiển thị câu hỏi;
+
+|Học sinh|
+:Nhập câu trả lời;
+:Nộp đáp án;
+
+|Hệ thống|
+:Kiểm tra đáp án;
+
+if (Đúng?) then (Có)
+    :Hiển thị kết quả đúng;
+else (Không)
+    :Hiển thị kết quả sai;
+    :Hiển thị giải thích;
+endif
+
+:Lưu tiến trình học tập;
+
+|Học sinh|
+
+repeat while (Tiếp tục luyện tập?) is (Có)
+
+stop
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml teacher_create_test
+title Teacher Create Test
+
+actor Teacher
+boundary "CreateTestPage" as UI
+control "TestController" as Controller
+control "TestService" as Service
+control "QuestionBuilderFactory" as Factory
+control "QuestionBuilder" as Builder
+entity "TestRepository" as Repo
+database "Database" as DB
+
+Teacher -> UI: Tạo bài thi
+UI -> Controller: POST /api/tests
+
+Controller -> Controller: Validate dữ liệu
+
+alt Dữ liệu không hợp lệ
+Controller --> UI: 422 Validation Error
+UI --> Teacher: Hiển thị lỗi
+else Hợp lệ
+
+
+Controller -> Service: createTest()
+
+Service -> DB: BEGIN TRANSACTION
+
+Service -> Repo: createTest()
+Repo -> DB: INSERT test
+DB --> Repo: Test
+Repo --> Service: Test
+
+loop Mỗi câu hỏi
+
+    Service -> Factory: make(questionType)
+    Factory --> Service: Builder
+
+    Service -> Builder: build(questionData)
+    Builder --> Service: Question Data
+
+    Service -> Repo: createQuestion()
+    Repo -> DB: INSERT question
+    DB --> Repo: Question ID
+
+    Service -> Repo: attachQuestion()
+    Repo -> DB: INSERT test_questions
+
+end
+
+Service -> Repo: attachClasses()
+Repo -> DB: INSERT class_tests
+
+Service -> DB: COMMIT
+
+Service --> Controller: Test Created
+
+Controller --> UI: 201 Created
+
+UI --> Teacher: Thông báo thành công
+
+
+end
+
+note right of Service
+Builder Pattern:
+
+* Factory tạo Builder phù hợp
+* Builder xây dựng dữ liệu câu hỏi
+* Hỗ trợ nhiều loại câu hỏi:
+
+  * MCQ
+  * Fill Blank
+  * Matching
+  * Table Fill
+    end note
+
+@enduml

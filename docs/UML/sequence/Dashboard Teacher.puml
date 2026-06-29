@@ -1,0 +1,44 @@
+@startuml dashboard_teacher_sequence
+title Sequence Diagram - Teacher Dashboard
+
+actor Teacher
+participant DashboardController
+participant DashboardService
+participant StudentRepository
+participant QuestionProgressRepository
+participant TestTestRepository
+entity "TestTest" as testtest
+database DB
+
+Teacher -> DashboardController: viewDashboard(teacher_id)
+
+DashboardController -> DashboardService: getDashboardData(teacher_id)
+
+' ===== Top Students =====
+DashboardService -> TestTestRepository: getTopStudents(teacher_id)
+TestTestRepository -> DB: SELECT students ORDER BY score DESC
+DB --> TestTestRepository: top_students
+TestTestRepository -> testtest: Khởi tạo đối tượng (Map)
+testtest --> TestTestRepository: Đối tượng TestTest
+TestTestRepository --> DashboardService: top_students
+
+' ===== Question Performance =====
+DashboardService -> QuestionProgressRepository: getQuestionStats(teacher_id)
+QuestionProgressRepository -> DB: SELECT question_progress stats
+DB --> QuestionProgressRepository: stats
+QuestionProgressRepository --> DashboardService: stats
+
+' ===== Weak Areas by Class =====
+DashboardService -> TestTestRepository: getClassPerformance(teacher_id)
+TestTestRepository -> DB: SELECT test_attempts by class
+DB --> TestTestRepository: class_performance
+TestTestRepository -> testtest: Khởi tạo đối tượng (Map)
+testtest --> TestTestRepository: Đối tượng TestTest
+TestTestRepository --> DashboardService: class_performance
+
+DashboardService -> DashboardService: aggregateData(all_data)
+
+DashboardService --> DashboardController: {top_students, question_stats, class_performance}
+DashboardController --> Teacher: dashboard_view
+
+@enduml

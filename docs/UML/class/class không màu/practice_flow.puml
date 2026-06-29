@@ -1,0 +1,121 @@
+@startuml practice_management_class_diagram
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Class Diagram - Practice Management (SOLID / Layered Architecture)
+
+' ==================== LAYER 1: PRESENTATION LAYER ====================
+package "Presentation Layer" {
+    class PracticeScreen <<boundary>> {
+        +questionsList: Array
+        +renderQuestions(): void
+        +handleAnswerSubmit(): void
+    }
+
+    class PracticeController <<controller>> {
+        -practiceService: PracticeService
+        +__construct()
+        +getQuestion(): JsonResponse
+        +getRandomQuestions(): JsonResponse
+        +submitAnswer(): JsonResponse
+        +getProgress(): JsonResponse
+    }
+}
+
+' ==================== LAYER 2: BUSINESS LOGIC LAYER ====================
+package "Business Logic Layer" {
+    class PracticeService <<service>> {
+        -questionRepository: QuestionRepository
+        -scoringFactory: ScoringFactory
+        +__construct()
+        +getQuestion(): Question
+        +getRandomQuestions(): Collection
+        +submitAnswer(): array
+        +getProgress(): array
+        -updateProgress(): void
+    }
+
+    class ScoringFactory <<factory>> {
+        +make(): ScoringStrategyInterface
+        +calculateScore(): float
+        +isCorrect(): bool
+        +getCorrectAnswer(): mixed
+    }
+}
+
+' ==================== LAYER 3: DATA ACCESS LAYER ====================
+package "Data Access Layer" {
+    class QuestionRepository <<repository>> {
+        +getById(): Question
+        +getRandomQuestions(): Collection
+    }
+}
+
+' ==================== LAYER 4: REQUEST / VALIDATION LAYER ====================
+package "Request Layer" {
+    class SubmitAnswerRequest <<form request>> {
+        +rules(): array
+    }
+}
+
+' ==================== LAYER 5: DOMAIN ENTITIES ====================
+package "Domain Entities" {
+    class Question <<entity>> {
+        -id: int
+        -subject_id: int
+        -type: string
+        -content: string
+        -media_image: string
+        -media_audio: string
+        -data: array
+        -explanation: string
+        -created_by: int
+        +progressions(): HasMany
+    }
+
+    class QuestionProgress <<entity>> {
+        -id: int
+        -user_id: int
+        -question_id: int
+        -last_answer: mixed
+        -is_correct: bool
+        -attempt_count: int
+        -last_attempt_at: DateTime
+        +question(): BelongsTo
+    }
+
+    class Practice <<entity>> {
+        -id: int
+        -title: string
+        -subject_id: int
+        -created_by: int
+        -description: string
+        -is_active: bool
+        +subject(): BelongsTo
+        +questions(): HasMany
+        +classes(): BelongsToMany
+    }
+}
+
+' ==================== RELATIONSHIPS & DEPENDENCIES ====================
+
+' UI Layer to Controller
+PracticeScreen --> PracticeController : calls
+
+' Controller Layer to Service & Request
+PracticeController --> PracticeService : delegates
+PracticeController ..> SubmitAnswerRequest : uses
+
+' Service Layer depends on Repositories, Factories, and Entities
+PracticeService --> QuestionRepository : uses
+PracticeService --> ScoringFactory : uses
+PracticeService ..> QuestionProgress : writes/reads
+
+' Repositories dependencies with Entities
+QuestionRepository ..> Question : manages
+
+' Entity Relationships
+Question "1" *-- "0..*" QuestionProgress : tracks
+Practice "1" *-- "0..*" Question : contains
+
+@enduml

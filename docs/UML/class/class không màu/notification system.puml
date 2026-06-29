@@ -1,0 +1,112 @@
+@startuml NotificationSystemClassDiagram
+title Notification System - Observer Pattern
+
+skinparam classAttributeIconSize 0
+
+' ======================
+' EVENTS (Subject)
+' ======================
+
+class TestCreated <<Event>> {
+    +test : Test
+}
+
+class StudentJoinedClass <<Event>> {
+    +classroom : ClassModel
+    +student : User
+}
+
+' ======================
+' LISTENERS (Observer)
+' ======================
+
+class SendTestCreatedNotification <<Listener>> {
+    +handle(TestCreated)
+}
+
+class SendStudentJoinedNotification <<Listener>> {
+    +handle(StudentJoinedClass)
+}
+
+' ======================
+' SERVICES
+' ======================
+
+class NotificationService {
+    +createNotification()
+    +getNotifications()
+    +markAsRead()
+}
+
+class TestService {
+    +createTest()
+}
+
+class ClassService {
+    +joinClass()
+}
+
+' ======================
+' MODELS
+' ======================
+
+class Notification {
+    +id
+    +user_id
+    +type
+    +message
+    +read_at
+}
+
+class User {
+    +id
+    +name
+    +email
+}
+
+class Test {
+    +id
+    +title
+}
+
+class ClassModel {
+    +id
+    +name
+}
+
+' ======================
+' OBSERVER RELATIONSHIP
+' ======================
+
+TestService ..> TestCreated : dispatch()
+
+ClassService ..> StudentJoinedClass : dispatch()
+
+TestCreated ..> SendTestCreatedNotification : notify()
+
+StudentJoinedClass ..> SendStudentJoinedNotification : notify()
+
+SendTestCreatedNotification --> NotificationService
+
+SendStudentJoinedNotification --> NotificationService
+
+NotificationService --> Notification
+
+Notification --> User
+
+TestCreated --> Test
+
+StudentJoinedClass --> ClassModel
+StudentJoinedClass --> User
+
+note right of TestCreated
+Subject
+(Observer Pattern)
+end note
+
+note right of SendTestCreatedNotification
+Observer
+(Listener)
+end note
+
+@enduml

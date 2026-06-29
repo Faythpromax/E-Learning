@@ -1,0 +1,117 @@
+@startuml classroom_management_class_diagram
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Class Diagram - Classroom Management (SOLID / Layered Architecture)
+
+' ==================== LAYER 1: PRESENTATION LAYER ====================
+package "Presentation Layer" {
+    class ClassListPage <<boundary>> {
+        +classesList: Array
+        +renderList(): void
+        +handleEnrollStudent(): void
+    }
+
+    class ClassController <<controller>> {
+        -classService: ClassService
+        +__construct()
+        +index(): JsonResponse
+        +search(): JsonResponse
+        +show(): JsonResponse
+        +store(): JsonResponse
+    }
+}
+
+' ==================== LAYER 2: BUSINESS LOGIC LAYER ====================
+package "Business Logic Layer" {
+    class ClassService <<service>> {
+        -classRepository: ClassRepositoryInterface
+        +__construct()
+        +getAllClasses(): Collection
+        +searchClasses(): Collection
+        +getClassDetail(): ClassModel
+        +createClass(): ClassModel
+        -generateClassCode(): string
+    }
+}
+
+' ==================== LAYER 3: DATA ACCESS LAYER ====================
+package "Data Access Layer" {
+    interface ClassRepositoryInterface <<repository interface>> {
+        +getAll(): Collection
+        +getById(): ClassModel
+        +getByCode(): ClassModel
+    }
+
+    class ClassRepository <<repository>> {
+        ' Implements ClassRepositoryInterface
+    }
+}
+
+' ==================== LAYER 4: DOMAIN ENTITIES ====================
+package "Domain Entities" {
+    class ClassModel <<entity>> {
+        -id: int
+        -name: string
+        -class_code: string
+        -description: string
+        -created_by: int
+        +creator(): BelongsTo
+        +users(): BelongsToMany
+        +students(): BelongsToMany
+        +teachers(): BelongsToMany
+        +materials(): HasMany
+        +tests(): BelongsToMany
+        +practices(): BelongsToMany
+    }
+
+    class User <<entity>> {
+        -id: int
+        -name: string
+        -email: string
+        -role: string
+    }
+
+    class ClassUser <<entity>> {
+        -id: int
+        -class_id: int
+        -user_id: int
+        -role: string
+    }
+
+    class ClassMaterial <<entity>> {
+        -id: int
+        -class_id: int
+        -title: string
+        -file_path: string
+    }
+
+    class ClassTest <<entity>> {
+        -id: int
+        -class_id: int
+        -test_id: int
+    }
+}
+
+' ==================== RELATIONSHIPS & DEPENDENCIES ====================
+
+' UI Layer to Controller
+ClassListPage --> ClassController : calls
+
+' Controller Layer to Service
+ClassController --> ClassService : delegates
+
+' Service Layer depends on Repositories
+ClassService --> ClassRepositoryInterface : uses
+ClassRepository ..|> ClassRepositoryInterface : implements
+
+' Repositories dependencies with Entities
+ClassRepository ..> ClassModel : manages
+
+' Entity Relationships
+ClassModel "1" *-- "0..*" ClassUser : contains
+ClassModel "1" *-- "0..*" ClassMaterial : has
+ClassModel "1" *-- "0..*" ClassTest : has
+User "1" *-- "0..*" ClassUser : belongs to
+
+@enduml
