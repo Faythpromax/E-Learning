@@ -733,6 +733,7 @@
 .question-answer-card.purple {
   background: #faf5ff;
   border-color: #e9d5ff;
+  padding: 24px;
 }
 
 .question-answer-card.amber {

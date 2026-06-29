@@ -344,7 +344,7 @@ export function TestResultPage() {
             }}
             className="hover:bg-blue-700"
           >
-            Luyện tập thêm
+            Hoàn thành
           </button>
         </div>
       </div>
