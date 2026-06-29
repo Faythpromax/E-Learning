@@ -88,7 +88,7 @@ export function TeacherPracticeListPage() {
     return (
       <TeacherLayout pageTitle="Quản lý bài ôn tập">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '12px' }}>
-          <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
           <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải danh sách bài ôn tập...</div>
         </div>
       </TeacherLayout>

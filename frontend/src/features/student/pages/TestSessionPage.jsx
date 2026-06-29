@@ -60,7 +60,7 @@ export function TestSessionPage() {
       }
     } catch (error) {
       console.error("Failed to start test:", error);
-      alert("Khong the bat dau bai kiem tra. Vui long thu lai.");
+      alert("Không thể bắt đầu bài kiểm tra. Vui lòng thử lại.");
       navigate("/student/tests");
     } finally {
       setLoading(false);
@@ -154,7 +154,7 @@ export function TestSessionPage() {
           state: { result: resultRes.data },
         });
       } else {
-        alert("Khong the noi bai. Vui long thu lai.");
+        alert("Không thể nộp bài. Vui lòng thử lại.");
       }
     } finally {
       setSubmitting(false);
@@ -163,21 +163,22 @@ export function TestSessionPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Dang tai bai kiem tra...</div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '12px', backgroundColor: '#f5f6fa' }}>
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải bài kiểm tra...</div>
       </div>
     );
   }
 
   if (!testData || questions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-500 mb-4">Khong the tai bai kiem tra.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px', backgroundColor: '#f5f6fa' }}>
+        <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Không thể tải bài kiểm tra.</p>
         <button
           onClick={() => navigate("/student/tests")}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg"
+          style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: '#fff', fontWeight: '600', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
         >
-          Quay lai
+          Quay lại
         </button>
       </div>
     );
@@ -189,32 +190,67 @@ export function TestSessionPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f6fa' }}>
+      <header style={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid #e5e7eb',
+        position: 'sticky',
+        top: 0,
+        zIndex: 30,
+      }}>
+        <div style={{
+          maxWidth: '1152px',
+          margin: '0 auto',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '16px',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               onClick={() => navigate("/student/tests")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Quay lai"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#f3f4f6',
+                cursor: 'pointer',
+              }}
+              className="hover:bg-gray-200"
+              title="Quay lại"
             >
-              <FiArrowLeft className="text-xl text-gray-600" />
+              <FiArrowLeft style={{ fontSize: '18px', color: '#4b5563' }} />
             </button>
             <div>
-              <h1 className="font-bold text-gray-800">{testData.test_title}</h1>
-              <p className="text-sm text-gray-500">
-                Cau {currentIndex + 1} / {questions.length}
+              <h1 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', margin: 0 }}>{testData.test_title}</h1>
+              <p style={{ fontSize: '13px', color: '#6b7280', margin: '2px 0 0 0' }}>
+                Câu {currentIndex + 1} / {questions.length}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setShowNav(!showNav)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                padding: '8px 14px',
+                backgroundColor: '#f3f4f6',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '600',
+                color: '#374151',
+                cursor: 'pointer',
+              }}
+              className="hover:bg-gray-200"
             >
-              {showNav ? "An danh sach" : "Hien danh sach"}
+              {showNav ? "Ẩn danh sách" : "Hiện danh sách"}
             </button>
 
             <TestTimer
@@ -226,7 +262,18 @@ export function TestSessionPage() {
             <button
               onClick={() => setShowSubmitModal(true)}
               disabled={submitting}
-              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                fontWeight: '600',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                opacity: submitting ? 0.7 : 1,
+              }}
+              className="hover:bg-green-700"
             >
               Nộp bài
             </button>
@@ -234,12 +281,10 @@ export function TestSessionPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-6">
-          {/* Question Navigator - Sidebar */}
+      <div style={{ maxWidth: '1152px', margin: '0 auto', padding: '24px', boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
           {showNav && (
-            <aside className="w-72 flex-shrink-0">
+            <aside style={{ width: '280px', flexShrink: 0 }}>
               <TestQuestionNav
                 questions={questions}
                 currentIndex={currentIndex}
@@ -250,28 +295,39 @@ export function TestSessionPage() {
             </aside>
           )}
 
-          {/* Question Content */}
-          <main className="flex-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              {/* Question Header */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-gray-500">
-                  Cau hoi {currentIndex + 1}
+          <main style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              padding: '24px',
+              marginBottom: '16px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280' }}>
+                  Câu hỏi {currentIndex + 1}
                 </span>
                 <button
                   onClick={toggleFlag}
-                  className={`p-2 rounded-lg transition-colors ${
-                    flaggedQuestions.includes(currentQuestion.id)
-                      ? "bg-yellow-100 text-yellow-600"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                  }`}
-                  title="Danh dau de xem lai"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: flaggedQuestions.includes(currentQuestion.id) ? '#fef3c7' : '#f3f4f6',
+                    color: flaggedQuestions.includes(currentQuestion.id) ? '#d97706' : '#6b7280',
+                  }}
+                  className="hover:opacity-80"
+                  title="Đánh dấu để xem lại"
                 >
                   <FiFlag />
                 </button>
               </div>
 
-              {/* Question Content */}
               <QuestionRenderer
                 question={currentQuestion}
                 onAnswer={handleAnswer}
@@ -280,39 +336,78 @@ export function TestSessionPage() {
               />
             </div>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-4">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}>
               <button
                 onClick={handlePrevious}
                 disabled={currentIndex === 0}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-                  currentIndex === 0
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50 shadow"
-                }`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  border: '1px solid #e5e7eb',
+                  cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
+                  backgroundColor: currentIndex === 0 ? '#f9fafb' : '#ffffff',
+                  color: currentIndex === 0 ? '#9ca3af' : '#374151',
+                }}
               >
                 <FiChevronLeft />
-                Cau truoc
+                Câu trước
               </button>
 
-              <div className="text-gray-500">
-                Da tra loi: {answeredCount}/{questions.length}
+              <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>
+                Đã trả lời: {answeredCount}/{questions.length}
               </div>
 
               {currentIndex < questions.length - 1 ? (
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                  }}
+                  className="hover:bg-blue-700"
                 >
-                  Cau tiep
+                  Câu tiếp
                   <FiChevronRight />
                 </button>
               ) : (
                 <button
                   onClick={() => setShowSubmitModal(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: '#16a34a',
+                    color: '#ffffff',
+                  }}
+                  className="hover:bg-green-700"
                 >
-                  Noi bai
+                  Nộp bài
                 </button>
               )}
             </div>

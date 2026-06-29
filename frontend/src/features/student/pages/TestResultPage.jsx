@@ -1,14 +1,43 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiCheckCircle, FiXCircle, FiArrowLeft, FiClock, FiAward } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiArrowLeft, FiClock } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import { QuestionRenderer } from '../../../components/student/QuestionRenderer';
+
+const pageContainerStyle = {
+  width: '100%',
+  maxWidth: '768px',
+  margin: '0 auto',
+  padding: '24px',
+  boxSizing: 'border-box',
+};
+
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '12px',
+  border: '1px solid #e5e7eb',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const formatDateTime = (value) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString('vi-VN');
+};
+
+const getSubjectName = (result) => {
+  if (!result?.subject) return 'Không rõ';
+  if (typeof result.subject === 'string') return result.subject;
+  return result.subject?.name || 'Không rõ';
+};
 
 export function TestResultPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [result, setResult] = useState(location.state?.result || null);
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(!location.state?.result);
@@ -44,175 +73,224 @@ export function TestResultPage() {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 80) return '#16a34a';
+    if (score >= 60) return '#d97706';
+    return '#dc2626';
   };
 
   const getScoreBgColor = (score) => {
-    if (score >= 80) return 'bg-green-100';
-    if (score >= 60) return 'bg-yellow-100';
-    return 'bg-red-100';
+    if (score >= 80) return '#f0fdf4';
+    if (score >= 60) return '#fffbeb';
+    return '#fef2f2';
+  };
+
+  const getScoreBorderColor = (score) => {
+    if (score >= 80) return '#bbf7d0';
+    if (score >= 60) return '#fde68a';
+    return '#fecaca';
   };
 
   const getScoreMessage = (score) => {
-    if (score >= 90) return 'Xuat sac!';
-    if (score >= 80) return 'Rat tot!';
-    if (score >= 70) return 'Kha!';
-    if (score >= 60) return 'Trung binh';
-    if (score >= 50) return 'Can co gang them';
-    return 'Chua dat';
+    if (score >= 90) return 'Xuất sắc!';
+    if (score >= 80) return 'Rất tốt!';
+    if (score >= 70) return 'Khá!';
+    if (score >= 60) return 'Trung bình';
+    if (score >= 50) return 'Cần cố gắng thêm';
+    return 'Chưa đạt';
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Dang tai ket qua...</div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '12px', backgroundColor: '#f5f6fa' }}>
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải kết quả...</div>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-500 mb-4">Khong tim thay ket qua.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px', backgroundColor: '#f5f6fa' }}>
+        <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Không tìm thấy kết quả.</p>
         <button
           onClick={() => navigate('/student/tests')}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg"
+          style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: '#fff', fontWeight: '600', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
         >
-          Quay lai
+          Quay lại
         </button>
       </div>
     );
   }
 
-  const correctCount = review?.questions?.filter(q => q.is_correct).length || 0;
+  const score = result.score ?? 0;
+  const correctCount = review?.questions?.filter((q) => q.is_correct).length || 0;
   const totalCount = review?.questions?.length || result.total_questions || 0;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f6fa' }}>
+      <header style={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid #e5e7eb',
+      }}>
+        <div style={{
+          maxWidth: '768px',
+          margin: '0 auto',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}>
           <button
             onClick={() => navigate('/student/tests')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: '#f3f4f6',
+              cursor: 'pointer',
+            }}
+            className="hover:bg-gray-200"
           >
-            <FiArrowLeft className="text-xl text-gray-600" />
+            <FiArrowLeft style={{ fontSize: '18px', color: '#4b5563' }} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Ket qua bai kiem tra</h1>
-            <p className="text-sm text-gray-500">{result.test_title}</p>
+            <h1 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Kết quả bài kiểm tra</h1>
+            <p style={{ fontSize: '13px', color: '#6b7280', margin: '2px 0 0 0' }}>{result.test_title}</p>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div style={pageContainerStyle}>
         {result.status === 'expired' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-center">
-            <p className="text-yellow-800 font-medium">
-              Bai kiem tra da het gio. Ban khong the lam lai bai nay.
+          <div style={{
+            backgroundColor: '#fffbeb',
+            border: '1px solid #fde68a',
+            borderRadius: '10px',
+            padding: '14px 16px',
+            marginBottom: '20px',
+            textAlign: 'center',
+          }}>
+            <p style={{ color: '#92400e', fontWeight: '600', fontSize: '14px', margin: 0 }}>
+              Bài kiểm tra đã hết giờ. Bạn không thể làm lại bài này.
             </p>
           </div>
         )}
 
-        {/* Score Card */}
-        <div className={`${getScoreBgColor(result.score)} rounded-2xl p-8 mb-6 text-center`}>
-          <div className={`text-6xl font-bold mb-2 ${getScoreColor(result.score)}`}>
-            {result.earned_points ?? result.score?.toFixed(0)}
+        <div style={{
+          ...cardStyle,
+          padding: '32px 24px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          backgroundColor: getScoreBgColor(score),
+          borderColor: getScoreBorderColor(score),
+        }}>
+          <div style={{ fontSize: '56px', fontWeight: '800', color: getScoreColor(score), lineHeight: 1, marginBottom: '8px' }}>
+            {result.earned_points ?? score.toFixed(0)}
           </div>
-          <div className="text-base font-medium text-gray-600 mb-1">
-            {result.score?.toFixed(1) || 0}% diem
+          <div style={{ fontSize: '15px', fontWeight: '600', color: '#4b5563', marginBottom: '4px' }}>
+            {score.toFixed(1)}% điểm
           </div>
-          <div className="text-xl font-semibold text-gray-700 mb-4">
-            {getScoreMessage(result.score)}
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#374151', marginBottom: '20px' }}>
+            {getScoreMessage(score)}
           </div>
-          <div className="flex justify-center gap-8 text-sm">
-            <div className="flex items-center gap-2">
-              <FiCheckCircle className="text-green-600" />
-              <span className="text-gray-700">
-                <strong>{correctCount}</strong> cau dung
-              </span>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', fontSize: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151' }}>
+              <FiCheckCircle style={{ color: '#16a34a' }} />
+              <span><strong>{correctCount}</strong> câu đúng</span>
             </div>
-            <div className="flex items-center gap-2">
-              <FiXCircle className="text-red-600" />
-              <span className="text-gray-700">
-                <strong>{totalCount - correctCount}</strong> cau sai
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151' }}>
+              <FiXCircle style={{ color: '#dc2626' }} />
+              <span><strong>{totalCount - correctCount}</strong> câu sai</span>
             </div>
-            <div className="flex items-center gap-2">
-              <FiClock className="text-gray-600" />
-              <span className="text-gray-700">
-                Lan thi thu <strong>{result.attempt_no}</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Test Info */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="font-bold text-gray-800 mb-4">Thong tin bai kiem tra</h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Mon hoc:</span>
-              <span className="ml-2 font-medium text-gray-800">{result.subject || 'Khong ro'}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Tong so cau:</span>
-              <span className="ml-2 font-medium text-gray-800">{totalCount}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Bat dau:</span>
-              <span className="ml-2 font-medium text-gray-800">
-                {new Date(result.started_at).toLocaleString('vi-VN')}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Nop bai:</span>
-              <span className="ml-2 font-medium text-gray-800">
-                {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : '-'}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151' }}>
+              <FiClock style={{ color: '#6b7280' }} />
+              <span>Lần thi thứ <strong>{result.attempt_no || 1}</strong></span>
             </div>
           </div>
         </div>
 
-        {/* Review Section */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b flex items-center justify-between">
-            <h2 className="font-bold text-gray-800">Xem lai dap an</h2>
+        <div style={{ ...cardStyle, padding: '24px', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
+            Thông tin bài kiểm tra
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', fontSize: '14px' }}>
+            <div>
+              <span style={{ color: '#6b7280' }}>Môn học:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#111827' }}>{getSubjectName(result)}</span>
+            </div>
+            <div>
+              <span style={{ color: '#6b7280' }}>Tổng số câu:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#111827' }}>{totalCount}</span>
+            </div>
+            <div>
+              <span style={{ color: '#6b7280' }}>Bắt đầu:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#111827' }}>{formatDateTime(result.started_at)}</span>
+            </div>
+            <div>
+              <span style={{ color: '#6b7280' }}>Nộp bài:</span>
+              <span style={{ marginLeft: '8px', fontWeight: '600', color: '#111827' }}>{formatDateTime(result.submitted_at)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ ...cardStyle, overflow: 'hidden', marginBottom: '20px' }}>
+          <div style={{
+            padding: '20px 24px',
+            borderBottom: '1px solid #f3f4f6',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', margin: 0 }}>Xem lại đáp án</h2>
             <button
               onClick={() => setShowReview(!showReview)}
-              className="px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors"
+              style={{
+                padding: '8px 16px',
+                backgroundColor: showReview ? '#eff6ff' : '#f3f4f6',
+                color: showReview ? '#2563eb' : '#374151',
+                fontWeight: '600',
+                fontSize: '13px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              className="hover:opacity-80"
             >
-              {showReview ? 'An di' : 'Hien thi'}
+              {showReview ? 'Ẩn đi' : 'Hiển thị'}
             </button>
           </div>
 
           {showReview && review?.questions && (
-            <div className="divide-y">
+            <div>
               {review.questions.map((question, index) => (
-                <div key={question.id} className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
+                <div
+                  key={question.id}
+                  style={{
+                    padding: '24px',
+                    borderBottom: index < review.questions.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                     {question.is_correct ? (
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                        <FiCheckCircle className="text-green-600" />
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiCheckCircle style={{ color: '#16a34a' }} />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                        <FiXCircle className="text-red-600" />
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiXCircle style={{ color: '#dc2626' }} />
                       </div>
                     )}
-                    <span className="font-semibold text-gray-800">
-                      Cau {index + 1}
+                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>Câu {index + 1}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: question.is_correct ? '#16a34a' : '#dc2626' }}>
+                      {question.is_correct ? 'Đúng' : 'Sai'}
                     </span>
-                    <span className={`text-sm ${
-                      question.is_correct ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {question.is_correct ? 'Dung' : 'Sai'}
-                    </span>
-                    <span className="text-xs text-gray-500 ml-auto">
-                      {question.earned_points ?? (question.is_correct ? 1 : 0)}/{question.max_score ?? 1} diem
+                    <span style={{ fontSize: '12px', color: '#9ca3af', marginLeft: 'auto' }}>
+                      {question.earned_points ?? (question.is_correct ? 1 : 0)}/{question.max_score ?? 1} điểm
                     </span>
                   </div>
 
@@ -233,19 +311,40 @@ export function TestResultPage() {
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-4 mt-6">
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button
             onClick={() => navigate('/student/tests')}
-            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+            style={{
+              flex: 1,
+              padding: '12px 20px',
+              backgroundColor: '#ffffff',
+              color: '#374151',
+              fontWeight: '600',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+              cursor: 'pointer',
+            }}
+            className="hover:bg-gray-50"
           >
-            Quay lai danh sach
+            Quay lại danh sách
           </button>
           <button
             onClick={() => navigate('/student/practice')}
-            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+            style={{
+              flex: 1,
+              padding: '12px 20px',
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: '600',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            className="hover:bg-blue-700"
           >
-            Luyen tap them
+            Luyện tập thêm
           </button>
         </div>
       </div>

@@ -138,7 +138,7 @@ const TeacherDashboardPage = () => {
                   {user?.full_name || user?.name || 'Giáo viên'}
                 </h1>
                 <p className="text-gray-500" style={{ display: 'block', margin: '0', padding: '0', lineHeight: '1.5', fontSize: '15px' }}>
-                  Tổng quan nhanh về lớp, học sinh và đề thi.
+                  Tổng quan nhanh về lớp, học sinh và bài kiểm tra.
                 </p>
               </div>
               
@@ -184,12 +184,12 @@ const TeacherDashboardPage = () => {
             marginTop: '16px',
           }}>
             
-            {/* Thẻ 1: Tổng số đề thi */}
+            {/* Thẻ 1: Tổng số bài kiểm tra */}
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg" 
                  style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box'}}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số đề thi</p>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số bài kiểm tra</p>
                   <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalTests || 7}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -264,8 +264,8 @@ const TeacherDashboardPage = () => {
                 <FiPlus className="text-xl text-blue-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Tạo đề thi mới</h4>
-                <p className="text-sm text-gray-500">Tạo bộ đề thi nhanh chóng</p>
+                <h4 className="font-semibold text-gray-800">Tạo bài kiểm tra mới</h4>
+                <p className="text-sm text-gray-500">Tạo bộ bài kiểm tra nhanh chóng</p>
               </div>
             </button>
 
@@ -353,7 +353,7 @@ const TeacherDashboardPage = () => {
           {/* Recent Assignments Section */}
           <div style={{ width: '100%', marginBottom: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Đề thi mới nhất</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Bài kiểm tra mới nhất</h2>
               <button
                 onClick={() => navigate('/teacher/tests')}
                 style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0 }}
@@ -413,14 +413,14 @@ const TeacherDashboardPage = () => {
                 boxSizing: 'border-box',
               }}>
                 <FiFileText style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>Bạn chưa tạo đề thi nào</h3>
-                <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 20px 0' }}>Tạo đề thi để giao cho học sinh làm bài.</p>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>Bạn chưa tạo bài kiểm tra nào</h3>
+                <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 20px 0' }}>Tạo bài kiểm tra để giao cho học sinh làm bài.</p>
                 <button
                   onClick={handleCreateTest}
                   className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
                   style={{ padding: '10px 20px' }}
                 >
-                  Tạo đề thi đầu tiên
+                  Tạo bài đầu tiên
                 </button>
               </div>
             )}
