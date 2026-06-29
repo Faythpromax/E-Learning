@@ -151,7 +151,8 @@ export function TeacherPracticeListPage() {
               <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>Bạn chưa tạo bài ôn tập nào trên hệ thống này.</p>
               <button
                 onClick={() => navigate('/teacher/practice/create')}
-                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ padding: '10px 20px' }}
               >
                 Tạo bài đầu tiên
               </button>

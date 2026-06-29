@@ -1,12 +1,161 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import classApi from '../../../api/classApi';
 import { testApi } from '../../../api/testApi';
 
-const ClassDetailPage = () => {
-  const { classId } = useParams();
+const pageContainerStyle = {
+  display: 'block',
+  width: '100%',
+  maxWidth: '1152px',
+  margin: '0 auto',
+  boxSizing: 'border-box',
+  textAlign: 'left',
+};
+
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '12px',
+  border: '1px solid #e5e7eb',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const addButtonStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '10px 20px',
+  backgroundColor: '#2563eb',
+  color: '#ffffff',
+  fontWeight: '600',
+  borderRadius: '8px',
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: '14px',
+  whiteSpace: 'nowrap',
+};
+
+const emptyStateStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '48px 24px',
+  borderRadius: '12px',
+  border: '1px solid #e5e7eb',
+  backgroundColor: '#ffffff',
+  textAlign: 'center',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(17, 24, 39, 0.45)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 9999,
+  padding: '16px',
+  boxSizing: 'border-box',
+};
+
+const modalContentStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '16px',
+  width: '100%',
+  maxWidth: '480px',
+  border: '1px solid #e5e7eb',
+  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+  overflow: 'hidden',
+};
+
+const modalLabelStyle = {
+  display: 'block',
+  fontSize: '14px',
+  fontWeight: '600',
+  color: '#374151',
+  marginBottom: '6px',
+};
+
+const modalInputStyle = {
+  width: '100%',
+  padding: '10px 14px',
+  fontSize: '14px',
+  border: '1px solid #d1d5db',
+  borderRadius: '8px',
+  outline: 'none',
+  color: '#111827',
+  backgroundColor: '#ffffff',
+  boxSizing: 'border-box',
+};
+
+const modalHintStyle = {
+  fontSize: '13px',
+  color: '#6b7280',
+  margin: '6px 0 0 0',
+  lineHeight: '1.5',
+};
+
+const cancelButtonStyle = {
+  padding: '10px 18px',
+  fontSize: '14px',
+  fontWeight: '600',
+  color: '#374151',
+  backgroundColor: '#ffffff',
+  border: '1px solid #d1d5db',
+  borderRadius: '8px',
+  cursor: 'pointer',
+};
+
+const ModalField = ({ label, hint, children }) => (
+  <div style={{ marginBottom: '20px' }}>
+    <label style={modalLabelStyle}>{label}</label>
+    {children}
+    {hint && <p style={modalHintStyle}>{hint}</p>}
+  </div>
+);
+
+const ModalFooter = ({ onCancel, onConfirm, confirmLabel = 'Thêm' }) => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px 24px',
+    borderTop: '1px solid #f3f4f6',
+    backgroundColor: '#f9fafb',
+  }}>
+    <button type="button" onClick={onCancel} style={cancelButtonStyle} className="hover:bg-gray-50">
+      Huỷ
+    </button>
+    <button type="button" onClick={onConfirm} style={addButtonStyle}>
+      {confirmLabel}
+    </button>
+  </div>
+);
+
+const SectionHeader = ({ title, onAdd, addLabel }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
+    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', margin: 0 }}>{title}</h3>
+    <button onClick={onAdd} style={addButtonStyle}>
+      <FiPlus style={{ fontSize: '16px' }} />
+      {addLabel}
+    </button>
+  </div>
+);
+
+const EmptyState = ({ icon: Icon, message }) => (
+  <div style={emptyStateStyle}>
+    <Icon style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
+    <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>{message}</p>
+  </div>
+);
+
+const ClassDetailPage = () => {  const { classId } = useParams();
   const navigate = useNavigate();
 
   const [classData, setClassData] = useState(null);
@@ -193,146 +342,130 @@ const handleAddTeacher = async () => {
   };
 
   const renderStudentsTab = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Danh sách học sinh ({students.length})</h3>
-        <button
-          onClick={() => openAddModal('student')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <FiPlus /> Thêm học sinh
-        </button>
-      </div>
-
+    <div>
+      <SectionHeader
+        title={`Danh sách học sinh (${students.length})`}
+        onAdd={() => openAddModal('student')}
+        addLabel="Thêm học sinh"
+      />
       {students.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <FiUsers className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chưa có học sinh nào</p>
-        </div>
+        <EmptyState icon={FiUsers} message="Chưa có học sinh nào" />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Họ và tên</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {students.map((student) => (
-                <tr key={student.id}>
-                  <td className="px-4 py-3 text-sm text-gray-800">{student.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{student.email}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleRemoveStudent(student.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và tên</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {students.map((student) => (
+                  <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">{student.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{student.email}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleRemoveStudent(student.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Xóa học sinh"
+                      >
+                        <FiTrash2 className="text-base" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
   );
 
   const renderTeachersTab = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Danh sách giáo viên ({teachers.length})</h3>
-        <button
-          onClick={() => openAddModal('teacher')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <FiPlus /> Thêm giáo viên
-        </button>
-      </div>
-
+    <div>
+      <SectionHeader
+        title={`Danh sách giáo viên (${teachers.length})`}
+        onAdd={() => openAddModal('teacher')}
+        addLabel="Thêm giáo viên"
+      />
       {teachers.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <FiUsers className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chưa có giáo viên nào</p>
-        </div>
+        <EmptyState icon={FiUsers} message="Chưa có giáo viên nào" />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Họ và tên</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {teachers.map((teacher) => (
-                <tr key={teacher.id}>
-                  <td className="px-4 py-3 text-sm text-gray-800">{teacher.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{teacher.email}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleRemoveTeacher(teacher.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và tên</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {teachers.map((teacher) => (
+                  <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">{teacher.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{teacher.email}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleRemoveTeacher(teacher.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Xóa giáo viên"
+                      >
+                        <FiTrash2 className="text-base" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
   );
 
   const renderMaterialsTab = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Tài liệu học tập ({materials.length})</h3>
-        <button
-          onClick={() => openAddModal('material')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <FiPlus /> Thêm tài liệu
-        </button>
-      </div>
-
+    <div>
+      <SectionHeader
+        title={`Tài liệu học tập (${materials.length})`}
+        onAdd={() => openAddModal('material')}
+        addLabel="Thêm tài liệu"
+      />
       {materials.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <FiFileText className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chưa có tài liệu nào</p>
-        </div>
+        <EmptyState icon={FiFileText} message="Chưa có tài liệu nào" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
           {materials.map((material) => (
-            <div key={material.id} className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-start justify-between">
+            <div key={material.id} style={{ ...cardStyle, padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <h4 className="font-medium text-gray-800">{material.title}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{material.type}</p>
+                  <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>{material.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>{material.type}</p>
                   {material.description && (
-                    <p className="text-sm text-gray-600 mt-2">{material.description}</p>
+                    <p style={{ fontSize: '13px', color: '#4b5563', margin: '8px 0 0 0', lineHeight: '1.5' }}>{material.description}</p>
                   )}
                 </div>
                 <button
                   onClick={() => handleRemoveMaterial(material.id)}
-                  className="text-red-500 hover:text-red-700"
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Xóa tài liệu"
                 >
-                  <FiTrash2 />
+                  <FiTrash2 className="text-base" />
                 </button>
               </div>
               <a
                 href={material.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block text-blue-500 hover:text-blue-700 text-sm"
+                style={{ display: 'inline-block', marginTop: '12px', fontSize: '14px', color: '#2563eb', fontWeight: '500' }}
+                className="hover:text-blue-800"
               >
-                Xem tài liệu
+                Xem tài liệu →
               </a>
             </div>
           ))}
@@ -342,38 +475,31 @@ const handleAddTeacher = async () => {
   );
 
   const renderTestsTab = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Bài kiểm tra ({tests.length})</h3>
-        <button
-          onClick={() => openAddModal('test')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <FiPlus /> Thêm bài kiểm tra
-        </button>
-      </div>
-
+    <div>
+      <SectionHeader
+        title={`Bài kiểm tra (${tests.length})`}
+        onAdd={() => openAddModal('test')}
+        addLabel="Thêm bài kiểm tra"
+      />
       {tests.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <FiClipboard className="mx-auto text-4xl text-gray-300 mb-2" />
-          <p className="text-gray-500">Chưa có bài kiểm tra nào</p>
-        </div>
+        <EmptyState icon={FiClipboard} message="Chưa có bài kiểm tra nào" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
           {tests.map((test) => (
-            <div key={test.id} className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-start justify-between">
+            <div key={test.id} style={{ ...cardStyle, padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <h4 className="font-medium text-gray-800">{test.title}</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {test.duration ? `${test.duration} phut` : 'Khong gioi han'}
+                  <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>{test.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                    {test.duration ? `${test.duration} phút` : 'Không giới hạn'}
                   </p>
                 </div>
                 <button
                   onClick={() => handleRemoveTest(test.id)}
-                  className="text-red-500 hover:text-red-700"
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Xóa bài kiểm tra"
                 >
-                  <FiTrash2 />
+                  <FiTrash2 className="text-base" />
                 </button>
               </div>
             </div>
@@ -382,127 +508,183 @@ const handleAddTeacher = async () => {
       )}
     </div>
   );
-
   const renderAddModal = () => {
     if (!showAddModal) return null;
 
+    const modalTitles = {
+      student: { title: 'Thêm học sinh', subtitle: 'Nhập ID học sinh để thêm vào lớp học này.' },
+      teacher: { title: 'Thêm giáo viên', subtitle: 'Nhập ID giáo viên để thêm vào lớp học này.' },
+      material: { title: 'Thêm tài liệu', subtitle: 'Tải lên hoặc liên kết tài liệu học tập cho lớp.' },
+      test: { title: 'Gán bài kiểm tra', subtitle: 'Chọn bài kiểm tra để gán cho lớp học.' },
+    };
+
+    const { title, subtitle } = modalTitles[addModalType] || { title: '', subtitle: '' };
+
     return (
-      <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <h3 className="modal-title">
-            {addModalType === 'student' && 'Thêm học sinh'}
-            {addModalType === 'teacher' && 'Thêm giáo viên'}
-            {addModalType === 'material' && 'Thêm tài liệu'}
-            {addModalType === 'test' && 'Gán bài kiểm tra'}
-          </h3>
+      <div style={modalOverlayStyle} onClick={() => setShowAddModal(false)}>
+        <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: '16px',
+            padding: '20px 24px',
+            borderBottom: '1px solid #f3f4f6',
+          }}>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>
+                {title}
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
+                {subtitle}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#f3f4f6',
+                color: '#6b7280',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+              className="hover:bg-gray-200 hover:text-gray-800"
+              aria-label="Đóng"
+            >
+              <FiX size={18} />
+            </button>
+          </div>
+
+          <div style={{ padding: '24px 24px 0' }}>
+            {addModalType === 'student' && (
+              <ModalField
+                label="ID học sinh"
+                hint="Bạn có thể tìm ID học sinh trong trang quản lý người dùng."
+              >
+                <input
+                  type="number"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  placeholder="Ví dụ: 12"
+                  style={modalInputStyle}
+                  autoFocus
+                />
+              </ModalField>
+            )}
+
+            {addModalType === 'teacher' && (
+              <ModalField
+                label="ID giáo viên"
+                hint="Nhập ID tài khoản giáo viên cần thêm vào lớp."
+              >
+                <input
+                  type="number"
+                  value={teacherEmail}
+                  onChange={(e) => setTeacherEmail(e.target.value)}
+                  placeholder="Ví dụ: 5"
+                  style={modalInputStyle}
+                  autoFocus
+                />
+              </ModalField>
+            )}
+
+            {addModalType === 'material' && (
+              <>
+                <ModalField label="Tiêu đề">
+                  <input
+                    type="text"
+                    value={newMaterial.title}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
+                    placeholder="Nhập tiêu đề tài liệu"
+                    style={modalInputStyle}
+                    autoFocus
+                  />
+                </ModalField>
+                <ModalField label="Loại">
+                  <select
+                    value={newMaterial.type}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, type: e.target.value })}
+                    style={{ ...modalInputStyle, cursor: 'pointer' }}
+                  >
+                    <option value="pdf">PDF</option>
+                    <option value="video">Video</option>
+                    <option value="link">Link</option>
+                    <option value="document">Document</option>
+                    <option value="other">Khác</option>
+                  </select>
+                </ModalField>
+                <ModalField label="Đường dẫn">
+                  <input
+                    type="text"
+                    value={newMaterial.file_url}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, file_url: e.target.value })}
+                    placeholder="https://..."
+                    style={modalInputStyle}
+                  />
+                </ModalField>
+                <ModalField label="Mô tả">
+                  <textarea
+                    value={newMaterial.description}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
+                    rows={3}
+                    placeholder="Mô tả ngắn về tài liệu (tuỳ chọn)"
+                    style={{ ...modalInputStyle, resize: 'vertical', minHeight: '88px' }}
+                  />
+                </ModalField>
+              </>
+            )}
+
+            {addModalType === 'test' && (
+              <ModalField label="Chọn bài kiểm tra">
+                <select
+                  value={selectedTest}
+                  onChange={(e) => setSelectedTest(e.target.value)}
+                  style={{ ...modalInputStyle, cursor: 'pointer' }}
+                  autoFocus
+                >
+                  <option value="">-- Chọn bài kiểm tra --</option>
+                  {availableTests.map((test) => (
+                    <option key={test.id} value={test.id}>{test.title}</option>
+                  ))}
+                </select>
+              </ModalField>
+            )}
+          </div>
 
           {addModalType === 'student' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ID học sinh
-              </label>
-              <input
-                type="number"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                placeholder="Nhập ID học sinh"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-              />
-              <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
-                <button onClick={handleAddStudent} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Thêm</button>
-              </div>
-            </div>
+            <ModalFooter
+              onCancel={() => setShowAddModal(false)}
+              onConfirm={handleAddStudent}
+              confirmLabel="Thêm học sinh"
+            />
           )}
-
           {addModalType === 'teacher' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ID giáo viên
-              </label>
-              <input
-                type="number"
-                value={teacherEmail}
-                onChange={(e) => setTeacherEmail(e.target.value)}
-                placeholder="Nhập ID giáo viên"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-              />
-              <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
-                <button onClick={handleAddTeacher} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Thêm</button>
-              </div>
-            </div>
+            <ModalFooter
+              onCancel={() => setShowAddModal(false)}
+              onConfirm={handleAddTeacher}
+              confirmLabel="Thêm giáo viên"
+            />
           )}
-
           {addModalType === 'material' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
-                <input
-                  type="text"
-                  value={newMaterial.title}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
-                <select
-                  value={newMaterial.type}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="video">Video</option>
-                  <option value="link">Link</option>
-                  <option value="document">Document</option>
-                  <option value="other">Khác</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Đường dẫn</label>
-                <input
-                  type="text"
-                  value={newMaterial.file_url}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, file_url: e.target.value })}
-                  placeholder="URL tài liệu"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-                <textarea
-                  value={newMaterial.description}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
-                <button onClick={handleAddMaterial} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Thêm</button>
-              </div>
-            </div>
+            <ModalFooter
+              onCancel={() => setShowAddModal(false)}
+              onConfirm={handleAddMaterial}
+              confirmLabel="Thêm tài liệu"
+            />
           )}
-
           {addModalType === 'test' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Chọn bài kiểm tra</label>
-              <select
-                value={selectedTest}
-                onChange={(e) => setSelectedTest(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-              >
-                <option value="">-- Chọn bài kiểm tra --</option>
-                {availableTests.map((test) => (
-                  <option key={test.id} value={test.id}>{test.title}</option>
-                ))}
-              </select>
-              <div className="flex justify-end gap-3">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg">Huỷ</button>
-                <button onClick={handleAddTest} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Gán</button>
-              </div>
-            </div>
+            <ModalFooter
+              onCancel={() => setShowAddModal(false)}
+              onConfirm={handleAddTest}
+              confirmLabel="Gán bài kiểm tra"
+            />
           )}
         </div>
       </div>
@@ -511,9 +693,10 @@ const handleAddTeacher = async () => {
 
   if (loading) {
     return (
-      <TeacherLayout pageTitle="Chi tiet lop">
-        <div className="flex items-center justify-center py-20">
-          <div className="text-gray-500">Đang tải...</div>
+      <TeacherLayout pageTitle="Chi tiết lớp">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '12px' }}>
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải thông tin lớp học...</div>
         </div>
       </TeacherLayout>
     );
@@ -521,10 +704,15 @@ const handleAddTeacher = async () => {
 
   if (!classData) {
     return (
-      <TeacherLayout pageTitle="Chi tiet lop">
-        <div className="text-center py-20">
-          <p className="text-gray-500">Không tìm thấy lớp này</p>
-          <button onClick={() => navigate('/teacher/classes')} className="mt-4 text-blue-500">Quay lại</button>
+      <TeacherLayout pageTitle="Chi tiết lớp">
+        <div style={{ ...emptyStateStyle, maxWidth: '480px', margin: '80px auto' }}>
+          <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 16px 0' }}>Không tìm thấy lớp này</p>
+          <button
+            onClick={() => navigate('/teacher/classes')}
+            style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+          >
+            ← Quay lại danh sách lớp
+          </button>
         </div>
       </TeacherLayout>
     );
@@ -532,53 +720,83 @@ const handleAddTeacher = async () => {
 
   const tabs = [
     { id: 'students', label: 'Học sinh', icon: FiUsers },
-    { id: 'teachers', label: 'Giao viên', icon: FiUsers },
+    { id: 'teachers', label: 'Giáo viên', icon: FiUsers },
     { id: 'materials', label: 'Tài liệu', icon: FiFileText },
     { id: 'tests', label: 'Bài kiểm tra', icon: FiClipboard },
   ];
 
   return (
     <TeacherLayout pageTitle={classData.name}>
-      <div className="class-detail-container">
+      <div style={pageContainerStyle}>
         <button
           onClick={() => navigate('/teacher/classes')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            color: '#2563eb',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            padding: 0,
+            marginBottom: '24px',
+          }}
+          className="hover:text-blue-800"
         >
-          <FiArrowLeft /> Quay lại danh sách lớp
+          <FiArrowLeft style={{ fontSize: '16px' }} />
+          Quay lại danh sách lớp
         </button>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">{classData.name}</h2>
-          <p className="text-gray-500">
-            Mã lớp: <span className="font-mono font-semibold">{classData.class_code}</span>
+        <div style={{ ...cardStyle, padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>{classData.name}</h2>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+            Mã lớp:{' '}
+            <span style={{ fontFamily: 'monospace', fontWeight: '600', color: '#2563eb', backgroundColor: '#eff6ff', padding: '2px 8px', borderRadius: '6px' }}>
+              {classData.class_code}
+            </span>
           </p>
           {classData.description && (
-            <p className="text-gray-600 mt-2">{classData.description}</p>
+            <p style={{ fontSize: '14px', color: '#4b5563', margin: '12px 0 0 0', lineHeight: '1.6' }}>{classData.description}</p>
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <div className="flex border-b">
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', padding: '0 16px', gap: '4px', overflowX: 'auto' }}>
             {tabs.map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '14px 16px',
+                    fontSize: '14px',
+                    fontWeight: isActive ? '600' : '500',
+                    color: isActive ? '#2563eb' : '#6b7280',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
+                    marginBottom: '-1px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'color 0.15s ease',
+                  }}
+                  className={isActive ? '' : 'hover:text-gray-800'}
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                   {tab.label}
                 </button>
               );
             })}
           </div>
 
-          <div className="p-6">
+          <div style={{ padding: '24px' }}>
             {activeTab === 'students' && renderStudentsTab()}
             {activeTab === 'teachers' && renderTeachersTab()}
             {activeTab === 'materials' && renderMaterialsTab()}
@@ -589,7 +807,6 @@ const handleAddTeacher = async () => {
         {renderAddModal()}
       </div>
     </TeacherLayout>
-  );
-};
+  );};
 
 export default ClassDetailPage;

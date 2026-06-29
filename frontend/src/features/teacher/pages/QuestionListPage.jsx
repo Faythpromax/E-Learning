@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiFileText } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiFileText, FiInbox } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import questionApi from '../../../api/questionApi';
 
@@ -30,22 +30,24 @@ const QuestionListPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Ban co chan muon xoa cau hoi nay?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
 
     try {
       await questionApi.deleteClassQuestion(id);
       setQuestions(questions.filter(q => q.id !== id));
     } catch (error) {
       console.error('Failed to delete question:', error);
-      alert('Xoa that bai');
+      alert('Xóa thất bại. Vui lòng thử lại sau.');
     }
   };
 
-  const filteredQuestions = questions.filter(question => {
-    const matchesSearch = question.content?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === 'all' || question.type === filterType;
-    return matchesSearch && matchesType;
-  });
+  const filteredQuestions = useMemo(() => {
+    return questions.filter(question => {
+      const matchesSearch = question.content?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = filterType === 'all' || question.type === filterType;
+      return matchesSearch && matchesType;
+    });
+  }, [questions, searchQuery, filterType]);
 
   const getTypeBadge = (type) => {
     const badges = {
@@ -57,101 +59,146 @@ const QuestionListPage = () => {
     return badges[type] || 'bg-gray-100 text-gray-700';
   };
 
-  return (
-    <TeacherLayout pageTitle="Quan ly cau hoi">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tim kiem cau hoi..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-64 focus:ring-2 focus:ring-green-500"
-            />
-          </div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-          >
-            <option value="all">Tat ca loai</option>
-            <option value="mcq">Lua chon</option>
-            <option value="fill_blank">Dien vao cho trong</option>
-            <option value="matching">Noi dong</option>
-            <option value="table_fill">Dien bang</option>
-          </select>
-        </div>
-        <button
-          onClick={() => window.location.href = '/teacher/questions/create'}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-        >
-          <FiPlus /> Tao cau hoi
-        </button>
-      </div>
+  const getTypeLabel = (type) => {
+    const labels = {
+      mcq: 'Lựa chọn',
+      fill_blank: 'Điền vào chỗ trống',
+      matching: 'Nối dòng',
+      table_fill: 'Điền bảng',
+    };
+    return labels[type] || type;
+  };
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">Dang tai...</div>
-      ) : filteredQuestions.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <FiFileText className="mx-auto text-4xl text-gray-300 mb-4" />
-          <p className="text-gray-500">Chua co cau hoi nao</p>
+  if (loading) {
+    return (
+      <TeacherLayout pageTitle="Quản lý câu hỏi">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '12px' }}>
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải danh sách câu hỏi...</div>
+        </div>
+      </TeacherLayout>
+    );
+  }
+
+  return (
+    <TeacherLayout pageTitle="Quản lý câu hỏi">
+      <div style={{ display: 'block', width: '100%', maxWidth: '1152px', margin: '0 auto', padding: '24px', boxSizing: 'border-box', textAlign: 'left' }}>
+
+        {/* Tầng 1: Tiêu đề */}
+        <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', width: '100%', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f3f4f6' }} className="justify-between">
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0' }}>Quản lý câu hỏi</h1>
           <button
-            onClick={() => window.location.href = '/teacher/questions/create'}
-            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            onClick={() => navigate('/teacher/questions/create')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#2563eb', color: '#ffffff', fontWeight: '600', borderRadius: '8px', border: 'none', cursor: 'pointer', shadow: '0 1px 2px 0 rgba(0,0,0,0.05)', whiteSpace: 'nowrap' }}
           >
-            Tao cau hoi dau tien
+            <FiPlus style={{ fontSize: '18px' }} />
+            Tạo câu hỏi mới
           </button>
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Noi dung</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Loai</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Do kho</th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">Hanh dong</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredQuestions.map((question) => (
-                <tr key={question.id}>
-                  <td className="px-6 py-4 text-sm text-gray-800 max-w-md truncate">
-                    {question.content}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeBadge(question.type)}`}>
-                      {question.type === 'mcq' ? 'Lua chon' :
-                       question.type === 'fill_blank' ? 'Dien vao' :
-                       question.type === 'matching' ? 'Noi dong' :
-                       question.type === 'table_fill' ? 'Dien bang' : question.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {question.difficulty || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => navigate(`/teacher/questions/${question.id}/edit`)}
-                      className="p-2 text-blue-500 hover:text-blue-700 mr-2"
-                    >
-                      <FiEdit2 />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(question.id)}
-                      className="p-2 text-red-500 hover:text-red-700"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        {/* Tầng 2: Bộ lọc */}
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', alignItems: 'center', backgroundColor: '#ffffff', padding: '16px', borderRadius: '12px', border: '1px solid #e5e7eb', marginBottom: '24px', width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ flex: '1', position: 'relative', width: '100%' }}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo nội dung câu hỏi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: '100%', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', fontSize: '14px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', color: '#374151', boxSizing: 'border-box' }}
+            />
+            <FiSearch style={{ position: 'absolute', left: '12px', top: '11px', color: '#9ca3af', fontSize: '16px' }} />
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', shrink: '0' }}>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              style={{ minWidth: '180px', padding: '8px 12px', fontSize: '14px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', backgroundColor: '#ffffff', color: '#374151', cursor: 'pointer' }}
+            >
+              <option value="all">Tất cả loại câu hỏi</option>
+              <option value="mcq">Lựa chọn</option>
+              <option value="fill_blank">Điền vào chỗ trống</option>
+              <option value="matching">Nối dòng</option>
+              <option value="table_fill">Điền bảng</option>
+            </select>
+          </div>
         </div>
-      )}
+
+        {/* Tầng 3: Bảng dữ liệu */}
+        <div style={{ display: 'block', width: '100%' }}>
+          {questions.length === 0 ? (
+            <div style={{ backgroundColor: '#ffffff', padding: '48px', borderRadius: '12px', border: '1px solid #e5e7eb', textAlign: 'center' }}>
+              <FiFileText style={{ fontSize: '60px', color: '#d1d5db', marginLeft: 'auto', marginRight: 'auto', marginBottom: '16px' }} />
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#374151', marginBottom: '4px' }}>Chưa có câu hỏi nào</h3>
+              <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>Bạn chưa tạo câu hỏi nào trên hệ thống này.</p>
+              <button
+                onClick={() => navigate('/teacher/questions/create')}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ padding: '10px 20px' }}
+              >
+                Tạo câu hỏi đầu tiên
+              </button>
+            </div>
+          ) : filteredQuestions.length === 0 ? (
+            <div style={{ backgroundColor: '#ffffff', padding: '48px', borderRadius: '12px', border: '1px solid #e5e7eb', textAlign: 'center' }}>
+              <FiInbox style={{ fontSize: '60px', color: '#d1d5db', marginLeft: 'auto', marginRight: 'auto', marginBottom: '16px' }} />
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#374151', marginBottom: '4px' }}>Không tìm thấy kết quả</h3>
+              <p style={{ color: '#6b7280', fontSize: '14px' }}>Không có câu hỏi nào khớp với tiêu chí tìm kiếm của bạn.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full border-collapse text-left">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nội dung</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loại</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Độ khó</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {filteredQuestions.map((question) => (
+                      <tr key={question.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-md truncate font-medium">
+                          {question.content}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getTypeBadge(question.type)}`}>
+                            {getTypeLabel(question.type)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {question.difficulty || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => navigate(`/teacher/questions/${question.id}/edit`)}
+                              className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Chỉnh sửa câu hỏi"
+                            >
+                              <FiEdit2 className="text-base" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(question.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Xóa câu hỏi"
+                            >
+                              <FiTrash2 className="text-base" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
     </TeacherLayout>
   );
 };
