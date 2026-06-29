@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiClock, FiFileText, FiCheckCircle, FiAlertCircle, FiPlay, FiCornerDownRight } from 'react-icons/fi';
+import { FiClock, FiFileText, FiCheckCircle, FiPlay, FiCornerDownRight } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import StudentLayout from '../../../components/student/StudentLayout';
 
@@ -57,7 +57,7 @@ export function TestListPage() {
 
   const getStatusBadge = (test) => {
     const attempt = attemptMap[test.id];
-    if (attempt?.status === 'submitted') {
+    if (attempt?.status === 'submitted' || attempt?.status === 'expired') {
       return <span className="text-xs font-medium px-2.5 py-1 bg-green-100 text-green-700 rounded-full">Đã hoàn thành</span>;
     }
     if (attempt?.status === 'in_progress') {
@@ -168,28 +168,26 @@ export function TestListPage() {
                     </div>
 
                     <div className="flex sm:flex-col justify-end items-end gap-2">
-                      {currentAttempt?.status === 'submitted' ? (
+                      {currentAttempt?.status === 'submitted' || currentAttempt?.status === 'expired' ? (
                         <button
                           onClick={() => handleViewResults(currentAttempt.attempt_id || currentAttempt.id)}
                           className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1"
                         >
                           <FiCheckCircle /> Xem kết quả
                         </button>
-                      ) : isExpired ? (
-                        <button disabled className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-lg cursor-not-allowed">
-                          Đã khóa đề
+                      ) : currentAttempt?.status === 'in_progress' ? (
+                        <button
+                          onClick={() => handleStartTest(test.id)}
+                          className="w-full sm:w-auto px-5 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <FiPlay className="text-xs" /> Tiếp tục làm
                         </button>
                       ) : (
                         <button
                           onClick={() => handleStartTest(test.id)}
-                          className={`w-full sm:w-auto px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                            currentAttempt?.status === 'in_progress'
-                              ? 'bg-yellow-600 hover:bg-yellow-700'
-                              : 'bg-blue-600 hover:bg-blue-700'
-                          }`}
+                          className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
                         >
-                          <FiPlay className="text-xs" />
-                          {currentAttempt?.status === 'in_progress' ? 'Tiếp tục làm' : 'Bắt đầu làm'}
+                          <FiPlay className="text-xs" /> Bắt đầu làm
                         </button>
                       )}
                     </div>
@@ -228,34 +226,34 @@ export function TestListPage() {
                         {attempt.started_at ? new Date(attempt.started_at).toLocaleDateString('vi-VN') : 'Không rõ ngày'}
                       </span>
                       <span className={`flex items-center gap-1.5 font-medium ${
-                        attempt.status === 'submitted' ? 'text-green-600' :
+                        attempt.status === 'submitted' || attempt.status === 'expired' ? 'text-green-600' :
                         attempt.status === 'in_progress' ? 'text-yellow-600' : 'text-red-600'
                       }`}>
                         {attempt.status === 'submitted' && <FiCheckCircle />}
                         {attempt.status === 'in_progress' && <FiClock className="animate-spin" />}
-                        {attempt.status === 'expired' && <FiAlertCircle />}
-                        {attempt.status === 'submitted' ? 'Đã nộp bài' :
+                        {attempt.status === 'expired' && <FiCheckCircle />}
+                        {attempt.status === 'submitted' || attempt.status === 'expired' ? 'Đã nộp bài' :
                          attempt.status === 'in_progress' ? 'Đang làm dở' : 'Quá hạn / Huỷ'}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
-                    {attempt.status === 'submitted' && (
+                    {(attempt.status === 'submitted' || attempt.status === 'expired') && (
                       <div className="text-left sm:text-right">
                         <div className={`text-2xl font-black ${
                           (attempt.score || 0) >= 80 ? 'text-green-600' :
                           (attempt.score || 0) >= 50 ? 'text-yellow-600' : 'text-red-600'
                         }`}>
-                          {typeof attempt.score === 'number' ? `${attempt.score.toFixed(1)}%` : '0%'}
+                          {typeof attempt.score === 'number' ? `${attempt.score.toFixed(0)}%` : '0%'}
                         </div>
                         <div className="text-xs text-gray-500 font-medium mt-0.5">
                           Đúng {attempt.correct_count || 0}/{attempt.total_questions || 0} câu
                         </div>
                       </div>
                     )}
-                    
-                    {attempt.status === 'submitted' ? (
+
+                    {attempt.status === 'submitted' || attempt.status === 'expired' ? (
                       <button
                         onClick={() => handleViewResults(attempt.attempt_id || attempt.id)}
                         className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-semibold rounded-lg transition-colors flex items-center gap-1"

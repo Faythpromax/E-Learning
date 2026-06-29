@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FiClock, FiAlertTriangle } from "react-icons/fi";
 
 export function TestTimer({
@@ -19,28 +19,36 @@ export function TestTimer({
   const [isWarning, setIsWarning] = useState(false);
   const [isCritical, setIsCritical] = useState(false);
 
-  const handleTimeUp = useCallback(() => {
-    if (onTimeUp) {
-      onTimeUp();
-    }
-  }, [onTimeUp]);
+  const onTimeUpRef = useRef(onTimeUp);
+  onTimeUpRef.current = onTimeUp;
+
+  const intervalRef = useRef(null);
+  const hasTriggeredTimeUp = useRef(false);
 
   useEffect(() => {
     if (secondsRemaining === null) return;
 
-    const timer = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setSecondsRemaining((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
-          handleTimeUp();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [secondsRemaining, handleTimeUp]);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [secondsRemaining]);
+
+  useEffect(() => {
+    if (secondsRemaining === 0 && !hasTriggeredTimeUp.current) {
+      hasTriggeredTimeUp.current = true;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      onTimeUpRef.current?.();
+    }
+  }, [secondsRemaining]);
 
   useEffect(() => {
     if (secondsRemaining === null) return;

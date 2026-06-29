@@ -125,24 +125,20 @@ export function TestSessionPage() {
     );
   };
 
-  const handleTimeUp = useCallback(async () => {
-    await submitTest();
-  }, [testId, answers]);
+  const handleTimeUp = useCallback(() => {
+    if (!testData?.attempt_id || submitting) return;
+    setSubmitting(true);
+    setShowSubmitModal(false);
+    submitTest();
+  }, [testData, submitting]);
 
   const submitTest = async () => {
-    if (submitting) return;
     try {
-      setSubmitting(true);
-      setShowSubmitModal(false);
-
       const response = await testApi.submitTest(
         testId,
         testData.attempt_id,
-        answers,
+        Object.keys(answers).length > 0 ? answers : [],
       );
-      console.log("TEST ID:", testId);
-      console.log("ATTEMPT ID:", testData?.attempt_id);
-      console.log("ANSWERS:", answers);
 
       if (response.success) {
         navigate(`/student/tests/${testData.attempt_id}/results`, {
@@ -150,8 +146,17 @@ export function TestSessionPage() {
         });
       }
     } catch (error) {
-      console.error("Failed to submit test:", error);
-      alert("Khong the noi bai. Vui long thu lai.");
+      const errorData = error?.response?.data;
+      console.error("[submitTest] Failed:", errorData);
+      if (errorData?.error === 'This attempt has expired.') {
+        const resultRes = await testApi.getTestResults(testData.attempt_id);
+        navigate(`/student/tests/${testData.attempt_id}/results`, {
+          state: { result: resultRes.data },
+        });
+      } else {
+        alert("Khong the noi bai. Vui long thu lai.");
+      }
+    } finally {
       setSubmitting(false);
     }
   };

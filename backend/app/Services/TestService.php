@@ -241,7 +241,9 @@ class TestService
 
             // Nếu hết giờ
             if ($attempt->isExpired()) {
-                $this->expireAttempt($attemptId);
+                if ($attempt->status !== TestAttempt::STATUS_EXPIRED) {
+                    $this->expireAttempt($attemptId);
+                }
 
                 return [
                     'success' => false,
@@ -370,7 +372,7 @@ class TestService
             'answers.question'
         ])->findOrFail($attemptId);
 
-        if ($attempt->status !== TestAttempt::STATUS_SUBMITTED) {
+        if (!in_array($attempt->status, [TestAttempt::STATUS_SUBMITTED, TestAttempt::STATUS_EXPIRED])) {
             return ['success' => false, 'error' => 'Cannot review this attempt yet.'];
         }
 
@@ -433,16 +435,51 @@ class TestService
                 'submitted_at' => $attempt->submitted_at,
                 'attempt_no' => $attempt->attempt_no,
                 'correct_count' => $attempt->answers->where('is_correct', true)->count(),
-                'total_questions' => $attempt->answers->count(),
+                'total_questions' => $attempt->status === TestAttempt::STATUS_EXPIRED
+                    ? $attempt->test->questions->count()
+                    : $attempt->answers->count(),
             ];
         })->toArray();
     }
 
     public function expireAttempt(int $attemptId): void
     {
+        $attempt = TestAttempt::with([
+            'test.questions' => fn($q) => $q->withPivot('score'),
+            'answers',
+        ])->findOrFail($attemptId);
+
+        $totalScore = 0;
+        $maxScore = 0;
+
+        foreach ($attempt->answers as $answer) {
+            $question = $attempt->test->questions->firstWhere('id', $answer->question_id);
+            if (!$question) continue;
+
+            $questionMaxScore = $question->pivot->score ?? 1;
+            $maxScore += $questionMaxScore;
+
+            $isCorrect = $this->scoringFactory->isCorrect(
+                $question->type,
+                $question->toArray(),
+                $answer->answer
+            );
+
+            $answer->is_correct = $isCorrect;
+            $answer->save();
+
+            if ($isCorrect) {
+                $totalScore += $questionMaxScore;
+            }
+        }
+
+        $totalPoints = $attempt->test->questions->sum(fn($q) => $q->pivot->score ?? 1);
+        $percentageScore = $totalPoints > 0 ? ($totalScore / $totalPoints) * 100 : 0;
+
         $this->testRepository->updateAttempt($attemptId, [
             'status' => TestAttempt::STATUS_EXPIRED,
             'submitted_at' => now(),
+            'score' => round($percentageScore, 2),
         ]);
     }
 
