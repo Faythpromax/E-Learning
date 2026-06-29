@@ -39,7 +39,7 @@ export function QuestionRenderer({
   console.log(answer);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow" >
+    <div className="bg-white p-6 rounded-lg shadow">
       <QuestionComponent
         question={question}
         onAnswer={handleAnswer}
