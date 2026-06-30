@@ -258,7 +258,20 @@ class TestService
             foreach ($attempt->test->questions as $question) {
 
                 $questionId = $question->id;
-                $answer = $answers[$questionId] ?? null;
+                $questionMaxScore = $question->pivot->score ?? 1;
+                $maxScore += $questionMaxScore;
+
+                if (!array_key_exists($questionId, $answers)) {
+                    $results[] = [
+                        'question_id' => $questionId,
+                        'is_correct' => false,
+                        'score' => 0,
+                        'max_score' => $questionMaxScore,
+                    ];
+                    continue;
+                }
+
+                $answer = $answers[$questionId];
                 $questionData = $question->toArray();
 
                 $isCorrect = $this->scoringFactory->isCorrect(
@@ -279,10 +292,6 @@ class TestService
                     $answer,
                     $isCorrect
                 );
-
-                $questionMaxScore = $question->pivot->score ?? 1;
-
-                $maxScore += $questionMaxScore;
 
                 if ($isCorrect) {
                     $totalScore += $questionMaxScore;
@@ -452,24 +461,27 @@ class TestService
         $totalScore = 0;
         $maxScore = 0;
 
-        foreach ($attempt->answers as $answer) {
-            $question = $attempt->test->questions->firstWhere('id', $answer->question_id);
-            if (!$question) continue;
-
+        foreach ($attempt->test->questions as $question) {
             $questionMaxScore = $question->pivot->score ?? 1;
             $maxScore += $questionMaxScore;
 
-            $isCorrect = $this->scoringFactory->isCorrect(
-                $question->type,
-                $question->toArray(),
-                $answer->answer
-            );
+            $existingAnswer = $attempt->answers->firstWhere('question_id', $question->id);
 
-            $answer->is_correct = $isCorrect;
-            $answer->save();
+            if ($existingAnswer) {
+                $isCorrect = $this->scoringFactory->isCorrect(
+                    $question->type,
+                    $question->toArray(),
+                    $existingAnswer->answer
+                );
+                $existingAnswer->is_correct = $isCorrect;
+                if ($existingAnswer->answer === null) {
+                    $existingAnswer->answer = [];
+                }
+                $existingAnswer->save();
 
-            if ($isCorrect) {
-                $totalScore += $questionMaxScore;
+                if ($isCorrect) {
+                    $totalScore += $questionMaxScore;
+                }
             }
         }
 
