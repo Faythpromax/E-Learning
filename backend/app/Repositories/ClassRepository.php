@@ -8,6 +8,7 @@ use App\Models\ClassUser;
 use App\Models\ClassTest;
 use App\Models\User;
 use App\Models\Test;
+use App\Models\Practice;
 use App\Repositories\Interfaces\ClassRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -117,6 +118,28 @@ class ClassRepository implements ClassRepositoryInterface
         return Test::whereHas('classTests', function ($q) use ($classId) {
             $q->where('class_id', $classId);
         })->get();
+    }
+
+    public function getPractices(int $classId): Collection
+    {
+        return Practice::whereHas('classPractices', function ($q) use ($classId) {
+            $q->where('class_id', $classId);
+        })->get();
+    }
+
+    public function assignPractice(int $classId, int $practiceId): ClassPractice
+    {
+        return ClassPractice::firstOrCreate([
+            'class_id' => $classId,
+            'practice_id' => $practiceId,
+        ]);
+    }
+
+    public function removePractice(int $classId, int $practiceId): bool
+    {
+        return ClassPractice::where('class_id', $classId)
+            ->where('practice_id', $practiceId)
+            ->delete();
     }
 
     public function addStudent(int $classId, int $userId): ClassUser

@@ -127,6 +127,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/classes/{class}/tests', [ClassController::class, 'assignTest']);
     Route::delete('/classes/{class}/tests/{test}', [ClassController::class, 'removeTest']);
 
+    // Class Practices
+    Route::get('/classes/{class}/practices', [ClassController::class, 'practices']);
+    Route::post('/classes/{class}/practices', [ClassController::class, 'assignPractice']);
+    Route::delete('/classes/{class}/practices/{practice}', [ClassController::class, 'removePractice']);
+
     // Users (Admin only)
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/teachers', [UserController::class, 'teachers']);

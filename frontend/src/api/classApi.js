@@ -111,6 +111,22 @@ export const classApi = {
     const response = await apiClient.delete(`/classes/${classId}/tests/${testId}`);
     return response.data;
   },
+
+  // Practices
+  getPractices: async (classId) => {
+    const response = await apiClient.get(`/classes/${classId}/practices`);
+    return response.data;
+  },
+
+  assignPractice: async (classId, practiceId) => {
+    const response = await apiClient.post(`/classes/${classId}/practices`, { practice_id: practiceId });
+    return response.data;
+  },
+
+  removePractice: async (classId, practiceId) => {
+    const response = await apiClient.delete(`/classes/${classId}/practices/${practiceId}`);
+    return response.data;
+  },
 };
 
 export default classApi;

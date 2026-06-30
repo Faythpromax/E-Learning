@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiX, FiBookOpen } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import classApi from '../../../api/classApi';
 import { testApi } from '../../../api/testApi';
+import { practiceApi } from '../../../api/practiceApi';
 
 const pageContainerStyle = {
   display: 'block',
@@ -181,6 +182,11 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   const [availableTests, setAvailableTests] = useState([]);
   const [selectedTest, setSelectedTest] = useState('');
 
+  // Practices state
+  const [practices, setPractices] = useState([]);
+  const [availablePractices, setAvailablePractices] = useState([]);
+  const [selectedPractice, setSelectedPractice] = useState('');
+
   useEffect(() => {
     fetchClassDetail(true);
   }, [classId]);
@@ -198,8 +204,9 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   setStudents(response.data.users?.filter(u => u.pivot?.role === 'student') || []);
   setTeachers(response.data.users?.filter(u => u.pivot?.role === 'teacher') || []);
   
-  setMaterials(response.data.materials || []);
-  setTests(response.data.tests || []);
+      setMaterials(response.data.materials || []);
+      setTests(response.data.tests || []);
+      setPractices(response.data.practices || []);
 }
   } catch (error) {
     console.error('Failed to fetch class detail:', error);
@@ -323,12 +330,51 @@ const handleAddTeacher = async () => {
     }
   };
 
+  const handleAddPractice = async () => {
+    if (!selectedPractice) return;
+
+    try {
+      await classApi.assignPractice(classId, parseInt(selectedPractice));
+      alert('Gán thành công!');
+      setSelectedPractice('');
+      setShowAddModal(false);
+      fetchClassDetail();
+    } catch (error) {
+      console.error('Failed to assign practice:', error);
+      alert(error.response?.data?.message || 'Gán thất bại');
+    }
+  };
+
+  const handleRemovePractice = async (practiceId) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa bài ôn tập này không?')) return;
+
+    try {
+      await classApi.removePractice(classId, practiceId);
+      setPractices(practices.filter(p => p.id !== practiceId));
+    } catch (error) {
+      console.error('Failed to remove practice:', error);
+      alert('Xóa bài ôn tập thất bại');
+    }
+  };
+
+  const fetchAvailablePractices = async () => {
+    try {
+      const response = await practiceApi.getTeacherPractices();
+      setAvailablePractices(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch practices:', error);
+    }
+  };
+
   const openAddModal = async (type) => {
     setAddModalType(type);
     setShowAddModal(true);
-    
+
     if (type === 'test') {
       fetchAvailableTests();
+    }
+    if (type === 'practice') {
+      fetchAvailablePractices();
     }
   };
 
@@ -508,6 +554,40 @@ const handleAddTeacher = async () => {
       )}
     </div>
   );
+  const renderPracticesTab = () => (
+    <div>
+      <SectionHeader
+        title={`Bài tập ôn tập (${practices.length})`}
+        onAdd={() => openAddModal('practice')}
+        addLabel="Thêm bài tập"
+      />
+      {practices.length === 0 ? (
+        <EmptyState icon={FiBookOpen} message="Chưa có bài ôn tập nào" />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          {practices.map((practice) => (
+            <div key={practice.id} style={{ ...cardStyle, padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>{practice.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                    {practice.questions_count ? `${practice.questions_count} câu` : 'Không giới hạn'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleRemovePractice(practice.id)}
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Xóa bài ôn tập"
+                >
+                  <FiTrash2 className="text-base" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
   const renderAddModal = () => {
     if (!showAddModal) return null;
 
@@ -516,6 +596,7 @@ const handleAddTeacher = async () => {
       teacher: { title: 'Thêm giáo viên', subtitle: 'Nhập ID giáo viên để thêm vào lớp học này.' },
       material: { title: 'Thêm tài liệu', subtitle: 'Tải lên hoặc liên kết tài liệu học tập cho lớp.' },
       test: { title: 'Gán bài kiểm tra', subtitle: 'Chọn bài kiểm tra để gán cho lớp học.' },
+      practice: { title: 'Gán bài ôn tập', subtitle: 'Chọn bài ôn tập để gán cho lớp học.' },
     };
 
     const { title, subtitle } = modalTitles[addModalType] || { title: '', subtitle: '' };
@@ -656,6 +737,22 @@ const handleAddTeacher = async () => {
                 </select>
               </ModalField>
             )}
+
+            {addModalType === 'practice' && (
+              <ModalField label="Chọn bài ôn tập">
+                <select
+                  value={selectedPractice}
+                  onChange={(e) => setSelectedPractice(e.target.value)}
+                  style={{ ...modalInputStyle, cursor: 'pointer' }}
+                  autoFocus
+                >
+                  <option value="">-- Chọn bài ôn tập --</option>
+                  {availablePractices.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
+              </ModalField>
+            )}
           </div>
 
           {addModalType === 'student' && (
@@ -684,6 +781,13 @@ const handleAddTeacher = async () => {
               onCancel={() => setShowAddModal(false)}
               onConfirm={handleAddTest}
               confirmLabel="Gán bài kiểm tra"
+            />
+          )}
+          {addModalType === 'practice' && (
+            <ModalFooter
+              onCancel={() => setShowAddModal(false)}
+              onConfirm={handleAddPractice}
+              confirmLabel="Gán bài ôn tập"
             />
           )}
         </div>
@@ -723,6 +827,7 @@ const handleAddTeacher = async () => {
     { id: 'teachers', label: 'Giáo viên', icon: FiUsers },
     { id: 'materials', label: 'Tài liệu', icon: FiFileText },
     { id: 'tests', label: 'Bài kiểm tra', icon: FiClipboard },
+    { id: 'practices', label: 'Bài tập ôn tập', icon: FiBookOpen },
   ];
 
   return (
@@ -801,6 +906,7 @@ const handleAddTeacher = async () => {
             {activeTab === 'teachers' && renderTeachersTab()}
             {activeTab === 'materials' && renderMaterialsTab()}
             {activeTab === 'tests' && renderTestsTab()}
+            {activeTab === 'practices' && renderPracticesTab()}
           </div>
         </div>
 

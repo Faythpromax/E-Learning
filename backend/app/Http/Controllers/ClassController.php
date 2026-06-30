@@ -8,6 +8,7 @@ use App\Http\Requests\Class\JoinClassRequest;
 use App\Http\Requests\Class\AddMemberRequest;
 use App\Http\Requests\Class\StoreMaterialRequest;
 use App\Http\Requests\Class\AssignTestRequest;
+use App\Http\Requests\Class\AssignPracticeRequest;
 use App\Services\ClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -387,6 +388,61 @@ class ClassController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Xoa bai kiem tra thanh cong.',
+        ]);
+    }
+
+    public function practices(int $classId): JsonResponse
+    {
+        $practices = $this->classService->getPractices($classId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $practices,
+        ]);
+    }
+
+    public function assignPractice(AssignPracticeRequest $request, int $classId): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$this->classService->canManageClass($user->id, $classId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ban khong co quyen gan bai on tap.',
+            ], 403);
+        }
+
+        $result = $this->classService->assignPractice($classId, $request->input('practice_id'));
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'],
+        ]);
+    }
+
+    public function removePractice(Request $request, int $classId, int $practiceId): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$this->classService->canManageClass($user->id, $classId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ban khong co quyen xoa bai on tap.',
+            ], 403);
+        }
+
+        $this->classService->removePractice($classId, $practiceId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Xoa bai on tap thanh cong.',
         ]);
     }
 }

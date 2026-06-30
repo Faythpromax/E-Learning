@@ -9,6 +9,9 @@ use App\Models\TestAnswer;
 use App\Models\TestQuestion;
 use App\Models\ClassModel;
 use App\Models\ClassUser;
+use App\Notifications\AssignmentCreatedByTeacherNotification;
+use App\Notifications\NewAssignmentForStudentNotification;
+use App\Events\NotificationCreated;
 use App\Repositories\Interfaces\TestRepositoryInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -233,6 +236,30 @@ class TestRepository implements TestRepositoryInterface
                 $data['class_ids']
             );
 
+            $test->load(['creator', 'classes.students']);
+            $assignmentName = $test->title;
+            $type = 'test';
+
+            foreach ($test->classes as $class) {
+                $teacher = $test->creator;
+                if ($teacher) {
+                    $teacher->notify(new AssignmentCreatedByTeacherNotification(
+                        $assignmentName,
+                        $class->name,
+                        $type
+                    ));
+                    event(new NotificationCreated($teacher->id));
+                }
+
+                foreach ($class->students as $student) {
+                    $student->notify(new NewAssignmentForStudentNotification(
+                        $assignmentName,
+                        $teacher->name ?? 'Giáo viên',
+                        $type
+                    ));
+                    event(new NotificationCreated($student->id));
+                }
+            }
         }
 
         // Update questions if provided
