@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('attempt_id')->constrained('test_attempts')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
-            $table->json('answer'); // JSON câu trả lời của học sinh
+            $table->json('answer')->nullable(); // JSON câu trả lời của học sinh
             $table->boolean('is_correct')->nullable();
             
             $table->unique(['attempt_id', 'question_id']);
