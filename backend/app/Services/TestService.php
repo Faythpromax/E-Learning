@@ -392,7 +392,17 @@ class TestService
             $maxScore = $question->pivot->score ?? 1;
             $earnedPoints = $answer && $answer->is_correct ? $maxScore : 0;
 
-            $correctAnswer = $this->scoringFactory->getCorrectAnswer($question->type, $questionData);
+            if ($question->type === 'table_fill') {
+                $rawAnswers = $questionData['data']['correct_answers'] ?? [];
+                $rightColumn = [];
+                foreach ($rawAnswers as $colData) {
+                    $vals = is_array($colData) ? array_values($colData) : [$colData];
+                    $rightColumn[] = $vals[0] ?? '';
+                }
+                $correctAnswer = $rightColumn;
+            } else {
+                $correctAnswer = $this->scoringFactory->getCorrectAnswer($question->type, $questionData);
+            }
             $correctAnswerDisplay = is_array($correctAnswer)
                 ? implode(', ', $correctAnswer)
                 : (string) ($correctAnswer ?? '');
@@ -545,20 +555,52 @@ class TestService
         }
 
         TestAnswer::updateOrCreate(
-
             [
                 'attempt_id'=>$attemptId,
                 'question_id'=>$questionId,
             ],
-
             [
-
                 'answer'=>$answer,
-
                 'is_correct'=>null
-
             ]
-
         );
+    }
+
+    public function getClassScores(int $classId, int $testId): array
+    {
+        $test = $this->getTestById($testId);
+        $attempts = $this->testRepository->getClassScores($classId, $testId);
+
+        $maxPoints = $test->testQuestions->sum('score');
+
+        return [
+            'test' => [
+                'id' => $test->id,
+                'title' => $test->title,
+                'total_questions' => $test->questions->count(),
+                'max_points' => $maxPoints,
+            ],
+            'scores' => $attempts->map(function ($attempt) use ($maxPoints) {
+                $earnedPoints = 0;
+                foreach ($attempt->answers as $answer) {
+                    $question = $attempt->test->questions->firstWhere('id', $answer->question_id);
+                    $questionScore = $question && isset($question->pivot->score) ? (int) $question->pivot->score : 1;
+                    if ($answer->is_correct) {
+                        $earnedPoints += $questionScore;
+                    }
+                }
+                return [
+                    'student_id' => $attempt->user_id,
+                    'student_name' => $attempt->user->name ?? 'N/A',
+                    'email' => $attempt->user->email ?? 'N/A',
+                    'phone' => $attempt->user->phone ?? 'N/A',
+                    'status' => $attempt->status,
+                    'submitted_at' => $attempt->submitted_at,
+                    'attempt_no' => $attempt->attempt_no,
+                    'earned_points' => $earnedPoints,
+                    'max_points' => $maxPoints,
+                ];
+            })->values()->toArray(),
+        ];
     }
 }

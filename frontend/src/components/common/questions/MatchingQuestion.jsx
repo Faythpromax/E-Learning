@@ -111,11 +111,16 @@ export function MatchingQuestion({
                   console.log("selected =", selectedLeft);
                   if (showResult) return;
 
-                  if (selectedLeft === null) return;
+                  let targetLeft = selectedLeft;
+                  if (targetLeft === null) {
+                    const leftItems = Array.isArray(left) ? left : [];
+                    targetLeft = leftItems.findIndex((_, idx) => matches[idx] === undefined);
+                    if (targetLeft === -1) return;
+                  } else {
+                    setSelectedLeft(null);
+                  }
 
-                  handleMatch(selectedLeft, originalIndex);
-
-                  setSelectedLeft(null);
+                  handleMatch(targetLeft, originalIndex);
                 }}
               >
                 {/* <span className="font-medium mr-2">{originalIndex + 1}.</span> */}

@@ -32,6 +32,11 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
     return userAnswer === correctAnswer;
   };
 
+  // Prefer backend's is_correct when available (PracticeSessionPage flow)
+  const overallCorrect = result?.is_correct
+    ? Object.keys(rightColumn).every((key) => isCorrect(parseInt(key)))
+    : false;
+
   return (
     <div className="space-y-4">
       {question.content && (
@@ -66,13 +71,13 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
                     {showResult ? (
                       <div
                         className={`px-3 py-2 rounded text-center ${
-                          isCorrect(rowIndex)
+                          overallCorrect
                             ? 'bg-green-50 text-green-700 border border-green-500'
                             : 'bg-red-50 text-red-700 border border-red-500'
                         }`}
                       >
                         {answers[rowIndex] || ''}
-                        {!isCorrect(rowIndex) && rightColumn[rowIndex] && (
+                        {!overallCorrect && rightColumn[rowIndex] && (
                           <span className="text-gray-500 ml-1">
                             {' '}({rightColumn[rowIndex]})
                           </span>

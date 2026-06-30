@@ -127,6 +127,12 @@ export const classApi = {
     const response = await apiClient.delete(`/classes/${classId}/practices/${practiceId}`);
     return response.data;
   },
+
+  // Scores
+  getClassScores: async (classId, testId) => {
+    const response = await apiClient.get(`/classes/${classId}/tests/${testId}/scores`);
+    return response.data;
+  },
 };
 
 export default classApi;

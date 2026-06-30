@@ -23,8 +23,8 @@ class StoreTestRequest extends FormRequest
             'max_attempts' => 'nullable|integer|min:1',
             'duration' => 'nullable|integer|min:1',
             'class_ids' => [
-                'required_if:access_type,class_only',
-                'array'
+                'nullable',
+                'array',
             ],
 
             'class_ids.*' => [

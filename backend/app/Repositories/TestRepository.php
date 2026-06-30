@@ -353,7 +353,22 @@ class TestRepository implements TestRepositoryInterface
         do {
             $code = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
         } while (Test::where('test_code', $code)->exists());
-
         return $code;
+    }
+
+    public function getClassScores(int $classId, int $testId): Collection
+    {
+        $studentUserIds = ClassUser::where('class_id', $classId)
+            ->where('role', 'student')
+            ->pluck('user_id');
+
+        return TestAttempt::where('test_id', $testId)
+            ->whereIn('user_id', $studentUserIds)
+            ->whereIn('status', [TestAttempt::STATUS_SUBMITTED, TestAttempt::STATUS_EXPIRED])
+            ->with(['user:id,name,email,phone', 'answers', 'test.testQuestions', 'test.questions' => fn($q) => $q->withPivot('score')])
+            ->orderBy('submitted_at', 'desc')
+            ->get()
+            ->groupBy('user_id')
+            ->map(fn($attempts) => $attempts->first());
     }
 }
