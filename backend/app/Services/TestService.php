@@ -511,7 +511,9 @@ class TestService
 
         // Get existing answers for resume
         $existingAnswers = TestAnswer::where('attempt_id', $attempt->id)
-            ->pluck('answer', 'question_id')
+            ->get()
+            ->keyBy('question_id')
+            ->map(fn($a) => $a->answer)
             ->toArray();
 
         $questions = $test->questions->map(function ($question) {

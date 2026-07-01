@@ -22,16 +22,38 @@ export function McqQuestion({ question, onAnswer, answer = null, showResult = fa
   const getOptionClass = (option) => {
     if (!showResult) {
       return selectedAnswers.includes(option.id)
-        ? 'border-blue-500 bg-blue-50'
-        : 'border-gray-200 hover:border-blue-300';
+        ? 'bg-blue-50/50'
+        : 'hover:bg-gray-50';
     }
 
     const isSelected = selectedAnswers.includes(option.id);
     const isCorrectOption = correctAnswers.includes(option.id);
-    if (isCorrectOption && isSelected) return 'border-green-500 bg-green-50';
-    if (!isCorrectOption && isSelected) return 'border-red-500 bg-red-50';
-    if (isCorrectOption && !isSelected) return 'border-green-500 bg-yellow-50';
-    return 'border-gray-200';
+    if (isCorrectOption && isSelected) return 'bg-green-50/50';
+    if (!isCorrectOption && isSelected) return 'bg-red-50/50';
+    if (isCorrectOption && !isSelected) return 'bg-yellow-50/50';
+    return '';
+  };
+
+  const getCheckboxCircleClass = (option) => {
+    const isSelected = selectedAnswers.includes(option.id);
+    
+    if (!showResult) {
+      return isSelected
+        ? 'bg-blue-600 border-blue-600 text-white'
+        : 'border-gray-300 bg-white text-gray-600 group-hover:border-blue-400';
+    }
+
+    const isCorrectOption = correctAnswers.includes(option.id);
+    if (isCorrectOption && isSelected) {
+      return 'bg-green-600 border-green-600 text-white';
+    }
+    if (!isCorrectOption && isSelected) {
+      return 'bg-red-600 border-red-600 text-white';
+    }
+    if (isCorrectOption && !isSelected) {
+      return 'bg-green-100 border-green-500 text-green-700';
+    }
+    return 'border-gray-300 bg-white text-gray-400';
   };
 
   const correctAnswerDisplay = result?.correct_answer_display
@@ -57,17 +79,19 @@ export function McqQuestion({ question, onAnswer, answer = null, showResult = fa
             key={option.id}
             onClick={() => handleToggle(option.id)}
             disabled={showResult}
-            className={`w-full text-left p-4 border-2 rounded-lg transition-all ${getOptionClass(option)}`}
+            className={`w-full text-left p-3.5 rounded-lg transition-all flex items-center gap-4 group ${getOptionClass(option)}`}
           >
             <input
               type="checkbox"
               checked={selectedAnswers.includes(option.id)}
               onChange={() => handleToggle(option.id)}
               disabled={showResult}
-              className="mr-3 w-4 h-4 accent-blue-600"
+              className="sr-only"
             />
-            <span className="font-medium mr-3">{option.id}.</span>
-            <span>{option.text}</span>
+            <span className={`w-8 h-8 rounded-full border-2 flex-shrink-0 flex items-center justify-center font-semibold text-sm transition-all ${getCheckboxCircleClass(option)}`}>
+              {option.id.toUpperCase()}
+            </span>
+            <span className="text-gray-800 font-medium">{option.text}</span>
           </button>
         ))}
       </div>
