@@ -44,7 +44,16 @@ class QuestionService
 
         $questionData = $builder->build($data);
 
-        return $this->questionRepository ->create($questionData);
+        $question = $this->questionRepository ->create($questionData);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'create',
+            \App\Models\Question::class,
+            $question->id,
+            "Created question (ID: {$question->id}, Type: {$question->type})"
+        );
+
+        return $question;
     }
 
     public function updateQuestion(int $id, array $data): Question
@@ -82,15 +91,35 @@ class QuestionService
 
         $questionData = $builder->build($mergedData);
 
-        return $this->questionRepository->update(
+        $question = $this->questionRepository->update(
             $id,
             $questionData
         );
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'update',
+            \App\Models\Question::class,
+            $id,
+            "Updated question (ID: {$id})"
+        );
+
+        return $question;
     }
 
     public function deleteQuestion(int $id): bool
     {
-        return $this->questionRepository->delete($id);
+        $deleted = $this->questionRepository->delete($id);
+
+        if ($deleted) {
+            app(\App\Services\ActivityLogService::class)->log(
+                'delete',
+                \App\Models\Question::class,
+                $id,
+                "Deleted question (ID: {$id})"
+            );
+        }
+
+        return $deleted;
     }
 
     public function getQuestionsBySubject(int $subjectId): \Illuminate\Database\Eloquent\Collection

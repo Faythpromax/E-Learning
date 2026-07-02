@@ -237,7 +237,32 @@ export function TestResultPage() {
           </div>
         </div>
 
-        <div style={{ ...cardStyle, overflow: 'hidden', marginBottom: '20px' }}>
+        <div style={{ ...cardStyle, overflow: 'hidden', marginBottom: '20px' }} className="print-card">
+          <style>{`
+            @media print {
+              header, .no-print, button {
+                display: none !important;
+              }
+              body, html {
+                background-color: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              .print-container {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+              .print-card {
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin-bottom: 20px !important;
+              }
+            }
+          `}</style>
           <div style={{
             padding: '20px 24px',
             borderBottom: '1px solid #f3f4f6',
@@ -245,27 +270,46 @@ export function TestResultPage() {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '12px',
-          }}>
+          }} className="no-print">
             <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', margin: 0 }}>Xem lại đáp án</h2>
-            <button
-              onClick={() => setShowReview(!showReview)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: showReview ? '#eff6ff' : '#f3f4f6',
-                color: showReview ? '#2563eb' : '#374151',
-                fontWeight: '600',
-                fontSize: '13px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-              className="hover:opacity-80"
-            >
-              {showReview ? 'Ẩn đi' : 'Hiển thị'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => window.print()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  fontWeight: '600',
+                  fontSize: '13px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                className="hover:bg-blue-700"
+              >
+                In kết quả (PDF)
+              </button>
+              <button
+                onClick={() => setShowReview(!showReview)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: showReview ? '#eff6ff' : '#f3f4f6',
+                  color: showReview ? '#2563eb' : '#374151',
+                  fontWeight: '600',
+                  fontSize: '13px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                className="hover:opacity-80"
+              >
+                {showReview ? 'Ẩn đi' : 'Hiển thị'}
+              </button>
+            </div>
           </div>
 
-          {showReview && review?.questions && (
+          {/* Khi ở chế độ in, luôn hiển thị review đáp án */}
+          {(showReview || window.matchMedia('print').matches) && review?.questions && (
             <div>
               {review.questions.map((question, index) => (
                 <div
@@ -274,6 +318,7 @@ export function TestResultPage() {
                     padding: '24px',
                     borderBottom: index < review.questions.length - 1 ? '1px solid #f3f4f6' : 'none',
                   }}
+                  className="print-card"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                     {question.is_correct ? (
@@ -311,7 +356,7 @@ export function TestResultPage() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px' }} className="no-print">
           <button
             onClick={() => navigate('/student/tests')}
             style={{

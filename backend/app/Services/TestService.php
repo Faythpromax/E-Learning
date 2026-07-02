@@ -63,17 +63,49 @@ class TestService
             ? 'system'
             : 'class';
 
-        return $this->testRepository->createTest($data);
+        $test = $this->testRepository->createTest($data);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'create',
+            \App\Models\Test::class,
+            $test->id,
+            "User {$user->name} (ID: {$userId}) created test \"{$test->title}\""
+        );
+
+        return $test;
     }
 
     public function updateTest(int $testId, array $data): mixed
     {
-        return $this->testRepository->updateTest($testId, $data);
+        $test = $this->testRepository->updateTest($testId, $data);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'update',
+            \App\Models\Test::class,
+            $testId,
+            "Updated test \"{$test->title}\" (ID: {$testId})"
+        );
+
+        return $test;
     }
 
     public function deleteTest(int $testId): bool
     {
-        return $this->testRepository->deleteTest($testId);
+        $test = \App\Models\Test::find($testId);
+        $title = $test ? $test->title : 'Unknown';
+
+        $deleted = $this->testRepository->deleteTest($testId);
+
+        if ($deleted) {
+            app(\App\Services\ActivityLogService::class)->log(
+                'delete',
+                \App\Models\Test::class,
+                $testId,
+                "Deleted test \"{$title}\" (ID: {$testId})"
+            );
+        }
+
+        return $deleted;
     }
 
     public function canAccessTest(int $userId, int $testId): array
@@ -217,6 +249,13 @@ class TestService
             $attempt = $this->testRepository
                 ->createAttempt($userId, $testId);
 
+            app(\App\Services\ActivityLogService::class)->log(
+                'start_test',
+                \App\Models\TestAttempt::class,
+                $attempt->id,
+                "Student (User ID: {$userId}) started test (Test ID: {$testId}, Attempt ID: {$attempt->id})"
+            );
+
             return $this->formatAttemptResponse($attempt);
 
         });
@@ -290,12 +329,11 @@ class TestService
                     $attemptId,
                     $questionId,
                     $answer,
-                    $isCorrect
+                    $isCorrect,
+                    $score
                 );
 
-                if ($isCorrect) {
-                    $totalScore += $questionMaxScore;
-                }
+                $totalScore += $score * $questionMaxScore;
 
                 $results[] = [
                     'question_id' => $questionId,
@@ -317,6 +355,13 @@ class TestService
                     'submitted_at' => now(),
                     'score' => $percentageScore,
                 ]
+            );
+
+            app(\App\Services\ActivityLogService::class)->log(
+                'submit_test',
+                \App\Models\TestAttempt::class,
+                $attemptId,
+                "Student submitted test (Attempt ID: {$attemptId}) with score: " . round($percentageScore, 2) . "%"
             );
 
             return [
@@ -351,8 +396,10 @@ class TestService
             ->keyBy('question_id');
 
         $earnedPoints = $attempt->answers
-            ->filter(fn($a) => $a->is_correct)
-            ->sum(fn($a) => $testQuestionMap->get($a->question_id)?->score ?? 1);
+            ->sum(function ($a) use ($testQuestionMap) {
+                $scoreRatio = $a->score ?? ($a->is_correct ? 1.0 : 0.0);
+                return $scoreRatio * ($testQuestionMap->get($a->question_id)?->score ?? 1);
+            });
         $totalPoints = $attempt->answers
             ->sum(fn($a) => $testQuestionMap->get($a->question_id)?->score ?? 1);
 
@@ -390,7 +437,8 @@ class TestService
             $answer = $attempt->answers->firstWhere('question_id', $question->id);
             $questionData = $question->toArray();
             $maxScore = $question->pivot->score ?? 1;
-            $earnedPoints = $answer && $answer->is_correct ? $maxScore : 0;
+            $answerScore = $answer ? ($answer->score ?? ($answer->is_correct ? 1.0 : 0.0)) : 0.0;
+            $earnedPoints = $answerScore * $maxScore;
 
             if ($question->type === 'table_fill') {
                 $rawAnswers = $questionData['data']['correct_answers'] ?? [];
@@ -483,15 +531,19 @@ class TestService
                     $question->toArray(),
                     $existingAnswer->answer
                 );
+                $score = $this->scoringFactory->calculateScore(
+                    $question->type,
+                    $question->toArray(),
+                    $existingAnswer->answer
+                );
                 $existingAnswer->is_correct = $isCorrect;
+                $existingAnswer->score = $score;
                 if ($existingAnswer->answer === null) {
                     $existingAnswer->answer = [];
                 }
                 $existingAnswer->save();
 
-                if ($isCorrect) {
-                    $totalScore += $questionMaxScore;
-                }
+                $totalScore += $score * $questionMaxScore;
             }
         }
 
@@ -586,10 +638,9 @@ class TestService
                 $earnedPoints = 0;
                 foreach ($attempt->answers as $answer) {
                     $question = $attempt->test->questions->firstWhere('id', $answer->question_id);
-                    $questionScore = $question && isset($question->pivot->score) ? (int) $question->pivot->score : 1;
-                    if ($answer->is_correct) {
-                        $earnedPoints += $questionScore;
-                    }
+                    $questionScore = $question && isset($question->pivot->score) ? (float) $question->pivot->score : 1.0;
+                    $scoreRatio = $answer->score ?? ($answer->is_correct ? 1.0 : 0.0);
+                    $earnedPoints += $scoreRatio * $questionScore;
                 }
                 return [
                     'student_id' => $attempt->user_id,

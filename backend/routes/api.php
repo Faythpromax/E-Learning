@@ -83,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tests/attempts', [TestController::class, 'myAttempts']);
     Route::get('/tests/attempts/{attemptId}', [TestController::class, 'results']);
     Route::get('/tests/attempts/{attemptId}/review', [TestController::class, 'review']);
+    Route::post('/tests/attempts/{attemptId}/tab-switch', [TestController::class, 'reportTabSwitch']);
 
     // Test Taking
     Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']);

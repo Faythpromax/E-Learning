@@ -99,9 +99,23 @@ class UserService
 
     public function getCounts(): array
     {
+        $newUsers = User::select(\Illuminate\Support\Facades\DB::raw('date(created_at) as date'), \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->where('created_at', '>=', now()->subDays(14))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $attempts = \App\Models\TestAttempt::select(\Illuminate\Support\Facades\DB::raw('date(created_at) as date'), \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->where('created_at', '>=', now()->subDays(14))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
         return [
             'teachers_count' => User::where('role', 'teacher')->orWhere('role', 'admin')->count(),
             'students_count' => User::where('role', 'student')->count(),
+            'daily_new_users' => $newUsers,
+            'daily_attempts' => $attempts,
         ];
     }
 }

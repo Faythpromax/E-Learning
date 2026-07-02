@@ -100,6 +100,9 @@ const TestResultsPage = () => {
                   Diem so
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Chuyển tab
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Trang thai
                 </th>
               </tr>
@@ -107,13 +110,13 @@ const TestResultsPage = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                     Dang tai ket qua...
                   </td>
                 </tr>
               ) : results.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                     Chua co hoc sinh nao lam bai kiem tra nay.
                   </td>
                 </tr>
@@ -144,6 +147,15 @@ const TestResultsPage = () => {
                       <div className={`text-lg font-bold ${getScoreColor(result.score)}`}>
                         {result.score?.toFixed(1) || 0}%
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {result.tab_switch_count > 0 ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                          {result.tab_switch_count} lần
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${

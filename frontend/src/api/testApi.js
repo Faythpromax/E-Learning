@@ -93,6 +93,11 @@ export const testApi = {
 
     return response.data;
   },
+
+  reportTabSwitch: async (attemptId) => {
+    const response = await apiClient.post(`/tests/attempts/${attemptId}/tab-switch`);
+    return response.data;
+  },
 };
 
 export default testApi;

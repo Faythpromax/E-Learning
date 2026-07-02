@@ -17,11 +17,13 @@ class TestAnswer extends Model
         'question_id',
         'answer',
         'is_correct',
+        'score',
     ];
 
     protected $casts = [
         'answer' => 'array',
         'is_correct' => 'boolean',
+        'score' => 'float',
     ];
 
     public function attempt(): BelongsTo

@@ -40,5 +40,6 @@ class AppServiceProvider extends ServiceProvider
         ClassUser::observe(ClassUserObserver::class);
         ClassTest::observe(ClassTestObserver::class);
         ClassPractice::observe(ClassPracticeObserver::class);
+        \App\Models\Question::observe(\App\Observers\QuestionObserver::class);
     }
 }

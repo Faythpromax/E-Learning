@@ -34,7 +34,16 @@ class ClassService
         $data['created_by'] = $userId;
         $data['class_code'] = $data['class_code'] ?? $this->generateClassCode();
 
-        return $this->classRepository->create($data);
+        $class = $this->classRepository->create($data);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'create',
+            \App\Models\ClassModel::class,
+            $class->id,
+            "Created class \"{$class->name}\" (ID: {$class->id}, Code: {$class->class_code}) by user ID: {$userId}"
+        );
+
+        return $class;
     }
 
     public function updateClass(int $id, array $data): ClassModel
@@ -45,12 +54,35 @@ class ClassService
             throw new \InvalidArgumentException('Class not found.');
         }
 
-        return $this->classRepository->update($id, $data);
+        $updatedClass = $this->classRepository->update($id, $data);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'update',
+            \App\Models\ClassModel::class,
+            $id,
+            "Updated class \"{$updatedClass->name}\" (ID: {$id})"
+        );
+
+        return $updatedClass;
     }
 
     public function deleteClass(int $id): bool
     {
-        return $this->classRepository->delete($id);
+        $class = $this->classRepository->getById($id);
+        $name = $class ? $class->name : 'Unknown';
+
+        $deleted = $this->classRepository->delete($id);
+
+        if ($deleted) {
+            app(\App\Services\ActivityLogService::class)->log(
+                'delete',
+                \App\Models\ClassModel::class,
+                $id,
+                "Deleted class \"{$name}\" (ID: {$id})"
+            );
+        }
+
+        return $deleted;
     }
 
     public function joinClass(int $userId, string $code): array
@@ -76,6 +108,13 @@ class ClassService
         }
 
         $this->classRepository->addStudent($class->id, $userId);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'join_class',
+            \App\Models\ClassModel::class,
+            $class->id,
+            "User (ID: {$userId}) joined class \"{$class->name}\" (ID: {$class->id})"
+        );
 
         return [
             'success' => true,
@@ -103,6 +142,13 @@ class ClassService
                 'message' => 'Ban khong phai thanh vien cua lop nay.',
             ];
         }
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'leave_class',
+            \App\Models\ClassModel::class,
+            $classId,
+            "User (ID: {$userId}) left class \"{$class->name}\" (ID: {$classId})"
+        );
 
         return [
             'success' => true,
@@ -142,6 +188,13 @@ class ClassService
 
         $this->classRepository->addStudent($classId, $userId);
 
+        app(\App\Services\ActivityLogService::class)->log(
+            'add_student',
+            \App\Models\ClassModel::class,
+            $classId,
+            "Added student \"{$user->name}\" (ID: {$userId}) to class ID: {$classId}"
+        );
+
         return [
             'success' => true,
             'message' => 'Them hoc sinh thanh cong.',
@@ -158,6 +211,13 @@ class ClassService
                 'message' => 'Hoc sinh khong ton tai trong lop.',
             ];
         }
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'remove_student',
+            \App\Models\ClassModel::class,
+            $classId,
+            "Removed student ID: {$userId} from class ID: {$classId}"
+        );
 
         return [
             'success' => true,
@@ -231,12 +291,35 @@ class ClassService
 
     public function addMaterial(int $classId, array $data): \App\Models\ClassMaterial
     {
-        return $this->classRepository->addMaterial($classId, $data);
+        $material = $this->classRepository->addMaterial($classId, $data);
+
+        app(\App\Services\ActivityLogService::class)->log(
+            'add_material',
+            \App\Models\ClassModel::class,
+            $classId,
+            "Added material \"{$material->title}\" (ID: {$material->id}) to class ID: {$classId}"
+        );
+
+        return $material;
     }
 
     public function removeMaterial(int $classId, int $materialId): bool
     {
-        return $this->classRepository->removeMaterial($classId, $materialId);
+        $material = \App\Models\ClassMaterial::find($materialId);
+        $title = $material ? $material->title : 'Unknown';
+
+        $removed = $this->classRepository->removeMaterial($classId, $materialId);
+
+        if ($removed) {
+            app(\App\Services\ActivityLogService::class)->log(
+                'remove_material',
+                \App\Models\ClassModel::class,
+                $classId,
+                "Removed material \"{$title}\" (ID: {$materialId}) from class ID: {$classId}"
+            );
+        }
+
+        return $removed;
     }
 
     public function getMaterials(int $classId): \Illuminate\Database\Eloquent\Collection

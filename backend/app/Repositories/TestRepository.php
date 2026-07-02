@@ -324,7 +324,7 @@ class TestRepository implements TestRepositoryInterface
         return $attempt;
     }
 
-    public function createAnswer(int $attemptId, int $questionId, mixed $answer, bool $isCorrect): Model
+    public function createAnswer(int $attemptId, int $questionId, mixed $answer, bool $isCorrect, float $score = 0.0): Model
     {
         return TestAnswer::updateOrCreate(
             [
@@ -334,6 +334,7 @@ class TestRepository implements TestRepositoryInterface
             [
                 'answer' => $answer,
                 'is_correct' => $isCorrect,
+                'score' => $score,
             ]
         );
     }

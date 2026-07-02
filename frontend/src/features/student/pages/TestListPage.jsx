@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiClock, FiFileText, FiCheckCircle, FiPlay, FiCornerDownRight } from 'react-icons/fi';
+import { FiClock, FiFileText, FiCheckCircle, FiPlay, FiCornerDownRight, FiInbox } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import StudentLayout from '../../../components/student/StudentLayout';
 
@@ -46,7 +46,7 @@ export function TestListPage() {
   };
 
   const handleViewResults = (attemptId) => {
-    navigate(`/student/tests/${attemptId}/results`);
+    navigate(`/student/tests/results/${attemptId}`);
   };
 
   const formatDuration = (minutes) => {
@@ -84,9 +84,43 @@ export function TestListPage() {
   if (loading) {
     return (
       <StudentLayout pageTitle="Danh sách bài kiểm tra" pageSubtitle="Quản lý các bài kiểm tra của bạn">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '12px' }}>
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải danh sách bài kiểm tra...</div>
+        <div className="max-w-6xl mx-auto p-6 space-y-6 animate-pulse">
+          {/* Title Skeleton */}
+          <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+            <div>
+              <div className="w-64 h-7 bg-gray-200 rounded"></div>
+              <div className="w-80 h-4 bg-gray-100 rounded mt-2"></div>
+            </div>
+            <div className="w-48 h-10 bg-gray-200 rounded-lg"></div>
+          </div>
+
+          {/* Tab Skeleton */}
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="flex border-b border-gray-200 px-4 py-3 gap-6">
+              <div className="w-40 h-5 bg-gray-200 rounded"></div>
+              <div className="w-40 h-5 bg-gray-100 rounded"></div>
+            </div>
+            
+            {/* List Item Skeletons */}
+            <div className="p-6 space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="border border-gray-100 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-48 h-5 bg-gray-200 rounded"></div>
+                      <div className="w-24 h-5 bg-gray-100 rounded-full"></div>
+                    </div>
+                    <div className="w-32 h-4 bg-gray-100 rounded"></div>
+                    <div className="flex gap-4">
+                      <div className="w-24 h-4 bg-gray-100 rounded"></div>
+                      <div className="w-32 h-4 bg-gray-100 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="w-32 h-10 bg-gray-200 rounded-lg self-end sm:self-center"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </StudentLayout>
     );
