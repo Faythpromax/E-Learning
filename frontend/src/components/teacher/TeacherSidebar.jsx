@@ -39,10 +39,12 @@ const TeacherSidebar = ({ isOpen }) => {
     <div className={`teacher-sidebar ${isOpen ? "open" : "closed"}`}>
       {/* Logo */}
       <div className="teacher-sidebar-logo">
-        <div className="teacher-logo-icon">
-          <FiBook size={20} />
+        <div className="teacher-sidebar-logo-header">
+          <div className="teacher-logo-icon">
+            <FiBook size={20} />
+          </div>
+          <span className="logo-text">E-Learning</span>
         </div>
-        E-Learning
       </div>
 
       {/* Navigation Menu */}
@@ -75,9 +77,8 @@ const TeacherSidebar = ({ isOpen }) => {
               {classes.map((cls) => (
                 <div
                   key={cls.id}
-                  className={`nav-dropdown-item ${
-                    isClassActive(cls.id) ? "active" : ""
-                  }`}
+                  className={`nav-dropdown-item ${isClassActive(cls.id) ? "active" : ""
+                    }`}
                   onClick={() => navigate(`/teacher/classes/${cls.id}`)}
                 >
                   {cls.name}

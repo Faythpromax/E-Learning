@@ -1,5 +1,6 @@
 /* ClassCard Component Styles */
 .class-card {
+  height: 220px;
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
@@ -64,6 +65,7 @@
 }
 
 .class-card-footer {
+  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;

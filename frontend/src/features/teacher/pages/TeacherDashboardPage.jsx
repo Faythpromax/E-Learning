@@ -9,7 +9,6 @@ import { testApi } from '../../../api/testApi';
 import { classApi } from '../../../api/classApi';
 import { userApi } from '../../../api/userApi';
 import { questionApi } from '../../../api/questionApi';
-import "./teacher.css";
 
 const calculateExamStatus = (exam) => {
   if (!exam) return false;
@@ -34,6 +33,16 @@ const TeacherDashboardPage = () => {
     totalSubmissions: 0
   });
   const [loading, setLoading] = useState(true);
+
+  const getFormattedDate = () => {
+    const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const now = new Date();
+    const dayName = days[now.getDay()];
+    const date = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    return `${dayName}, ${date}/${month}/${year}`;
+  };
   
   useEffect(() => {
     fetchDashboardData();
@@ -98,13 +107,12 @@ const TeacherDashboardPage = () => {
         <>
           
           {/* Welcome */}
-          <div className="mb-8 rounded-3xl bg-white shadow-sm border border-gray-100 p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              
-              {/* Bên trái: Lời chào */}
-              <div className="flex-1 min-w-[250px] text-left">
+          <div className="mb-6 rounded-3xl bg-white shadow-sm border border-gray-100 p-6">
+            {/* Lời chào */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-left">
+              <div>
                 <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                  Xin chào,
+                  Chào mừng trở lại 👋
                 </p>
                 <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
                   {user?.full_name || user?.name || 'Giáo viên'}
@@ -113,31 +121,20 @@ const TeacherDashboardPage = () => {
                   Tổng quan nhanh về lớp học, học sinh và bài kiểm tra của bạn.
                 </p>
               </div>
-              
-              {/* Bên phải: Khối tổng học sinh */}
-              <div className="flex items-center gap-4 bg-blue-50/50 border border-blue-100/50 p-4 px-6 rounded-2xl min-w-[200px] h-[72px] self-start sm:self-center">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
-                  <FiUsers className="text-xl" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-blue-500 font-bold">
-                    Tổng học sinh
-                  </p>
-                  <p className="text-2xl font-bold text-blue-900 leading-none mt-0.5">
-                    {stats.totalStudents}
-                  </p>
-                </div>
+              <div className="text-left md:text-right">
+                <span className="inline-flex items-center px-4 py-2 bg-slate-50 text-slate-600 rounded-2xl text-sm font-semibold border border-slate-100 shadow-sm">
+                  {getFormattedDate()}
+                </span>
               </div>
-
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
             
             {/* Thẻ 1: Tổng số bài kiểm tra */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
-              <div className="flex justify-between items-start w-100">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số bài kiểm tra</p>
                   <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalTests}</h3>
@@ -146,14 +143,14 @@ const TeacherDashboardPage = () => {
                   <FiFileText className="text-lg" />
                 </div>
               </div>
-              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
-                <FiTrendingUp /> Tăng 12% tháng này
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+                Đã tạo
               </p>
             </div>
 
             {/* Thẻ 2: Tổng số câu hỏi */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
-              <div className="flex justify-between items-start w-100">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số câu hỏi</p>
                   <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalQuestions}</h3>
@@ -162,14 +159,14 @@ const TeacherDashboardPage = () => {
                   <FiBookOpen className="text-lg" />
                 </div>
               </div>
-              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
-                <FiTrendingUp /> Tăng 8% tháng này
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+                Đã lưu
               </p>
             </div>
 
             {/* Thẻ 3: Tổng số học sinh */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
-              <div className="flex justify-between items-start w-100">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số học sinh</p>
                   <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalStudents}</h3>
@@ -178,14 +175,14 @@ const TeacherDashboardPage = () => {
                   <FiUsers className="text-lg" />
                 </div>
               </div>
-              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
-                <FiTrendingUp /> 3 học sinh mới
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+                Học sinh
               </p>
             </div>
 
             {/* Thẻ 4: Số bài nộp */}
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
-              <div className="flex justify-between items-start w-100">
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Số bài nộp</p>
                   <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalSubmissions}</h3>
@@ -194,18 +191,18 @@ const TeacherDashboardPage = () => {
                   <FiCheckCircle className="text-lg" />
                 </div>
               </div>
-              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
-                <FiTrendingUp /> 95% hoàn thành
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+                Cập nhật gần nhất
               </p>
             </div>
 
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 button-group">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 button-group">
             <button
               onClick={handleCreateTest}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-blue-200 transition-all group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-blue-200 transition-all duration-300 hover:-translate-y-[3px] group"
             >
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                 <FiPlus className="text-xl text-blue-600" />
@@ -218,7 +215,7 @@ const TeacherDashboardPage = () => {
 
             <button
               onClick={handleCreateClass}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-green-200 transition-all group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-green-200 transition-all duration-300 hover:-translate-y-[3px] group"
             >
               <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition-colors">
                 <FiUsers className="text-xl text-green-600" />
@@ -231,7 +228,7 @@ const TeacherDashboardPage = () => {
 
             <button
               onClick={handleManageQuestions}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-yellow-200 transition-all group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-yellow-200 transition-all duration-300 hover:-translate-y-[3px] group"
             >
               <div className="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center group-hover:bg-yellow-100 transition-colors">
                 <FiHelpCircle className="text-xl text-yellow-600" />
@@ -246,7 +243,7 @@ const TeacherDashboardPage = () => {
           {/* Recent Classes Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-extrabold text-gray-900">Lớp học mới nhất</h2>
+              <h2 className="text-lg font-extrabold text-gray-900 m-0">Lớp học mới nhất</h2>
               <button
                 onClick={() => navigate('/teacher/classes')}
                 className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
@@ -288,7 +285,7 @@ const TeacherDashboardPage = () => {
           {/* Recent Assignments Section */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-extrabold text-gray-900">Bài kiểm tra mới nhất</h2>
+              <h2 className="text-lg font-extrabold text-gray-900 m-0">Bài kiểm tra mới nhất</h2>
               <button
                 onClick={() => navigate('/teacher/tests')}
                 className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"

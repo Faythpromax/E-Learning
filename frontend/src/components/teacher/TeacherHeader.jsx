@@ -30,10 +30,13 @@ const TeacherHeader = ({ title, onMenuClick }) => {
 
   return (
     <header className="teacher-header">
-      {/* Left: Menu & Title */}
-      <div className="teacher-header-left">
-        <h2 className="teacher-header-title">{title}</h2>
-      </div>
+      {/* Hamburger Menu Button */}
+      <button className="teacher-menu-btn" onClick={onMenuClick}>
+        <FiMenu />
+      </button>
+
+      {/* Header Title */}
+      <h2 className="teacher-header-title">{title}</h2>
 
       {/* Center: Search */}
       <div className="teacher-header-search">

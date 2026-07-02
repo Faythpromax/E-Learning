@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit, FiTrash2, FiFileText, FiCopy, FiBarChart2, FiSearch, FiEye, FiInbox } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import { testApi } from '../../../api/testApi';
+import './teacher-test.css';
 
 export function TeacherTestListPage() {
   const navigate = useNavigate();
@@ -136,7 +137,7 @@ export function TeacherTestListPage() {
   return (
     <TeacherLayout pageTitle="Quản lý bài kiểm tra">
       {/* Container tổng thể bọc cứng cấu trúc block */}
-      <div style={{ display: 'block', width: '100%', maxWidth: '1152px', margin: '0 auto', padding: '24px', boxSizing: 'border-box', textAlign: 'left' }}>
+      <div className="teacher-test-list-page" style={{ display: 'block', width: '100%', maxWidth: '1152px', margin: '0 auto', padding: '24px', boxSizing: 'border-box', textAlign: 'left' }}>
         
         {/* ==================== TẦNG 1: KHỐI TIÊU ĐỀ ==================== */}
         <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', width: '100%', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f3f4f6' }} className="justify-between">
