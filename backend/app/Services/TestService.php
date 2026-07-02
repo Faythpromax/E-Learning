@@ -264,7 +264,20 @@ class TestService
             foreach ($attempt->test->questions as $question) {
 
                 $questionId = $question->id;
-                $answer = $answers[$questionId] ?? null;
+                $questionMaxScore = $question->pivot->score ?? 1;
+                $maxScore += $questionMaxScore;
+
+                if (!array_key_exists($questionId, $answers)) {
+                    $results[] = [
+                        'question_id' => $questionId,
+                        'is_correct' => false,
+                        'score' => 0,
+                        'max_score' => $questionMaxScore,
+                    ];
+                    continue;
+                }
+
+                $answer = $answers[$questionId];
                 $questionData = $question->toArray();
 
                 $isCorrect = $this->scoringFactory->isCorrect(
@@ -285,10 +298,6 @@ class TestService
                     $answer,
                     $isCorrect
                 );
-
-                $questionMaxScore = $question->pivot->score ?? 1;
-
-                $maxScore += $questionMaxScore;
 
                 if ($isCorrect) {
                     $totalScore += $questionMaxScore;
@@ -389,7 +398,17 @@ class TestService
             $maxScore = $question->pivot->score ?? 1;
             $earnedPoints = $answer && $answer->is_correct ? $maxScore : 0;
 
-            $correctAnswer = $this->scoringFactory->getCorrectAnswer($question->type, $questionData);
+            if ($question->type === 'table_fill') {
+                $rawAnswers = $questionData['data']['correct_answers'] ?? [];
+                $rightColumn = [];
+                foreach ($rawAnswers as $colData) {
+                    $vals = is_array($colData) ? array_values($colData) : [$colData];
+                    $rightColumn[] = $vals[0] ?? '';
+                }
+                $correctAnswer = $rightColumn;
+            } else {
+                $correctAnswer = $this->scoringFactory->getCorrectAnswer($question->type, $questionData);
+            }
             $correctAnswerDisplay = is_array($correctAnswer)
                 ? implode(', ', $correctAnswer)
                 : (string) ($correctAnswer ?? '');
@@ -458,24 +477,27 @@ class TestService
         $totalScore = 0;
         $maxScore = 0;
 
-        foreach ($attempt->answers as $answer) {
-            $question = $attempt->test->questions->firstWhere('id', $answer->question_id);
-            if (!$question) continue;
-
+        foreach ($attempt->test->questions as $question) {
             $questionMaxScore = $question->pivot->score ?? 1;
             $maxScore += $questionMaxScore;
 
-            $isCorrect = $this->scoringFactory->isCorrect(
-                $question->type,
-                $question->toArray(),
-                $answer->answer
-            );
+            $existingAnswer = $attempt->answers->firstWhere('question_id', $question->id);
 
-            $answer->is_correct = $isCorrect;
-            $answer->save();
+            if ($existingAnswer) {
+                $isCorrect = $this->scoringFactory->isCorrect(
+                    $question->type,
+                    $question->toArray(),
+                    $existingAnswer->answer
+                );
+                $existingAnswer->is_correct = $isCorrect;
+                if ($existingAnswer->answer === null) {
+                    $existingAnswer->answer = [];
+                }
+                $existingAnswer->save();
 
-            if ($isCorrect) {
-                $totalScore += $questionMaxScore;
+                if ($isCorrect) {
+                    $totalScore += $questionMaxScore;
+                }
             }
         }
 
@@ -495,7 +517,9 @@ class TestService
 
         // Get existing answers for resume
         $existingAnswers = TestAnswer::where('attempt_id', $attempt->id)
-            ->pluck('answer', 'question_id')
+            ->get()
+            ->keyBy('question_id')
+            ->map(fn($a) => $a->answer)
             ->toArray();
 
         $questions = $test->questions->map(function ($question) {
@@ -573,5 +597,43 @@ class TestService
                 'is_correct' => null,
             ]
         );
+    }
+
+    public function getClassScores(int $classId, int $testId): array
+    {
+        $test = $this->getTestById($testId);
+        $attempts = $this->testRepository->getClassScores($classId, $testId);
+
+        $maxPoints = $test->testQuestions->sum('score');
+
+        return [
+            'test' => [
+                'id' => $test->id,
+                'title' => $test->title,
+                'total_questions' => $test->questions->count(),
+                'max_points' => $maxPoints,
+            ],
+            'scores' => $attempts->map(function ($attempt) use ($maxPoints) {
+                $earnedPoints = 0;
+                foreach ($attempt->answers as $answer) {
+                    $question = $attempt->test->questions->firstWhere('id', $answer->question_id);
+                    $questionScore = $question && isset($question->pivot->score) ? (int) $question->pivot->score : 1;
+                    if ($answer->is_correct) {
+                        $earnedPoints += $questionScore;
+                    }
+                }
+                return [
+                    'student_id' => $attempt->user_id,
+                    'student_name' => $attempt->user->name ?? 'N/A',
+                    'email' => $attempt->user->email ?? 'N/A',
+                    'phone' => $attempt->user->phone ?? 'N/A',
+                    'status' => $attempt->status,
+                    'submitted_at' => $attempt->submitted_at,
+                    'attempt_no' => $attempt->attempt_no,
+                    'earned_points' => $earnedPoints,
+                    'max_points' => $maxPoints,
+                ];
+            })->values()->toArray(),
+        ];
     }
 }

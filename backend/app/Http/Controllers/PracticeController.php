@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Practice\SubmitAnswerRequest;
+use App\Models\ClassModel;
 use App\Models\Practice;
+use App\Notifications\AssignmentCreatedByTeacherNotification;
+use App\Notifications\NewAssignmentForStudentNotification;
 use App\Services\PracticeService;
+use App\Events\NotificationCreated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -56,7 +60,7 @@ class PracticeController extends Controller
             ], 403);
         }
 
-        $practice->load(['subject:id,name', 'questions']);
+        $practice->load(['subject:id,name', 'classes:id,name', 'questions.question:id,content,type,subject_id']);
 
         return response()->json([
             'success' => true,
@@ -160,17 +164,23 @@ class PracticeController extends Controller
 
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
-            'subject_id' => 'sometimes|required|exists:subjects,id',
+            'subject_id' => 'sometimes|nullable|exists:subjects,id',
             'description' => 'nullable|string',
             'question_ids' => 'nullable|array',
             'question_ids.*' => 'exists:questions,id',
+            'class_ids' => 'nullable|array',
+            'class_ids.*' => 'exists:classes,id',
         ]);
 
-        $practice->update(array_filter([
+        $updateData = array_filter([
             'title' => $validated['title'] ?? null,
-            'subject_id' => isset($validated['subject_id']) ? (int)$validated['subject_id'] : null,
+            'subject_id' => $validated['subject_id'] ?? null,
             'description' => $validated['description'] ?? null,
-        ], fn($v) => $v !== null));
+        ], fn($v) => $v !== null);
+
+        if (!empty($updateData)) {
+            $practice->update($updateData);
+        }
 
         if (isset($validated['question_ids'])) {
             $practice->questions()->delete();
@@ -184,6 +194,31 @@ class PracticeController extends Controller
 
         if (isset($validated['class_ids'])) {
             $practice->classes()->sync($validated['class_ids']);
+
+            $practice->load(['creator', 'classes.students']);
+            $assignmentName = $practice->title;
+            $type = 'practice';
+
+            foreach ($practice->classes as $class) {
+                $teacher = $practice->creator;
+                if ($teacher) {
+                    $teacher->notify(new AssignmentCreatedByTeacherNotification(
+                        $assignmentName,
+                        $class->name,
+                        $type
+                    ));
+                    event(new NotificationCreated($teacher->id));
+                }
+
+                foreach ($class->students as $student) {
+                    $student->notify(new NewAssignmentForStudentNotification(
+                        $assignmentName,
+                        $teacher->name ?? 'Giáo viên',
+                        $type
+                    ));
+                    event(new NotificationCreated($student->id));
+                }
+            }
         }
 
         $practice->load('subject:id,name');

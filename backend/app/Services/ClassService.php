@@ -278,6 +278,36 @@ class ClassService
         return $this->classRepository->getTests($classId);
     }
 
+    public function assignPractice(int $classId, int $practiceId): array
+    {
+        $existing = \App\Models\ClassPractice::where('class_id', $classId)
+            ->where('practice_id', $practiceId)->first();
+
+        if ($existing) {
+            return [
+                'success' => false,
+                'message' => 'Bai on tap da duoc gan cho lop nay.',
+            ];
+        }
+
+        $this->classRepository->assignPractice($classId, $practiceId);
+
+        return [
+            'success' => true,
+            'message' => 'Gan bai on tap thanh cong.',
+        ];
+    }
+
+    public function removePractice(int $classId, int $practiceId): bool
+    {
+        return $this->classRepository->removePractice($classId, $practiceId);
+    }
+
+    public function getPractices(int $classId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->classRepository->getPractices($classId);
+    }
+
     public function canAccessClass(int $userId, int $classId): bool
     {
         $class = $this->classRepository->getById($classId);

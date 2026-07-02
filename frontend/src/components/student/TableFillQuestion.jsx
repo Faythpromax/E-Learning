@@ -32,6 +32,11 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
     return userAnswer === correctAnswer;
   };
 
+  // Prefer backend's is_correct when available (PracticeSessionPage flow)
+  const overallCorrect = result?.is_correct
+    ? Object.keys(rightColumn).every((key) => isCorrect(parseInt(key)))
+    : false;
+
   return (
     <div className="space-y-4">
       {question.content && (
@@ -39,13 +44,14 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
       )}
 
       <div className="overflow-x-auto">
-        <table className="border-collapse border">
+        <table className="w-full border-collapse border border-gray-200">
           <thead>
             <tr>
               {headers.map((header, i) => (
                 <th
                   key={i}
-                  className="border p-3 bg-gray-100 text-gray-700 font-semibold text-center"
+                  className="border border-gray-200 bg-gray-50 text-gray-700 font-semibold text-center"
+                  style={{ padding: '16px 24px' }}
                 >
                   {header}
                 </th>
@@ -58,21 +64,24 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
               return (
                 <tr key={rowIndex}>
                   {/* Cột trái: hiển thị label (chỉ đọc) */}
-                  <td className="border p-3 text-gray-800 bg-gray-50 font-medium">
+                  <td 
+                    className="border border-gray-200 text-gray-800 bg-gray-50/30 font-medium"
+                    style={{ padding: '16px 24px' }}
+                  >
                     {label}
                   </td>
                   {/* Cột phải: ô nhập đáp án */}
-                  <td className="border p-2">
+                  <td className="border border-gray-200" style={{ padding: '16px' }}>
                     {showResult ? (
                       <div
-                        className={`px-3 py-2 rounded text-center ${
-                          isCorrect(rowIndex)
-                            ? 'bg-green-50 text-green-700 border border-green-500'
-                            : 'bg-red-50 text-red-700 border border-red-500'
+                        className={`px-4 py-2.5 rounded-lg text-center font-medium ${
+                          overallCorrect
+                            ? 'bg-green-50 text-green-700 border border-green-300'
+                            : 'bg-red-50 text-red-700 border border-red-300'
                         }`}
                       >
                         {answers[rowIndex] || ''}
-                        {!isCorrect(rowIndex) && rightColumn[rowIndex] && (
+                        {!overallCorrect && rightColumn[rowIndex] && (
                           <span className="text-gray-500 ml-1">
                             {' '}({rightColumn[rowIndex]})
                           </span>
@@ -83,7 +92,7 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
                         type="text"
                         value={answers[rowIndex] || ''}
                         onChange={(e) => handleChange(rowIndex, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-all shadow-sm"
                         placeholder="..."
                       />
                     )}

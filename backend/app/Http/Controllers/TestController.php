@@ -321,19 +321,39 @@ class TestController extends Controller
     public function saveAnswer(Request $request)
     {
         $this->testService->saveAnswer(
-
             $request->attempt_id,
-
             $request->question_id,
-
             $request->answer
-
         );
-
         return response()->json([
-
             'success'=>true
-
         ]);
+    }
+
+    public function classScores(Request $request, int $classId, int $testId): JsonResponse
+    {
+        $user = $request->user();
+
+        try {
+            $test = $this->testService->getTestById($testId);
+            if ($test->created_by !== $user->id && $user->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'You do not have permission to view scores for this test.',
+                ], 403);
+            }
+
+            $data = $this->testService->getClassScores($classId, $testId);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Test not found.',
+            ], 404);
+        }
     }
 }

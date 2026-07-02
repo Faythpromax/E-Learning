@@ -9,7 +9,7 @@ export function TestQuestionNav({
 }) {
   const getQuestionStatus = (index) => {
     const questionId = questions[index]?.id;
-    const isAnswered = answers[questionId] !== undefined && answers[questionId] !== null;
+    const isAnswered = answers[questionId] != null;
     const isFlagged = flaggedQuestions.includes(questionId);
 
     return { isAnswered, isFlagged };
@@ -84,7 +84,7 @@ export function TestQuestionNav({
       {/* Summary */}
       <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #e5e7eb', fontSize: '13px', color: '#6b7280' }}>
         <div className="flex justify-between">
-          <span>Đã trả lời: {Object.keys(answers).filter(id => answers[id] !== null && answers[id] !== undefined).length}/{questions.length}</span>
+          <span>Đã trả lời: {Object.keys(answers).filter(id => answers[id] != null).length}/{questions.length}</span>
           <span>Đã đánh dấu: {flaggedQuestions.length}</span>
         </div>
       </div>

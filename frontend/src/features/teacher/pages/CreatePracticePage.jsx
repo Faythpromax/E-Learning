@@ -54,9 +54,9 @@ export function CreatePracticePage() {
         setFormData({
           title: practice.title || '',
           subject_id: practice.subject_id?.toString() || '',
-          class_ids: practice.classes?.map(cls=> cls.id) || [],
+          class_ids: practice.class_ids || [],
           description: practice.description || '',
-          question_ids: practice.questions?.map(q => q.id) || [],
+          question_ids: practice.question_ids || [],
         });
       }
     } catch (error) {
@@ -113,13 +113,11 @@ export function CreatePracticePage() {
     try {
       setSaving(true);
       const submitData = {
-        ...formData,
         title: formData.title.trim(),
         subject_id: formData.subject_id ? parseInt(formData.subject_id, 10) : null,
         class_ids: Array.isArray(formData.class_ids) ? formData.class_ids.map(id => Number(id)) : [],
-        description: formData.description.trim() || null,
-        question_ids: formData.question_ids,
-        class_ids: formData.class_ids,
+        description: formData.description?.trim() || null,
+        question_ids: Array.isArray(formData.question_ids) ? formData.question_ids : [],
       };
 
       if (isEditing) {
@@ -131,7 +129,9 @@ export function CreatePracticePage() {
       navigate('/teacher/practice');
     } catch (error) {
       console.error('Failed to save practice:', error);
-      alert('Lưu thất bại. Vui lòng thử lại.');
+      const message = error.response?.data?.message
+        || (error.response?.data?.errors ? Object.values(error.response.data.errors).flat().join(', ') : 'Lưu thất bại. Vui lòng thử lại.');
+      alert(message);
     } finally {
       setSaving(false);
     }

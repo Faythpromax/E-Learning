@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function FillBlankQuestion({ question, onAnswer, showResult = false, userAnswer = null }) {
+export function FillBlankQuestion({ question, onAnswer, answer = null, showResult = false, userAnswer = null }) {
   const { correct_answers = [], case_sensitive = false } = question.data || {};
-  const [answers, setAnswers] = useState(userAnswer || Array(correct_answers.length).fill(''));
+  const [answers, setAnswers] = useState(userAnswer || answer || Array(correct_answers.length).fill(''));
+
+  useEffect(() => {
+    setAnswers(userAnswer ?? answer ?? Array(correct_answers.length).fill(''));
+  }, [userAnswer, answer, correct_answers.length]);
 
   const handleChange = (index, value) => {
     if (showResult) return;
     const newAnswers = [...answers];
     newAnswers[index] = value;
     setAnswers(newAnswers);
-    onAnswer(newAnswers);
+
+    const allEmpty = newAnswers.every((v) => v.trim() === '');
+    onAnswer(allEmpty ? null : newAnswers);
   };
 
   const isCorrect = (userAnswer, correctAnswer) => {

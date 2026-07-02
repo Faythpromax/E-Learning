@@ -1,13 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function TableFillQuestion({ question, onAnswer, showResult = false, userAnswer = null }) {
+export function TableFillQuestion({ question, onAnswer, answer = null, showResult = false, userAnswer = null }) {
   const { rows = 2, cols = 2, correct_answers = {} } = question.data || {};
-  const [answers, setAnswers] = useState(userAnswer || {});
+  const [answers, setAnswers] = useState(userAnswer || answer || {});
+
+  useEffect(() => {
+    setAnswers(userAnswer || answer || {});
+  }, [userAnswer, answer]);
 
   const handleChange = (row, col, value) => {
     if (showResult) return;
     const key = `${row}-${col}`;
-    const newAnswers = { ...answers, [key]: value };
+    const newAnswers = { ...answers };
+    if (value.trim() === '') {
+      delete newAnswers[key];
+    } else {
+      newAnswers[key] = value;
+    }
     setAnswers(newAnswers);
     onAnswer(newAnswers);
   };
@@ -30,32 +39,34 @@ export function TableFillQuestion({ question, onAnswer, showResult = false, user
       )}
 
       <div className="overflow-x-auto">
-        <table className="border-collapse border">
+        <table className="w-full border-collapse border border-gray-200">
           <tbody>
             {Array.from({ length: rows }).map((_, rowIndex) => (
               <tr key={rowIndex}>
                 {Array.from({ length: cols }).map((_, colIndex) => {
                   const key = `${rowIndex}-${colIndex}`;
                   return (
-                    <td key={colIndex} className="border p-2">
-                      <input
-                        type="text"
-                        value={answers[key] || ''}
-                        onChange={(e) => handleChange(rowIndex, colIndex, e.target.value)}
-                        disabled={showResult}
-                        className={`w-24 px-2 py-1 border rounded text-center ${
-                          showResult
-                            ? isCorrect(rowIndex, colIndex)
-                              ? 'border-green-500 bg-green-50'
-                              : 'border-red-500 bg-red-50'
-                            : 'border-gray-300 focus:border-blue-500'
-                        }`}
-                      />
-                      {showResult && (
-                        <span className="text-green-600 text-sm ml-1">
-                          ({correct_answers[rowIndex]?.[colIndex]})
-                        </span>
-                      )}
+                    <td key={colIndex} className="border border-gray-200" style={{ padding: '16px' }}>
+                      <div className="flex flex-col gap-1.5">
+                        <input
+                          type="text"
+                          value={answers[key] || ''}
+                          onChange={(e) => handleChange(rowIndex, colIndex, e.target.value)}
+                          disabled={showResult}
+                          className={`w-full px-4 py-2.5 border rounded-lg text-center transition-all ${
+                            showResult
+                              ? isCorrect(rowIndex, colIndex)
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : 'border-red-500 bg-red-50 text-red-700'
+                              : 'border-gray-300 focus:border-blue-500 focus:outline-none'
+                          }`}
+                        />
+                        {showResult && (
+                          <span className="text-green-600 text-xs text-center font-medium">
+                            ({correct_answers[rowIndex]?.[colIndex]})
+                          </span>
+                        )}
+                      </div>
                     </td>
                   );
                 })}

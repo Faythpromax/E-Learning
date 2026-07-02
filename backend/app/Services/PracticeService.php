@@ -52,12 +52,24 @@ class PracticeService
             $answer
         );
 
+        if ($question->type === 'table_fill') {
+            $rawAnswers = $questionArray['data']['correct_answers'] ?? [];
+            $rightColumn = [];
+            foreach ($rawAnswers as $colData) {
+                $vals = is_array($colData) ? array_values($colData) : [$colData];
+                $rightColumn[] = $vals[0] ?? '';
+            }
+            $correctAnswer = $rightColumn;
+        } else {
+            $correctAnswer = $this->scoringFactory->getCorrectAnswer($question->type, $questionArray);
+        }
+
         $this->updateProgress($userId, $questionId, $isCorrect, $answer);
 
         return [
             'is_correct' => $isCorrect,
             'score' => $score,
-            'correct_answer' => $this->scoringFactory->getCorrectAnswer($question->type, $questionArray),
+            'correct_answer' => $correctAnswer,
             'explanation' => $question->explanation,
             'question_type' => $question->type,
         ];

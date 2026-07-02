@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiX, FiBookOpen, FiBarChart2 } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import classApi from '../../../api/classApi';
 import { testApi } from '../../../api/testApi';
+import { practiceApi } from '../../../api/practiceApi';
 
 const pageContainerStyle = {
   display: 'block',
@@ -168,10 +169,6 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   const [students, setStudents] = useState([]);
   const [studentId, setStudentId] = useState('');
 
-  // Teachers state
-  const [teachers, setTeachers] = useState([]);
-  const [teacherEmail, setTeacherEmail] = useState('');
-
   // Materials state
   const [materials, setMaterials] = useState([]);
   const [newMaterial, setNewMaterial] = useState({ title: '', description: '', file_url: '', type: 'pdf' });
@@ -180,6 +177,16 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   const [tests, setTests] = useState([]);
   const [availableTests, setAvailableTests] = useState([]);
   const [selectedTest, setSelectedTest] = useState('');
+
+  // Practices state
+  const [practices, setPractices] = useState([]);
+  const [availablePractices, setAvailablePractices] = useState([]);
+  const [selectedPractice, setSelectedPractice] = useState('');
+
+  // Scores state
+  const [selectedScoreTest, setSelectedScoreTest] = useState('');
+  const [scoreData, setScoreData] = useState(null);
+  const [loadingScores, setLoadingScores] = useState(false);
 
   useEffect(() => {
     fetchClassDetail(true);
@@ -195,11 +202,11 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   setClassData(response.data);
   
   // Đổi u.class_pivot thành u.pivot
-  setStudents(response.data.users?.filter(u => u.pivot?.role === 'student') || []);
-  setTeachers(response.data.users?.filter(u => u.pivot?.role === 'teacher') || []);
-  
-  setMaterials(response.data.materials || []);
-  setTests(response.data.tests || []);
+      setStudents(response.data.users?.filter(u => u.pivot?.role === 'student') || []);
+
+      setMaterials(response.data.materials || []);
+      setTests(response.data.tests || []);
+      setPractices(response.data.practices || []);
 }
   } catch (error) {
     console.error('Failed to fetch class detail:', error);
@@ -221,18 +228,6 @@ const ClassDetailPage = () => {  const { classId } = useParams();
     }
   };
 
-  const handleRemoveTeacher = async (userId) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa giáo viên này không?')) return;
-
-    try {
-      await classApi.removeTeacher(classId, userId);
-      setTeachers(teachers.filter(t => t.id !== userId));
-    } catch (error) {
-      console.error('Failed to remove teacher:', error);
-      alert('Xóa thất bại!');
-    }
-  };
-
   const handleAddStudent = async () => {
   if (!studentId.trim()) return;
 
@@ -245,23 +240,6 @@ const ClassDetailPage = () => {  const { classId } = useParams();
     fetchClassDetail();
   } catch (error) {
     console.error('Failed to add student:', error);
-    alert(error.response?.data?.message || 'Them that bai');
-  }
-};
-
-const handleAddTeacher = async () => {
-  if (!teacherEmail.trim()) return;
-
-  try {
-    // TƯƠNG TỰ CHO GIÁO VIÊN: Truyền thẳng số ID
-    const response = await classApi.addTeacher(classId, parseInt(teacherEmail));
-    
-    alert('Them giao vien thanh cong!');
-    setTeacherEmail('');
-    setShowAddModal(false);
-    fetchClassDetail(); // Gọi lại để cập nhật danh sách giáo viên ngầm
-  } catch (error) {
-    console.error('Failed to add teacher:', error);
     alert(error.response?.data?.message || 'Them that bai');
   }
 };
@@ -323,12 +301,51 @@ const handleAddTeacher = async () => {
     }
   };
 
+  const handleAddPractice = async () => {
+    if (!selectedPractice) return;
+
+    try {
+      await classApi.assignPractice(classId, parseInt(selectedPractice));
+      alert('Gán thành công!');
+      setSelectedPractice('');
+      setShowAddModal(false);
+      fetchClassDetail();
+    } catch (error) {
+      console.error('Failed to assign practice:', error);
+      alert(error.response?.data?.message || 'Gán thất bại');
+    }
+  };
+
+  const handleRemovePractice = async (practiceId) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa bài ôn tập này không?')) return;
+
+    try {
+      await classApi.removePractice(classId, practiceId);
+      setPractices(practices.filter(p => p.id !== practiceId));
+    } catch (error) {
+      console.error('Failed to remove practice:', error);
+      alert('Xóa bài ôn tập thất bại');
+    }
+  };
+
+  const fetchAvailablePractices = async () => {
+    try {
+      const response = await practiceApi.getTeacherPractices();
+      setAvailablePractices(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch practices:', error);
+    }
+  };
+
   const openAddModal = async (type) => {
     setAddModalType(type);
     setShowAddModal(true);
-    
+
     if (type === 'test') {
       fetchAvailableTests();
+    }
+    if (type === 'practice') {
+      fetchAvailablePractices();
     }
   };
 
@@ -338,6 +355,23 @@ const handleAddTeacher = async () => {
       setAvailableTests(response.data || []);
     } catch (error) {
       console.error('Failed to fetch tests:', error);
+    }
+  };
+
+  const fetchClassScores = async (testId) => {
+    if (!testId) {
+      setScoreData(null);
+      return;
+    }
+    setLoadingScores(true);
+    try {
+      const response = await classApi.getClassScores(classId, testId);
+      setScoreData(response.data || response);
+    } catch (error) {
+      console.error('Failed to fetch scores:', error);
+      setScoreData(null);
+    } finally {
+      setLoadingScores(false);
     }
   };
 
@@ -371,50 +405,6 @@ const handleAddTeacher = async () => {
                         onClick={() => handleRemoveStudent(student.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Xóa học sinh"
-                      >
-                        <FiTrash2 className="text-base" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderTeachersTab = () => (
-    <div>
-      <SectionHeader
-        title={`Danh sách giáo viên (${teachers.length})`}
-        onAdd={() => openAddModal('teacher')}
-        addLabel="Thêm giáo viên"
-      />
-      {teachers.length === 0 ? (
-        <EmptyState icon={FiUsers} message="Chưa có giáo viên nào" />
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full border-collapse text-left">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và tên</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {teachers.map((teacher) => (
-                  <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">{teacher.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{teacher.email}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleRemoveTeacher(teacher.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Xóa giáo viên"
                       >
                         <FiTrash2 className="text-base" />
                       </button>
@@ -508,14 +498,138 @@ const handleAddTeacher = async () => {
       )}
     </div>
   );
+  const renderPracticesTab = () => (
+    <div>
+      <SectionHeader
+        title={`Bài tập ôn tập (${practices.length})`}
+        onAdd={() => openAddModal('practice')}
+        addLabel="Thêm bài tập"
+      />
+      {practices.length === 0 ? (
+        <EmptyState icon={FiBookOpen} message="Chưa có bài ôn tập nào" />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          {practices.map((practice) => (
+            <div key={practice.id} style={{ ...cardStyle, padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>{practice.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                    {practice.questions_count ? `${practice.questions_count} câu` : 'Không giới hạn'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleRemovePractice(practice.id)}
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Xóa bài ôn tập"
+                >
+                  <FiTrash2 className="text-base" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  const renderScoresTab = () => (
+    <div>
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', textTransform: 'uppercase', fontSize: '11px', fontWeight: 'bold', color: '#64748b', letterSpacing: '0.05em', marginBottom: '6px' }}>
+          Chọn bài kiểm tra
+        </label>
+        <select
+          value={selectedScoreTest}
+          onChange={(e) => {
+            setSelectedScoreTest(e.target.value);
+            fetchClassScores(e.target.value);
+          }}
+          style={{ width: '100%', maxWidth: '400px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', padding: '10px 16px', boxSizing: 'border-box', cursor: 'pointer' }}
+        >
+          <option value="">-- Chọn bài kiểm tra --</option>
+          {tests.map((test) => (
+            <option key={test.id} value={test.id}>{test.title}</option>
+          ))}
+        </select>
+      </div>
+
+      {!selectedScoreTest ? (
+        <div style={{ ...emptyStateStyle, maxWidth: '400px', margin: '0 auto' }}>
+          <FiBarChart2 style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
+          <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Vui lòng chọn bài kiểm tra để xem điểm.</p>
+        </div>
+      ) : loadingScores ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" style={{ margin: '0 auto 16px' }}></div>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải điểm...</p>
+        </div>
+      ) : !scoreData?.scores?.length ? (
+        <div style={{ ...emptyStateStyle, maxWidth: '400px', margin: '0 auto' }}>
+          <FiBarChart2 style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
+          <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Chưa có học sinh nào nộp bài.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: 0 }}>
+              {scoreData.test?.title} — {scoreData.scores.length} học sinh
+              {scoreData.test?.max_points ? ` (Tối đa: ${scoreData.test.max_points} điểm)` : ''}
+            </h4>
+          </div>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và tên</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Số điện thoại</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Điểm</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {scoreData.scores.map((item) => (
+                  <tr key={item.student_id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.student_name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{item.phone || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-center">
+                      <span style={{
+                        fontWeight: '600',
+                        color: item.earned_points / item.max_points >= 0.8 ? '#059669' : item.earned_points / item.max_points >= 0.5 ? '#d97706' : '#dc2626',
+                      }}>
+                        {item.earned_points !== undefined ? `${item.earned_points}` : '—'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-center">
+                      <span style={{
+                        padding: '2px 10px',
+                        borderRadius: '99px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: item.status === 'submitted' ? '#ecfdf5' : '#fef3c7',
+                        color: item.status === 'submitted' ? '#059669' : '#d97706',
+                      }}>
+                        {item.status === 'submitted' ? 'Đã nộp' : 'Hết hạn'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
   const renderAddModal = () => {
     if (!showAddModal) return null;
 
     const modalTitles = {
       student: { title: 'Thêm học sinh', subtitle: 'Nhập ID học sinh để thêm vào lớp học này.' },
-      teacher: { title: 'Thêm giáo viên', subtitle: 'Nhập ID giáo viên để thêm vào lớp học này.' },
       material: { title: 'Thêm tài liệu', subtitle: 'Tải lên hoặc liên kết tài liệu học tập cho lớp.' },
       test: { title: 'Gán bài kiểm tra', subtitle: 'Chọn bài kiểm tra để gán cho lớp học.' },
+      practice: { title: 'Gán bài ôn tập', subtitle: 'Chọn bài ôn tập để gán cho lớp học.' },
     };
 
     const { title, subtitle } = modalTitles[addModalType] || { title: '', subtitle: '' };
@@ -573,22 +687,6 @@ const handleAddTeacher = async () => {
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   placeholder="Ví dụ: 12"
-                  style={modalInputStyle}
-                  autoFocus
-                />
-              </ModalField>
-            )}
-
-            {addModalType === 'teacher' && (
-              <ModalField
-                label="ID giáo viên"
-                hint="Nhập ID tài khoản giáo viên cần thêm vào lớp."
-              >
-                <input
-                  type="number"
-                  value={teacherEmail}
-                  onChange={(e) => setTeacherEmail(e.target.value)}
-                  placeholder="Ví dụ: 5"
                   style={modalInputStyle}
                   autoFocus
                 />
@@ -656,6 +754,22 @@ const handleAddTeacher = async () => {
                 </select>
               </ModalField>
             )}
+
+            {addModalType === 'practice' && (
+              <ModalField label="Chọn bài ôn tập">
+                <select
+                  value={selectedPractice}
+                  onChange={(e) => setSelectedPractice(e.target.value)}
+                  style={{ ...modalInputStyle, cursor: 'pointer' }}
+                  autoFocus
+                >
+                  <option value="">-- Chọn bài ôn tập --</option>
+                  {availablePractices.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
+              </ModalField>
+            )}
           </div>
 
           {addModalType === 'student' && (
@@ -663,13 +777,6 @@ const handleAddTeacher = async () => {
               onCancel={() => setShowAddModal(false)}
               onConfirm={handleAddStudent}
               confirmLabel="Thêm học sinh"
-            />
-          )}
-          {addModalType === 'teacher' && (
-            <ModalFooter
-              onCancel={() => setShowAddModal(false)}
-              onConfirm={handleAddTeacher}
-              confirmLabel="Thêm giáo viên"
             />
           )}
           {addModalType === 'material' && (
@@ -684,6 +791,13 @@ const handleAddTeacher = async () => {
               onCancel={() => setShowAddModal(false)}
               onConfirm={handleAddTest}
               confirmLabel="Gán bài kiểm tra"
+            />
+          )}
+          {addModalType === 'practice' && (
+            <ModalFooter
+              onCancel={() => setShowAddModal(false)}
+              onConfirm={handleAddPractice}
+              confirmLabel="Gán bài ôn tập"
             />
           )}
         </div>
@@ -720,9 +834,10 @@ const handleAddTeacher = async () => {
 
   const tabs = [
     { id: 'students', label: 'Học sinh', icon: FiUsers },
-    { id: 'teachers', label: 'Giáo viên', icon: FiUsers },
     { id: 'materials', label: 'Tài liệu', icon: FiFileText },
     { id: 'tests', label: 'Bài kiểm tra', icon: FiClipboard },
+    { id: 'practices', label: 'Bài tập ôn tập', icon: FiBookOpen },
+    { id: 'scores', label: 'Bảng điểm', icon: FiBarChart2 },
   ];
 
   return (
@@ -798,9 +913,10 @@ const handleAddTeacher = async () => {
 
           <div style={{ padding: '24px' }}>
             {activeTab === 'students' && renderStudentsTab()}
-            {activeTab === 'teachers' && renderTeachersTab()}
             {activeTab === 'materials' && renderMaterialsTab()}
             {activeTab === 'tests' && renderTestsTab()}
+            {activeTab === 'practices' && renderPracticesTab()}
+            {activeTab === 'scores' && renderScoresTab()}
           </div>
         </div>
 

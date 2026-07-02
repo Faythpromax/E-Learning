@@ -48,4 +48,16 @@ class Practice extends Model
             'class_id'
         );
     }
+
+    protected $appends = ['question_ids', 'class_ids'];
+
+    public function getQuestionIdsAttribute(): array
+    {
+        return $this->questions->map(fn($pq) => $pq->question_id)->values()->toArray();
+    }
+
+    public function getClassIdsAttribute(): array
+    {
+        return $this->classes->map(fn($c) => $c->id)->values()->toArray();
+    }
 }

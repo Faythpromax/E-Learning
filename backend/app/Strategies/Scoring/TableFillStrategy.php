@@ -15,11 +15,11 @@ class TableFillStrategy implements ScoringStrategyInterface
         $correctCount = 0;
         $totalCells = 0;
 
-        $answerValues = array_values($answer);
-
-        foreach ($correctAnswers as $rowIndex => $correct) {
+        foreach ($correctAnswers as $rowIndex => $colData) {
             $totalCells++;
-            $userAnswer = $answerValues[$rowIndex] ?? '';
+            $userAnswer = $answer[$rowIndex] ?? '';
+            $correctValues = is_array($colData) ? array_values($colData) : [$colData];
+            $correct = $correctValues[0] ?? '';
             if (mb_strtolower(trim($userAnswer)) === mb_strtolower(trim($correct))) {
                 $correctCount++;
             }
@@ -30,7 +30,19 @@ class TableFillStrategy implements ScoringStrategyInterface
 
     public function isCorrect(array $questionData, mixed $answer): bool
     {
-        return $this->calculateScore($questionData, $answer) === 1.0;
+        $correctAnswers = $questionData['data']['correct_answers'] ?? [];
+        if (!is_array($answer) || !is_array($correctAnswers)) {
+            return false;
+        }
+        foreach ($correctAnswers as $rowIndex => $colData) {
+            $userAnswer = $answer[$rowIndex] ?? '';
+            $correctValues = is_array($colData) ? array_values($colData) : [$colData];
+            $correct = $correctValues[0] ?? '';
+            if (mb_strtolower(trim($userAnswer)) !== mb_strtolower(trim($correct))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public function getCorrectAnswer(array $questionData): mixed

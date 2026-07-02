@@ -186,7 +186,7 @@ export function TestSessionPage() {
 
   const currentQuestion = questions[currentIndex];
   const answeredCount = Object.keys(answers).filter(
-    (id) => answers[id] !== null && answers[id] !== undefined,
+    (id) => answers[id] !== null,
   ).length;
 
   return (
