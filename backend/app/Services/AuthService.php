@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
@@ -16,23 +15,37 @@ class AuthService
             return [
                 'success' => false,
                 'message' => 'Invalid credentials',
-                'status' => 401,
+                'status'  => 401,
             ];
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
 
+        app(ActivityLogService::class)->log(
+            'login',
+            User::class,
+            $user->id,
+            "User \"{$user->name}\" (ID: {$user->id}, Role: {$user->role}) logged in"
+        );
+
         return [
             'success' => true,
             'message' => 'Login successful',
-            'user' => $this->formatUser($user),
-            'token' => $token,
-            'status' => 200,
+            'user'    => $this->formatUser($user),
+            'token'   => $token,
+            'status'  => 200,
         ];
     }
 
     public function logout(User $user): void
     {
+        app(ActivityLogService::class)->log(
+            'logout',
+            User::class,
+            $user->id,
+            "User \"{$user->name}\" (ID: {$user->id}) logged out"
+        );
+
         $user->tokens()->delete();
     }
 
@@ -40,7 +53,7 @@ class AuthService
     {
         return [
             'success' => true,
-            'user' => $this->formatUser($user),
+            'user'    => $this->formatUser($user),
         ];
     }
 
@@ -55,42 +68,49 @@ class AuthService
                 return [
                     'success' => false,
                     'message' => 'Email đã được sử dụng.',
-                    'status' => 422,
+                    'status'  => 422,
                 ];
             }
             return [
                 'success' => false,
                 'message' => 'Số điện thoại đã được sử dụng.',
-                'status' => 422,
+                'status'  => 422,
             ];
         }
 
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'name'     => $data['name'],
+            'email'    => $data['email'],
             'password' => $data['password'],
-            'phone' => $data['phone'],
-            'role' => $data['role'],
+            'phone'    => $data['phone'],
+            'role'     => $data['role'],
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
 
+        app(ActivityLogService::class)->log(
+            'register',
+            User::class,
+            $user->id,
+            "New user \"{$user->name}\" (ID: {$user->id}, Role: {$user->role}) registered"
+        );
+
         return [
             'success' => true,
             'message' => 'Đăng ký thành công.',
-            'user' => $this->formatUser($user),
-            'token' => $token,
-            'status' => 201,
+            'user'    => $this->formatUser($user),
+            'token'   => $token,
+            'status'  => 201,
         ];
     }
 
     private function formatUser(User $user): array
     {
         return [
-            'id' => $user->id,
-            'name' => $user->name,
+            'id'    => $user->id,
+            'name'  => $user->name,
             'email' => $user->email,
-            'role' => $user->role,
+            'role'  => $user->role,
         ];
     }
 }

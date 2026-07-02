@@ -67,13 +67,13 @@ const ClassListPage = () => {
       setSelectedClass(null);
     } catch (error) {
       console.error('Failed to delete class:', error);
-      alert('Xoa that bai. Vui long thu lai.');
+      alert('Xóa thất bại. Vui lòng thử lại.');
     }
   };
 
   const handleCopyCode = (classCode) => {
     navigator.clipboard.writeText(classCode);
-    alert('Da copy ma lop!');
+    alert('Đã copy mã lớp!');
   };
 
   const handleJoinClass = async () => {
@@ -83,16 +83,16 @@ const ClassListPage = () => {
     try {
       const response = await classApi.joinClass(joinCode.trim());
       if (response.success) {
-        alert('Tham gia lop thanh cong!');
+        alert('Tham gia lớp thành công!');
         setShowJoinModal(false);
         setJoinCode('');
         fetchClasses();
       } else {
-        alert(response.message || 'Tham gia that bai.');
+        alert(response.message || 'Tham gia thất bại.');
       }
     } catch (error) {
       console.error('Failed to join class:', error);
-      alert('Tham gia that bai. Vui long thu lai.');
+      alert('Tham gia thất bại. Vui lòng thử lại.');
     } finally {
       setJoinLoading(false);
     }
@@ -105,7 +105,7 @@ const ClassListPage = () => {
 
   if (loading) {
     return (
-      <TeacherLayout pageTitle="Quan ly lop hoc">
+      <TeacherLayout pageTitle="Quản lý lớp học">
         <div className="flex flex-col items-center gap-3 py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
           <div className="text-gray-500">
@@ -117,7 +117,7 @@ const ClassListPage = () => {
   }
 
   return (
-    <TeacherLayout pageTitle="Quan ly lop hoc">
+    <TeacherLayout pageTitle="Quản lý lớp học">
       <div className="class-list-container">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -128,7 +128,7 @@ const ClassListPage = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tim kiem lop hoc..."
+                placeholder="Tìm kiếm lớp học..."
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>

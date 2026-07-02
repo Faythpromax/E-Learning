@@ -1,22 +1,14 @@
 import { useState, useEffect } from 'react';
 
 export function TableFillQuestion({ question, onAnswer, answer = null, showResult = false, result = null, userAnswer = null }) {
-  const { headers = [], rows = [], cols = 0 } = question.data || {};
-
-  // left_column: cột đầu tiên (label/hàng để đọc)
-  // right_column: cột cuối (đáp án để chấm điểm, từ correct_answers)
-  const leftColumn = question.data?.left_column || [];
-  const rightColumn = question.data?.right_column || [];
-  const rowCount = leftColumn.length || rows.length || 2;
+  const { headers = [], left_column = [], right_column = [] } = question.data || {};
+  const rowCount = left_column.length || 2;
 
   const [answers, setAnswers] = useState(answer || userAnswer || {});
 
   useEffect(() => {
-    if (answer) {
-      setAnswers(answer);
-    } else if (userAnswer) {
-      setAnswers(userAnswer);
-    }
+    if (answer) setAnswers(answer);
+    else if (userAnswer) setAnswers(userAnswer);
   }, [answer, userAnswer]);
 
   const handleChange = (rowIndex, value) => {
@@ -26,76 +18,157 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
     onAnswer(newAnswers);
   };
 
-  const isCorrect = (rowIndex) => {
-    const userAnswer = (answers[rowIndex] || '').toLowerCase().trim();
-    const correctAnswer = (rightColumn[rowIndex] || '').toLowerCase().trim();
-    return userAnswer === correctAnswer;
+  // Chấm từng ô riêng biệt
+  const isRowCorrect = (rowIndex) => {
+    const userVal = (answers[rowIndex] || '').toLowerCase().trim();
+    const correctVal = (right_column[rowIndex] || '').toLowerCase().trim();
+    return userVal !== '' && userVal === correctVal;
   };
 
-  // Prefer backend's is_correct when available (PracticeSessionPage flow)
-  const overallCorrect = result?.is_correct
-    ? Object.keys(rightColumn).every((key) => isCorrect(parseInt(key)))
-    : false;
+  const getInputStyle = (rowIndex) => {
+    const base = {
+      width: '100%',
+      padding: '9px 14px',
+      fontSize: '14px',
+      fontWeight: '500',
+      borderRadius: '8px',
+      outline: 'none',
+      transition: 'border-color 0.15s',
+      boxSizing: 'border-box',
+    };
+    if (!showResult) {
+      return { ...base, border: '1.5px solid #d1d5db' };
+    }
+    if (isRowCorrect(rowIndex)) {
+      return { ...base, border: '1.5px solid #16a34a', backgroundColor: '#f0fdf4', color: '#166534' };
+    }
+    return { ...base, border: '1.5px solid #dc2626', backgroundColor: '#fef2f2', color: '#991b1b' };
+  };
+
+  const correctCount = showResult
+    ? Array.from({ length: rowCount }, (_, i) => i).filter(i => isRowCorrect(i)).length
+    : 0;
+  const allCorrect = correctCount === rowCount;
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {question.content && (
-        <p className="text-lg font-medium text-gray-800">{question.content}</p>
+        <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '16px', lineHeight: '1.6' }}>
+          {question.content}
+        </p>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-200">
-          <thead>
-            <tr>
-              {headers.map((header, i) => (
-                <th
-                  key={i}
-                  className="border border-gray-200 bg-gray-50 text-gray-700 font-semibold text-center"
-                  style={{ padding: '16px 24px' }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      {question.media_image && (
+        <img
+          src={question.media_image}
+          alt="Hình minh họa"
+          style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e5e7eb' }}
+        />
+      )}
+
+      {question.media_audio && (
+        <audio controls src={question.media_audio} style={{ width: '100%', marginBottom: '16px' }} />
+      )}
+
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '340px' }}>
+          {/* Header */}
+          {headers.length > 0 && (
+            <thead>
+              <tr>
+                {headers.map((header, i) => (
+                  <th
+                    key={i}
+                    style={{
+                      padding: '12px 18px',
+                      backgroundColor: '#f3f4f6',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      color: '#374151',
+                      textAlign: 'center',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
           <tbody>
             {Array.from({ length: rowCount }).map((_, rowIndex) => {
-              const label = leftColumn[rowIndex] || (rows[rowIndex]?.[0] || '');
+              const label = left_column[rowIndex] || '';
               return (
-                <tr key={rowIndex}>
-                  {/* Cột trái: hiển thị label (chỉ đọc) */}
-                  <td 
-                    className="border border-gray-200 text-gray-800 bg-gray-50/30 font-medium"
-                    style={{ padding: '16px 24px' }}
-                  >
+                <tr key={rowIndex} style={{ backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                  {/* Label column */}
+                  <td style={{
+                    padding: '12px 18px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    whiteSpace: 'nowrap',
+                    width: '45%',
+                  }}>
                     {label}
                   </td>
-                  {/* Cột phải: ô nhập đáp án */}
-                  <td className="border border-gray-200" style={{ padding: '16px' }}>
-                    {showResult ? (
-                      <div
-                        className={`px-4 py-2.5 rounded-lg text-center font-medium ${
-                          overallCorrect
-                            ? 'bg-green-50 text-green-700 border border-green-300'
-                            : 'bg-red-50 text-red-700 border border-red-300'
-                        }`}
-                      >
-                        {answers[rowIndex] || ''}
-                        {!overallCorrect && rightColumn[rowIndex] && (
-                          <span className="text-gray-500 ml-1">
-                            {' '}({rightColumn[rowIndex]})
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <input
-                        type="text"
-                        value={answers[rowIndex] || ''}
-                        onChange={(e) => handleChange(rowIndex, e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-all shadow-sm"
-                        placeholder="..."
-                      />
-                    )}
+
+                  {/* Input column */}
+                  <td style={{ padding: '10px 14px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {showResult ? (
+                        <>
+                          <div style={{
+                            padding: '9px 14px',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            backgroundColor: isRowCorrect(rowIndex) ? '#f0fdf4' : '#fef2f2',
+                            border: `1.5px solid ${isRowCorrect(rowIndex) ? '#16a34a' : '#dc2626'}`,
+                            color: isRowCorrect(rowIndex) ? '#166534' : '#991b1b',
+                          }}>
+                            {answers[rowIndex] || '(trống)'}
+                          </div>
+                          {/* Hiện đáp án đúng bên dưới nếu sai */}
+                          {!isRowCorrect(rowIndex) && right_column[rowIndex] && (
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#16a34a',
+                              fontWeight: '600',
+                              textAlign: 'center',
+                              padding: '2px 8px',
+                              backgroundColor: '#f0fdf4',
+                              borderRadius: '4px',
+                            }}>
+                              Đáp án: {right_column[rowIndex]}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <input
+                          type="text"
+                          value={answers[rowIndex] || ''}
+                          onChange={e => handleChange(rowIndex, e.target.value)}
+                          placeholder="Nhập đáp án..."
+                          style={getInputStyle(rowIndex)}
+                          onFocus={e => {
+                            if (!showResult) {
+                              e.currentTarget.style.borderColor = '#2563eb';
+                              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)';
+                            }
+                          }}
+                          onBlur={e => {
+                            if (!showResult) {
+                              e.currentTarget.style.borderColor = '#d1d5db';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
@@ -103,6 +176,38 @@ export function TableFillQuestion({ question, onAnswer, answer = null, showResul
           </tbody>
         </table>
       </div>
+
+      {/* Result summary */}
+      {showResult && (
+        <div style={{
+          marginTop: '16px',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          backgroundColor: allCorrect ? '#f0fdf4' : '#fef2f2',
+          border: `1px solid ${allCorrect ? '#bbf7d0' : '#fecaca'}`,
+          fontSize: '13px',
+          fontWeight: '600',
+          color: allCorrect ? '#166534' : '#991b1b',
+        }}>
+          {allCorrect
+            ? 'Tất cả các ô đều chính xác!'
+            : `Đúng ${correctCount}/${rowCount} ô — hãy xem lại các ô màu đỏ và đáp án gợi ý bên dưới.`}
+        </div>
+      )}
+
+      {showResult && question.explanation && (
+        <div style={{
+          marginTop: '8px',
+          padding: '12px 16px',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: '8px',
+        }}>
+          <p style={{ fontSize: '13px', color: '#1e40af', margin: 0 }}>
+            <strong>Giải thích:</strong> {question.explanation}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

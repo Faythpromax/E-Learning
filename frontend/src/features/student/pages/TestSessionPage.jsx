@@ -5,6 +5,7 @@ import {
   FiFlag,
   FiChevronLeft,
   FiChevronRight,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { testApi } from "../../../api/testApi";
 import { TestTimer } from "../../../components/student/TestTimer";
@@ -529,7 +530,7 @@ export function TestSessionPage() {
               fontSize: '28px',
               fontWeight: 'bold',
             }}>
-              ⚠️
+              <FiAlertTriangle style={{ fontSize: '28px', color: '#dc2626' }} />
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#111827', margin: '0 0 12px 0' }}>
               Cảnh báo vi phạm!

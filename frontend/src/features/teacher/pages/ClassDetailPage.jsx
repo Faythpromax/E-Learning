@@ -236,13 +236,13 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   try {
     const response = await classApi.addStudent(classId, parseInt(studentId));
     
-    alert('Them hoc sinh thanh cong!');
+    alert('Thêm học sinh thành công!');
     setStudentId('');
     setShowAddModal(false);
     fetchClassDetail();
   } catch (error) {
     console.error('Failed to add student:', error);
-    alert(error.response?.data?.message || 'Them that bai');
+    alert(error.response?.data?.message || 'Thêm thất bại');
   }
 };
 

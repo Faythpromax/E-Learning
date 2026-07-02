@@ -38,7 +38,7 @@ const TestResultsPage = () => {
   };
 
   return (
-    <TeacherLayout pageTitle="Ket qua bai kiem tra">
+    <TeacherLayout pageTitle="Kết quả bài kiểm tra">
       <div className="max-w-6xl mx-auto p-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -50,10 +50,10 @@ const TestResultsPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-              {testInfo ? `Ket qua: ${testInfo.title}` : 'Ket qua bai kiem tra'}
+              {testInfo ? `Kết quả: ${testInfo.title}` : 'Kết quả bài kiểm tra'}
             </h1>
             <p className="text-sm text-gray-500">
-              {testInfo?.subject?.name} • {results.length} luot lam bai
+              {testInfo?.subject?.name} • {results.length} lượt làm bài
             </p>
           </div>
         </div>
@@ -62,19 +62,19 @@ const TestResultsPage = () => {
         {results.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Diem trung binh</p>
+              <p className="text-sm text-gray-500 mb-1">Điểm trung bình</p>
               <h3 className="text-3xl font-bold text-blue-600">
                 {(results.reduce((acc, r) => acc + (r.score || 0), 0) / results.length).toFixed(1)}%
               </h3>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Diem cao nhat</p>
+              <p className="text-sm text-gray-500 mb-1">Điểm cao nhất</p>
               <h3 className="text-3xl font-bold text-green-600">
                 {Math.max(...results.map(r => r.score || 0)).toFixed(1)}%
               </h3>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Ti le dat (`{'>'}` 50%)</p>
+              <p className="text-sm text-gray-500 mb-1">Tỷ lệ đạt (`{'>'}` 50%)</p>
               <h3 className="text-3xl font-bold text-indigo-600">
                 {((results.filter(r => r.score >= 50).length / results.length) * 100).toFixed(0)}%
               </h3>
@@ -88,22 +88,22 @@ const TestResultsPage = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Hoc sinh
+                  Học sinh
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Thoi gian nop
+                  Thời gian nộp
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Lan thi
+                  Lần thi
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Diem so
+                  Điểm số
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Chuyển tab
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Trang thai
+                  Trạng thái
                 </th>
               </tr>
             </thead>
@@ -111,13 +111,13 @@ const TestResultsPage = () => {
               {loading ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                    Dang tai ket qua...
+                    Đang tải kết quả...
                   </td>
                 </tr>
               ) : results.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                    Chua co hoc sinh nao lam bai kiem tra nay.
+                    Chưa có học sinh nào làm bài kiểm tra này.
                   </td>
                 </tr>
               ) : (
@@ -137,11 +137,11 @@ const TestResultsPage = () => {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <FiClock className="text-gray-400" />
-                        {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : 'Chua nop'}
+                        {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : 'Chưa nộp'}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      Lan {result.attempt_no}
+                      Lần {result.attempt_no}
                     </td>
                     <td className="px-6 py-4">
                       <div className={`text-lg font-bold ${getScoreColor(result.score)}`}>
@@ -163,11 +163,11 @@ const TestResultsPage = () => {
                       }`}>
                         {result.status === 'submitted' ? (
                           <>
-                            <FiCheckCircle /> Da nop
+                            <FiCheckCircle /> Đã nộp
                           </>
                         ) : (
                           <>
-                            <FiClock /> Dang lam
+                            <FiClock /> Đang làm
                           </>
                         )}
                       </span>

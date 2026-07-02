@@ -30,14 +30,14 @@ const AdminQuestionListPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Ban co chan muon xoa cau hoi nay?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
 
     try {
       await questionApi.deleteSystemQuestion(id);
       setQuestions(questions.filter(q => q.id !== id));
     } catch (error) {
       console.error('Failed to delete question:', error);
-      alert('Xoa that bai');
+      alert('Xóa thất bại');
     }
   };
 
@@ -58,7 +58,7 @@ const AdminQuestionListPage = () => {
   };
 
   return (
-    <AdminLayout pageTitle="Quan ly cau hoi">
+    <AdminLayout pageTitle="Quản lý câu hỏi">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -67,7 +67,7 @@ const AdminQuestionListPage = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tim kiem cau hoi..."
+              placeholder="Tìm kiếm câu hỏi..."
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-64 focus:ring-2 focus:ring-green-500"
             />
           </div>
@@ -76,32 +76,32 @@ const AdminQuestionListPage = () => {
             onChange={(e) => setFilterType(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
           >
-            <option value="all">Tat ca loai</option>
-            <option value="mcq">Lua chon</option>
-            <option value="fill_blank">Dien vao cho trong</option>
-            <option value="matching">Noi dong</option>
-            <option value="table_fill">Dien bang</option>
+            <option value="all">Tất cả loại</option>
+            <option value="mcq">Lựa chọn</option>
+            <option value="fill_blank">Điền vào chỗ trống</option>
+            <option value="matching">Nối dòng</option>
+            <option value="table_fill">Điền bảng</option>
           </select>
         </div>
         <button
           onClick={() => window.location.href = '/admin/questions/create'}
           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
         >
-          <FiPlus /> Tao cau hoi
+          <FiPlus /> Tạo câu hỏi
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Dang tai...</div>
+        <div className="text-center py-12 text-gray-500">Đang tải...</div>
       ) : filteredQuestions.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <FiFileText className="mx-auto text-4xl text-gray-300 mb-4" />
-          <p className="text-gray-500">Chua co cau hoi nao</p>
+          <p className="text-gray-500">Chưa có câu hỏi nào</p>
           <button
             onClick={() => window.location.href = '/admin/questions/create'}
             className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
-            Tao cau hoi dau tien
+            Tạo câu hỏi đầu tiên
           </button>
         </div>
       ) : (
@@ -109,10 +109,10 @@ const AdminQuestionListPage = () => {
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Noi dung</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Loai</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Do kho</th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">Hanh dong</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Nội dung</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Loại</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Độ khó</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">Hành động</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -123,10 +123,10 @@ const AdminQuestionListPage = () => {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeBadge(question.type)}`}>
-                      {question.type === 'mcq' ? 'Lua chon' :
-                       question.type === 'fill_blank' ? 'Dien vao' :
-                       question.type === 'matching' ? 'Noi dong' :
-                       question.type === 'table_fill' ? 'Dien bang' : question.type}
+                      {question.type === 'mcq' ? 'Lựa chọn' :
+                       question.type === 'fill_blank' ? 'Điền vào' :
+                       question.type === 'matching' ? 'Nối dòng' :
+                       question.type === 'table_fill' ? 'Điền bảng' : question.type}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">

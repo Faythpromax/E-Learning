@@ -47,7 +47,7 @@ const AdminEditQuestionPage = () => {
         setSubjects(resp.data);
       }
     } catch (err) {
-      console.error('Khong lay duoc danh sach mon hoc:', err);
+      console.error('Không lấy được danh sách môn học:', err);
     }
   };
 
@@ -81,7 +81,7 @@ const AdminEditQuestionPage = () => {
         }
       }
     } catch (err) {
-      setError('Khong the tai thong tin cau hoi.');
+      setError('Không thể tải thông tin câu hỏi.');
     } finally {
       setLoading(false);
     }
@@ -224,40 +224,40 @@ const AdminEditQuestionPage = () => {
     setError('');
 
     if (!formData.subject_id) {
-      setError('Vui long chon Mon hoc / Lop hoc cho cau hoi nay.');
+      setError('Vui lòng chọn Môn học / Lớp học cho câu hỏi này.');
       return;
     }
 
     if (!formData.content.trim()) {
-      setError('Vui long nhap noi dung de bai cau hoi.');
+      setError('Vui lòng nhập nội dung đề bài câu hỏi.');
       return;
     }
 
     if (formData.type === 'mcq' && formData.options.length < 2) {
-      setError('Can it nhat 2 phuong an lua chon.');
+      setError('Cần ít nhất 2 phương án lựa chọn.');
       return;
     }
 
     if (formData.type === 'mcq' && formData.options.some(o => !o.trim())) {
-      setError('Vui long nhap day du noi dung cho tat ca cac dap an lua chon.');
+      setError('Vui lòng nhập đầy đủ nội dung cho tất cả các đáp án lựa chọn.');
       return;
     }
 
     if (formData.type === 'mcq' && (!formData.correct_answers || formData.correct_answers.length === 0)) {
-      setError('Vui long chon it nhat mot dap an dung.');
+      setError('Vui lòng chọn ít nhất một đáp án đúng.');
       return;
     }
 
     if (formData.type === 'fill_blank') {
       const blankCount = getBlankCount();
       if (blankCount === 0) {
-        setError('Vui long them it nhat mot o trong vao de bai bang nut "Chen o trong".');
+        setError('Vui lòng thêm ít nhất một ô trống vào đề bài bằng nút "Chèn ô trống".');
         return;
       }
       const unfilled = Array.from({ length: blankCount }, (_, i) => i)
         .filter(i => !blankAnswers[i]?.trim());
       if (unfilled.length > 0) {
-        setError(`Vui long nhap dap an cho tat ca cac o trong (thieu ${unfilled.length} o).`);
+        setError(`Vui lòng nhập đáp án cho tất cả các ô trống (thiếu ${unfilled.length} ô).`);
         return;
       }
     }
@@ -305,10 +305,10 @@ const AdminEditQuestionPage = () => {
       };
 
       await questionApi.updateSystemQuestion(questionId, payload);
-      alert('Cap nhat thay doi cau hoi thanh cong!');
+      alert('Cập nhật thay đổi câu hỏi thành công!');
       navigate('/admin/questions');
     } catch (err) {
-      setError(err.response?.data?.message || 'Co loi xay ra trong qua trinh luu du lieu.');
+      setError(err.response?.data?.message || 'Có lỗi xảy ra trong quá trình lưu dữ liệu.');
     } finally {
       setLoading(false);
     }

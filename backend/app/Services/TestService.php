@@ -63,7 +63,7 @@ class TestService
             ? 'system'
             : 'class';
 
-        $test = $this->testRepository->createTest($data);
+        $test = DB::transaction(fn () => $this->testRepository->createTest($data));
 
         app(\App\Services\ActivityLogService::class)->log(
             'create',
@@ -77,7 +77,7 @@ class TestService
 
     public function updateTest(int $testId, array $data): mixed
     {
-        $test = $this->testRepository->updateTest($testId, $data);
+        $test = DB::transaction(fn () => $this->testRepository->updateTest($testId, $data));
 
         app(\App\Services\ActivityLogService::class)->log(
             'update',

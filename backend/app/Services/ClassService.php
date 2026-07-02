@@ -6,6 +6,7 @@ use App\Models\ClassModel;
 use App\Models\ClassUser;
 use App\Models\User;
 use App\Repositories\Interfaces\ClassRepositoryInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ClassService
@@ -34,7 +35,7 @@ class ClassService
         $data['created_by'] = $userId;
         $data['class_code'] = $data['class_code'] ?? $this->generateClassCode();
 
-        $class = $this->classRepository->create($data);
+        $class = DB::transaction(fn () => $this->classRepository->create($data));
 
         app(\App\Services\ActivityLogService::class)->log(
             'create',
@@ -92,7 +93,7 @@ class ClassService
         if (!$class) {
             return [
                 'success' => false,
-                'message' => 'Khong tim thay lop voi ma nay.',
+                'message' => 'Không tìm thấy lớp với mã này.',
             ];
         }
 
@@ -103,11 +104,11 @@ class ClassService
         if ($existingMember) {
             return [
                 'success' => false,
-                'message' => 'Ban da la thanh vien cua lop nay.',
+                'message' => 'Bạn đã là thành viên của lớp này.',
             ];
         }
 
-        $this->classRepository->addStudent($class->id, $userId);
+        DB::transaction(fn () => $this->classRepository->addStudent($class->id, $userId));
 
         app(\App\Services\ActivityLogService::class)->log(
             'join_class',
@@ -118,8 +119,8 @@ class ClassService
 
         return [
             'success' => true,
-            'message' => 'Tham gia lop thanh cong.',
-            'class' => $class,
+            'message' => 'Tham gia lớp thành công.',
+            'class'   => $class,
         ];
     }
 
