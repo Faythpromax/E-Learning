@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiUsers, FiFileText, FiClipboard, FiPlus, FiTrash2, FiX, FiBookOpen, FiBarChart2 } from 'react-icons/fi';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
-import classApi from '../../../api/classApi';
+import { classApi } from '../../../api/classApi';
 import { testApi } from '../../../api/testApi';
 import { practiceApi } from '../../../api/practiceApi';
 import { exportToExcel } from '../../../utils/exportHelper';

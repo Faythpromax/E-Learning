@@ -44,6 +44,7 @@ import TeacherPracticeListPage from '../../features/teacher/pages/PracticeListPa
 import CreatePracticePage from '../../features/teacher/pages/CreatePracticePage';
 import PracticeQuestionPage from '../../features/teacher/pages/PracticeQuestionPage';
 import TeacherSettingsPage from '../../features/teacher/pages/TeacherSettingsPage';
+import TeacherSupportPage from '../../features/teacher/pages/TeacherSupportPage';
 import PracticeSessionPage from '../../features/student/pages/PracticeSessionPage';
 import PracticeListPage from '../../features/student/pages/PracticeListPage';
 import PracticeCompletePage from '../../features/student/pages/PracticeCompletePage';
@@ -408,6 +409,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <PracticeQuestionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/support"
+          element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherSupportPage />
             </ProtectedRoute>
           }
         />

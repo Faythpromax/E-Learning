@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { McqQuestion } from "./McqQuestion";
+import { McqQuestion } from "../common/questions/McqQuestion";
 import { FillBlankQuestion } from "./FillBlankQuestion";
 import { MatchingQuestion } from "./MatchingQuestion";
 import { TableFillQuestion } from "./TableFillQuestion";

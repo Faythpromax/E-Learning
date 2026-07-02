@@ -9,6 +9,7 @@ use App\Models\ClassTest;
 use App\Models\User;
 use App\Models\Test;
 use App\Models\Practice;
+use App\Models\ClassPractice;
 use App\Repositories\Interfaces\ClassRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 

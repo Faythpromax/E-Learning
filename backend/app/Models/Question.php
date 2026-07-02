@@ -41,6 +41,11 @@ class Question extends Model
         return $this->hasMany(QuestionProgress::class);
     }
 
+    public function testQuestions(): HasMany
+    {
+        return $this->hasMany(TestQuestion::class);
+    }
+
     public function practiceQuestions(): HasMany
     {
         return $this->hasMany(PracticeQuestion::class);

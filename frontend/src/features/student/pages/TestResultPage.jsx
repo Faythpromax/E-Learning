@@ -189,7 +189,7 @@ export function TestResultPage() {
           borderColor: getScoreBorderColor(score),
         }}>
           <div style={{ fontSize: '56px', fontWeight: '800', color: getScoreColor(score), lineHeight: 1, marginBottom: '8px' }}>
-            {result.earned_points ?? score.toFixed(0)}
+            {result.earned_points ?? score.toFixed(1)}
           </div>
           <div style={{ fontSize: '15px', fontWeight: '600', color: '#4b5563', marginBottom: '4px' }}>
             {score.toFixed(1)}% điểm

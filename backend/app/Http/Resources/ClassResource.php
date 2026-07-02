@@ -18,7 +18,9 @@ class ClassResource extends JsonResource
             'creator' => new UserResource($this->whenLoaded('creator')),
             'teacher' => new UserResource($this->teacher), // append attribute
             'students' => UserResource::collection($this->whenLoaded('students')),
-            'teachers' => UserResource::collection($this->whenLoaded('teachers')),
+            // 'teachers' => UserResource::collection($this->whenLoaded('teachers')),
+            'practices' => PracticeResource::collection($this->whenLoaded('practices')),
+            'tests' => TestResource::collection($this->whenLoaded('tests')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
