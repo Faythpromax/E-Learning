@@ -38,7 +38,7 @@ const TestResultsPage = () => {
   };
 
   return (
-    <TeacherLayout pageTitle="Ket qua bai kiem tra">
+    <TeacherLayout pageTitle="Kết quả bài kiểm tra">
       <div className="max-w-6xl mx-auto p-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -50,10 +50,10 @@ const TestResultsPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-              {testInfo ? `Ket qua: ${testInfo.title}` : 'Ket qua bai kiem tra'}
+              {testInfo ? `Kết quả: ${testInfo.title}` : 'Kết quả bài kiểm tra'}
             </h1>
             <p className="text-sm text-gray-500">
-              {testInfo?.subject?.name} • {results.length} luot lam bai
+              {testInfo?.subject?.name} • {results.length} lượt làm bài
             </p>
           </div>
         </div>
@@ -61,21 +61,21 @@ const TestResultsPage = () => {
         {/* Stats Summary */}
         {results.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Diem trung binh</p>
-              <h3 className="text-3xl font-bold text-blue-600">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Điểm trung bình</p>
+              <h3 className="text-3xl font-extrabold text-blue-600 mt-1">
                 {(results.reduce((acc, r) => acc + (r.score || 0), 0) / results.length).toFixed(1)}%
               </h3>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Diem cao nhat</p>
-              <h3 className="text-3xl font-bold text-green-600">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Điểm cao nhất</p>
+              <h3 className="text-3xl font-extrabold text-green-600 mt-1">
                 {Math.max(...results.map(r => r.score || 0)).toFixed(1)}%
               </h3>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Ti le dat (`{'>'}` 50%)</p>
-              <h3 className="text-3xl font-bold text-indigo-600">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Tỷ lệ đạt (&ge; 50%)</p>
+              <h3 className="text-3xl font-extrabold text-indigo-600 mt-1">
                 {((results.filter(r => r.score >= 50).length / results.length) * 100).toFixed(0)}%
               </h3>
             </div>
@@ -83,79 +83,79 @@ const TestResultsPage = () => {
         )}
 
         {/* Results Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead className="bg-gray-50/50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Hoc sinh
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Học sinh
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Thoi gian nop
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Thời gian nộp
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Lan thi
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Lần thi
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Diem so
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Điểm số
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Trang thai
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Trạng thái
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                    Dang tai ket qua...
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-400 text-sm">
+                    Đang tải kết quả...
                   </td>
                 </tr>
               ) : results.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                    Chua co hoc sinh nao lam bai kiem tra nay.
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-400 text-sm">
+                    Chưa có học sinh nào làm bài kiểm tra này.
                   </td>
                 </tr>
               ) : (
                 results.map((result) => (
-                  <tr key={result.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={result.id} className="hover:bg-gray-50/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-sm">
                           <FiUser />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{result.user?.name}</div>
-                          <div className="text-xs text-gray-500">{result.user?.email}</div>
+                          <div className="font-bold text-gray-800 text-sm">{result.user?.name}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">{result.user?.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
                         <FiClock className="text-gray-400" />
-                        {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : 'Chua nop'}
+                        {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : 'Chưa nộp'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      Lan {result.attempt_no}
+                    <td className="px-6 py-4 text-sm text-gray-500 font-medium">
+                      Lần {result.attempt_no}
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`text-lg font-bold ${getScoreColor(result.score)}`}>
+                      <div className={`text-base font-bold ${getScoreColor(result.score)}`}>
                         {result.score?.toFixed(1) || 0}%
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        result.status === 'submitted' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        result.status === 'submitted' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
                       }`}>
                         {result.status === 'submitted' ? (
                           <>
-                            <FiCheckCircle /> Da nop
+                            <FiCheckCircle /> Đã nộp
                           </>
                         ) : (
                           <>
-                            <FiClock /> Dang lam
+                            <FiClock /> Đang làm
                           </>
                         )}
                       </span>

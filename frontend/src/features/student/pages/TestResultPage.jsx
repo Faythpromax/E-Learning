@@ -73,22 +73,16 @@ export function TestResultPage() {
     }
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return '#16a34a';
-    if (score >= 60) return '#d97706';
-    return '#dc2626';
+  const getScoreColorClass = (score) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-amber-600';
+    return 'text-red-600';
   };
 
-  const getScoreBgColor = (score) => {
-    if (score >= 80) return '#f0fdf4';
-    if (score >= 60) return '#fffbeb';
-    return '#fef2f2';
-  };
-
-  const getScoreBorderColor = (score) => {
-    if (score >= 80) return '#bbf7d0';
-    if (score >= 60) return '#fde68a';
-    return '#fecaca';
+  const getScoreBgClass = (score) => {
+    if (score >= 80) return 'bg-green-50/70 border border-green-100';
+    if (score >= 60) return 'bg-amber-50/70 border border-amber-100';
+    return 'bg-red-50/70 border border-red-100';
   };
 
   const getScoreMessage = (score) => {
@@ -139,8 +133,8 @@ export function TestResultPage() {
           </div>
         )}
 
-        <div className={`${getScoreBgColor(score)} rounded-2xl p-8 mb-6 text-center`}>
-          <div className={`text-6xl font-bold mb-2 ${getScoreColor(score)}`}>
+        <div className={`${getScoreBgClass(score)} rounded-2xl p-8 mb-6 text-center`}>
+          <div className={`text-6xl font-bold mb-2 ${getScoreColorClass(score)}`}>
             {score.toFixed(1)}%
           </div>
           <div className="text-lg font-semibold text-gray-700">{getScoreMessage(score)}</div>
@@ -166,7 +160,7 @@ export function TestResultPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h2 className="font-bold text-gray-800 mb-4">Thông tin bài kiểm tra</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -192,46 +186,44 @@ export function TestResultPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b flex items-center justify-between">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+          <div className="p-5 px-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
             <h2 className="font-bold text-gray-800">Xem lại đáp án</h2>
+            {review?.questions && (
+              <button
+                onClick={() => setShowReview(!showReview)}
+                className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                {showReview ? 'Ẩn đáp án' : 'Hiển thị đáp án'}
+              </button>
+            )}
+          </div>
 
           {showReview && review?.questions && (
-            <div>
+            <div className="divide-y divide-gray-100">
               {review.questions.map((question, index) => (
                 <div
                   key={question.id}
-                  style={{
-                    padding: '24px',
-                    borderBottom: index < review.questions.length - 1 ? '1px solid #f3f4f6' : 'none',
-                  }}
+                  className="p-6 transition-colors hover:bg-gray-50/30"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                  <div className="flex items-center gap-3 mb-4 flex-wrap">
                     {question.is_correct ? (
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiCheckCircle style={{ color: '#16a34a' }} />
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 text-green-600">
+                        <FiCheckCircle className="text-lg" />
                       </div>
                     ) : (
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiXCircle style={{ color: '#dc2626' }} />
+                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 text-red-600">
+                        <FiXCircle className="text-lg" />
                       </div>
                     )}
-<<<<<<< HEAD
-                    <span className="font-semibold text-gray-800">
-                      Câu {index + 1}
-                    </span>
-                    <span className={`text-sm ${
-                      question.is_correct ? 'text-green-600' : 'text-red-600'
+                    <span className="font-bold text-gray-800 text-[15px]">Câu {index + 1}</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      question.is_correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {question.is_correct ? 'Đúng' : 'Sai'}
-=======
-                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>Câu {index + 1}</span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: question.is_correct ? '#16a34a' : '#dc2626' }}>
-                      {question.is_correct ? 'Đúng' : 'Sai'}
                     </span>
-                    <span style={{ fontSize: '12px', color: '#9ca3af', marginLeft: 'auto' }}>
+                    <span className="text-xs text-gray-400 font-medium ml-auto">
                       {question.earned_points ?? (question.is_correct ? 1 : 0)}/{question.max_score ?? 1} điểm
->>>>>>> a5fefcfbec6425d603c89ed04903ce503e5ea657
                     </span>
                   </div>
 
@@ -252,38 +244,16 @@ export function TestResultPage() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="flex gap-4">
           <button
             onClick={() => navigate('/student/tests')}
-            style={{
-              flex: 1,
-              padding: '12px 20px',
-              backgroundColor: '#ffffff',
-              color: '#374151',
-              fontWeight: '600',
-              fontSize: '14px',
-              borderRadius: '8px',
-              border: '1px solid #d1d5db',
-              cursor: 'pointer',
-            }}
-            className="hover:bg-gray-50"
+            className="flex-1 p-3 bg-white text-gray-700 font-semibold text-sm rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer text-center"
           >
             Quay lại danh sách
           </button>
           <button
             onClick={() => navigate('/student/practice')}
-            style={{
-              flex: 1,
-              padding: '12px 20px',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              fontWeight: '600',
-              fontSize: '14px',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            className="hover:bg-blue-700"
+            className="flex-1 p-3 bg-blue-600 text-white font-semibold text-sm rounded-xl border border-transparent hover:bg-blue-700 transition-colors cursor-pointer text-center"
           >
             Luyện tập thêm
           </button>
