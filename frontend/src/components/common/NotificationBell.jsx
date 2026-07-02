@@ -4,7 +4,7 @@ import { FiBell } from 'react-icons/fi';
 import useNotifications from '../../hooks/useNotifications';
 import NotificationDropdown from './NotificationDropdown';
 
-const NotificationBell = () => {
+const NotificationBell = ({ className = "teacher-header-btn" }) => {
   const [open, setOpen] = useState(false);
 
   const {
@@ -17,7 +17,7 @@ const NotificationBell = () => {
     <div className="notification-bell">
 
       <button
-        className="teacher-header-btn"
+        className={className}
         onClick={() => setOpen(!open)}
       >
         <FiBell />

@@ -71,7 +71,7 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
 
       {/* Right: Actions */}
       <div className="student-header-right">
-        <NotificationBell />
+        <NotificationBell className="student-header-btn" />
         <button className="student-header-btn">
           <FiMessageSquare />
         </button>
