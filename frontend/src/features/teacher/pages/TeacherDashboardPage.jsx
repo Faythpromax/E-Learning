@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiTrendingUp, FiBookOpen, FiClock } from 'react-icons/fi';
+import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiTrendingUp, FiBookOpen, FiClock, FiHelpCircle } from 'react-icons/fi';
 import { useAuth } from '../../../contexts/AuthContext';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import ClassCard from '../../../components/teacher/ClassCard';
@@ -77,6 +77,10 @@ const TeacherDashboardPage = () => {
     navigate('/teacher/classes/create');
   };
 
+  const handleManageQuestions = () => {
+    navigate('/teacher/questions');
+  };
+
   const handleCreateTest = () => {
     navigate('/teacher/tests/create');
   };
@@ -134,7 +138,7 @@ const TeacherDashboardPage = () => {
                   {user?.full_name || user?.name || 'Giáo viên'}
                 </h1>
                 <p className="text-gray-500" style={{ display: 'block', margin: '0', padding: '0', lineHeight: '1.5', fontSize: '15px' }}>
-                  Tổng quan nhanh về lớp, học sinh và đề thi.
+                  Tổng quan nhanh về lớp, học sinh và bài kiểm tra.
                 </p>
               </div>
               
@@ -176,15 +180,16 @@ const TeacherDashboardPage = () => {
             gap: '20px', 
             marginBottom: '32px',
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            marginTop: '16px',
           }}>
             
-            {/* Thẻ 1: Tổng số đề thi */}
+            {/* Thẻ 1: Tổng số bài kiểm tra */}
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg" 
-                 style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box' }}>
+                 style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box'}}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số đề thi</p>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số bài kiểm tra</p>
                   <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalTests || 7}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -250,7 +255,7 @@ const TeacherDashboardPage = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 button-group">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 button-group">
             <button
               onClick={handleCreateTest}
               className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
@@ -259,8 +264,8 @@ const TeacherDashboardPage = () => {
                 <FiPlus className="text-xl text-blue-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Tạo đề thi mới</h4>
-                <p className="text-sm text-gray-500">Tạo bộ đề thi nhanh chóng</p>
+                <h4 className="font-semibold text-gray-800">Tạo bài kiểm tra mới</h4>
+                <p className="text-sm text-gray-500">Tạo bộ bài kiểm tra nhanh chóng</p>
               </div>
             </button>
 
@@ -276,19 +281,36 @@ const TeacherDashboardPage = () => {
                 <p className="text-sm text-gray-500">Tạo lớp và thêm học sinh</p>
               </div>
             </button>
+
+            <button
+              onClick={handleManageQuestions}
+              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
+            >
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+                <FiHelpCircle className="text-xl text-yellow-600" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-semibold text-gray-800">Quản lý câu hỏi</h4>
+                <p className="text-sm text-gray-500">Xem và chỉnh sửa ngân hàng câu hỏi</p>
+              </div>
+            </button>
           </div>
 
           {/* Recent Classes Section */}
-          <div className="dashboard-section mb-8">
-            <div className="dashboard-section-header">
-              <h2 className="dashboard-section-title">Lớp học mới nhất</h2>
-              <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+          <div style={{ width: '100%', marginTop: '8px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Lớp học mới nhất</h2>
+              <button
+                onClick={() => navigate('/teacher/classes')}
+                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0 }}
+                className="hover:text-blue-800"
+              >
                 Xem tất cả →
               </button>
             </div>
-            <div className="dashboard-grid">
-              {classes.length > 0 ? (
-                classes.map((classItem, index) => (
+            {classes.length > 0 ? (
+              <div className="dashboard-grid">
+                {classes.slice(0, 4).map((classItem, index) => (
                   <ClassCard
                     key={classItem.id || index}
                     classData={{
@@ -298,42 +320,71 @@ const TeacherDashboardPage = () => {
                       teacher: classItem.teacher?.name || classItem.teacher?.full_name || user?.full_name || user?.name || 'Giáo viên'
                     }}
                   />
-                ))
-              ) : (
-                <div className="col-span-full bg-white p-8 rounded-xl text-center border border-dashed border-gray-300">
-                  <FiUsers className="text-4xl text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">Bạn chưa có lớp học nào</p>
-                  <button
-                    onClick={handleCreateClass}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Tạo lớp đầu tiên
-                  </button>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#ffffff',
+                padding: '48px 24px',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                textAlign: 'center',
+                width: '100%',
+                boxSizing: 'border-box',
+              }}>
+                <FiUsers style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>Bạn chưa có lớp học nào</h3>
+                <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 20px 0' }}>Tạo lớp học để bắt đầu quản lý học sinh và giao bài.</p>
+                <button
+                  onClick={handleCreateClass}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                  style={{ padding: '10px 20px' }}
+                >
+                  Tạo lớp đầu tiên
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Recent Assignments Section */}
-          <div className="dashboard-section">
-            <div className="dashboard-section-header">
-              <h2 className="dashboard-section-title">Đề thi mới nhất</h2>
-              <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+          <div style={{ width: '100%', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Bài kiểm tra mới nhất</h2>
+              <button
+                onClick={() => navigate('/teacher/tests')}
+                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0 }}
+                className="hover:text-blue-800"
+              >
                 Xem tất cả →
               </button>
             </div>
-            <div className="space-y-3">
-              {assignments.length > 0 ? (
-                assignments.map((assignment) => (
-                  <div key={assignment.id} className="bg-white p-4 rounded-xl border border-gray-100 hover:shadow-md transition-all">
+            {assignments.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {assignments.map((assignment) => (
+                  <div
+                    key={assignment.id}
+                    className="hover:shadow-md transition-all"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      padding: '16px 20px',
+                      borderRadius: '12px',
+                      border: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => navigate(`/teacher/tests/${assignment.id}`)}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                           <FiFileText className="text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-800">{assignment.title}</h4>
-                          <p className="text-sm text-gray-500 flex items-center gap-1">
+                          <h4 className="font-semibold text-gray-800 text-sm">{assignment.title}</h4>
+                          <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
                             <FiClock /> {assignment.duration ? `${assignment.duration} phút` : 'Không giới hạn'}
                           </p>
                         </div>
@@ -345,20 +396,34 @@ const TeacherDashboardPage = () => {
                       </span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="bg-white p-8 rounded-xl text-center border border-dashed border-gray-300">
-                  <FiFileText className="text-4xl text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">Bạn chưa tạo đề thi nào</p>
-                  <button
-                    onClick={handleCreateTest}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Tạo đề thi đầu tiên
-                  </button>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#ffffff',
+                padding: '48px 24px',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                textAlign: 'center',
+                width: '100%',
+                boxSizing: 'border-box',
+              }}>
+                <FiFileText style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>Bạn chưa tạo bài kiểm tra nào</h3>
+                <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 20px 0' }}>Tạo bài kiểm tra để giao cho học sinh làm bài.</p>
+                <button
+                  onClick={handleCreateTest}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                  style={{ padding: '10px 20px' }}
+                >
+                  Tạo bài đầu tiên
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

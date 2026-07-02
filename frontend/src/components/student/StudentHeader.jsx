@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   FiBell,
   FiMessageSquare,
@@ -9,13 +9,16 @@ import {
   FiLogOut,
   FiChevronDown,
   FiMenu,
-} from 'react-icons/fi';
+} from "react-icons/fi";
+import NotificationBell from "../common/NotificationBell";
+// import { getEcho } from "../../realtime/echo";
 
 const StudentHeader = ({ title, subtitle, onMenuClick }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const subtitleText = subtitle || 'Chào mừng trở lại! Tiếp tục hành trình học tập của bạn.';
+  const subtitleText =
+    subtitle || "Chào mừng trở lại! Tiếp tục hành trình học tập của bạn.";
 
   const handleLogout = async () => {
     await logout();
@@ -23,9 +26,27 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
   };
 
   const handleSettings = () => {
-    navigate('/student/settings');
+    navigate("/student/settings");
     setAccountDropdownOpen(false);
   };
+
+  // const { user } = useAuth();
+
+  // useEffect(() => {
+  //   if (!user?.id) return;
+
+  //   console.log("Subscribe channel", user.id);
+
+  //   echo
+  //     .private(`notifications.${user.id}`)
+  //     .listen(".notification.created", (event) => {
+  //       console.log("Realtime notification:", event);
+  //     });
+
+  //   return () => {
+  //     echo.leave(`private-notifications.${user.id}`);
+  //   };
+  // }, [user]);
 
   return (
     <header className="student-header">
@@ -50,9 +71,7 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
 
       {/* Right: Actions */}
       <div className="student-header-right">
-        <button className="student-header-btn">
-          <FiBell />
-        </button>
+        <NotificationBell />
         <button className="student-header-btn">
           <FiMessageSquare />
         </button>
@@ -64,15 +83,13 @@ const StudentHeader = ({ title, subtitle, onMenuClick }) => {
             onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
           >
             <div className="student-avatar">
-              {(user?.full_name || user?.name || 'S').charAt(0).toUpperCase()}
+              {(user?.full_name || user?.name || "S").charAt(0).toUpperCase()}
             </div>
             <span className="student-account-name">
-              {user?.full_name || user?.name || 'Student'}
+              {user?.full_name || user?.name || "Student"}
             </span>
             <FiChevronDown
-              className={`account-chevron ${
-                accountDropdownOpen ? 'open' : ''
-              }`}
+              className={`account-chevron ${accountDropdownOpen ? "open" : ""}`}
             />
           </button>
 

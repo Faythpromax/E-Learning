@@ -30,6 +30,11 @@ class PracticeService
         return $query->inRandomOrder()->limit($limit)->get();
     }
 
+    public function getPracticeQuestions(int $practiceId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->questionRepository->getByPracticeId($practiceId);
+    }
+
     public function submitAnswer(int $userId, int $questionId, mixed $answer): array
     {
         $question = $this->questionRepository->getById($questionId);

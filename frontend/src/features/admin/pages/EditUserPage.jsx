@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { userApi } from '../../../api/userApi';
@@ -8,42 +8,51 @@ const EditUserPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('student');
-  const [password, setPassword] = useState('');
-  
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'student',
+    password: '',
+  });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await userApi.getUser(id);
+        const user = response?.data || response;
+        if (user) {
+          setForm({
+            name: user.name || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            role: user.role || 'student',
+            password: '',
+          });
+        } else {
+          setErrorMessage('Không thể tìm thấy thông tin người dùng.');
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải chi tiết người dùng:', error);
+        setErrorMessage('Có lỗi xảy ra khi lấy thông tin người dùng.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (id) {
       fetchUserDetails();
     }
   }, [id]);
 
-  const fetchUserDetails = async () => {
-    try {
-      setLoading(true);
-      const response = await userApi.getUser(id);
-      if (response.success && response.data) {
-        const user = response.data;
-        setName(user.name || '');
-        setEmail(user.email || '');
-        setPhone(user.phone || '');
-        setRole(user.role || 'student');
-      } else {
-        setErrorMessage('Không thể tìm thấy thông tin người dùng.');
-      }
-    } catch (error) {
-      console.error('Lỗi khi tải chi tiết người dùng:', error);
-      setErrorMessage('Có lỗi xảy ra khi lấy thông tin người dùng.');
-    } finally {
-      setLoading(false);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -51,11 +60,11 @@ const EditUserPage = () => {
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (!name.trim()) {
+    if (!form.name.trim()) {
       setErrorMessage('Họ và tên không được để trống.');
       return;
     }
-    if (!email.trim()) {
+    if (!form.email.trim()) {
       setErrorMessage('Email không được để trống.');
       return;
     }
@@ -63,42 +72,40 @@ const EditUserPage = () => {
     try {
       setSubmitting(true);
       const payload = {
-        name,
-        email,
-        phone,
-        role,
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        role: form.role,
       };
 
-      if (password.trim()) {
-        if (password.length < 6) {
+      if (form.password.trim()) {
+        if (form.password.length < 6) {
           setErrorMessage('Mật khẩu phải chứa ít nhất 6 ký tự.');
-          setSubmitting(false);
           return;
         }
-        payload.password = password;
+        payload.password = form.password;
       }
 
       const response = await userApi.updateUser(id, payload);
-      if (response.success) {
+      if (response?.success) {
         setSuccessMessage('Cập nhật thông tin thành công!');
         setTimeout(() => {
-          if (role === 'student') {
+          if (form.role === 'student') {
             navigate('/admin/students');
           } else {
             navigate('/admin/teachers');
           }
-        }, 1500);
+        }, 1000);
       } else {
-        setErrorMessage(response.message || 'Cập nhật thất bại.');
+        setErrorMessage(response?.message || 'Cập nhật thất bại.');
       }
     } catch (error) {
       console.error('Lỗi khi cập nhật thông tin:', error);
-      if (error.response?.data?.errors) {
-        // Collect Laravel validation errors
+      if (error?.response?.data?.errors) {
         const validationErrors = Object.values(error.response.data.errors).flat().join(' ');
         setErrorMessage(validationErrors);
       } else {
-        setErrorMessage(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật.');
+        setErrorMessage(error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật.');
       }
     } finally {
       setSubmitting(false);
@@ -108,12 +115,10 @@ const EditUserPage = () => {
   return (
     <AdminLayout title={`Sửa thông tin người dùng #${id}`}>
       {loading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Đang tải thông tin người dung...</div>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Đang tải thông tin người dùng...</div>
       ) : (
         <div className="admin-form-card">
-          <div className="admin-form-header">
-            Cập nhật thông tin người dùng
-          </div>
+          <div className="admin-form-header">Cập nhật thông tin người dùng</div>
           <form className="admin-form-body" onSubmit={handleSubmit}>
             {errorMessage && (
               <div className="question-error" style={{ marginBottom: '20px' }}>
@@ -128,55 +133,27 @@ const EditUserPage = () => {
 
             <div className="admin-form-group">
               <label className="admin-form-label">Họ và tên:</label>
-              <input 
-                type="text" 
-                className="admin-form-input" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                required
-              />
+              <input type="text" className="admin-form-input" name="name" value={form.name} onChange={handleChange} required />
             </div>
-            
+
             <div className="admin-form-group">
               <label className="admin-form-label">Email:</label>
-              <input 
-                type="email" 
-                className="admin-form-input" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                required
-              />
+              <input type="email" className="admin-form-input" name="email" value={form.email} onChange={handleChange} required />
             </div>
 
             <div className="admin-form-group">
               <label className="admin-form-label">Số điện thoại:</label>
-              <input 
-                type="text" 
-                className="admin-form-input" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
-              />
+              <input type="text" className="admin-form-input" name="phone" value={form.phone} onChange={handleChange} />
             </div>
 
             <div className="admin-form-group">
               <label className="admin-form-label">Mật khẩu mới:</label>
-              <input 
-                type="password" 
-                className="admin-form-input" 
-                placeholder="Để trống nếu không muốn đổi" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <input type="password" className="admin-form-input" name="password" placeholder="Để trống nếu không muốn đổi" value={form.password} onChange={handleChange} />
             </div>
 
             <div className="admin-form-group">
               <label className="admin-form-label">Quyền:</label>
-              <select 
-                className="admin-form-select" 
-                value={role} 
-                onChange={(e) => setRole(e.target.value)}
-                style={{ width: '180px' }}
-              >
+              <select className="admin-form-select" name="role" value={form.role} onChange={handleChange} style={{ width: '180px' }}>
                 <option value="student">Học sinh</option>
                 <option value="teacher">Giáo viên</option>
                 <option value="admin">Quản trị viên</option>
@@ -184,19 +161,10 @@ const EditUserPage = () => {
             </div>
 
             <div className="admin-form-actions">
-              <button 
-                type="button" 
-                className="admin-btn-cancel" 
-                onClick={() => navigate(-1)}
-                disabled={submitting}
-              >
+              <button type="button" className="admin-btn-cancel" onClick={() => navigate(-1)} disabled={submitting}>
                 Hủy
               </button>
-              <button 
-                type="submit" 
-                className="admin-btn-submit"
-                disabled={submitting}
-              >
+              <button type="submit" className="admin-btn-submit" disabled={submitting}>
                 {submitting ? 'Đang lưu...' : 'Lưu lại'}
               </button>
             </div>

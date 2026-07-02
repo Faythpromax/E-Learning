@@ -28,8 +28,7 @@ class StudentJoinedClassNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("Học sinh mới tham gia lớp: {$this->class->name}")
             ->greeting("Xin chào, thầy/cô {$notifiable->name}!")
-            ->line("Lớp học của thầy/cô vừa có một thành viên mới tham gia.")
-            ->line("Thông tin chi tiết:")
+            ->line('Lớp học của thầy/cô vừa có một thành viên mới tham gia.')
             ->line("- Học sinh: {$this->student->name} ({$this->student->email})")
             ->line("- Lớp học: {$this->class->name}")
             ->action('Xem danh sách lớp', url("/classes/{$this->class->id}/students"))
@@ -45,6 +44,8 @@ class StudentJoinedClassNotification extends Notification implements ShouldQueue
             'student_name' => $this->student->name,
             'message' => "Học sinh {$this->student->name} đã tham gia lớp học '{$this->class->name}' của bạn.",
             'action_url' => "/classes/{$this->class->id}/students",
+            'type' => 'join_class',
         ];
     }
 }
+

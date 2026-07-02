@@ -1,37 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import StatCard from '../../../components/admin/StatCard';
-import { FiUsers } from 'react-icons/fi';
+import { FiUsers, FiHelpCircle } from 'react-icons/fi';
 import { userApi } from '../../../api/userApi';
+import { questionApi } from '../../../api/questionApi';
 
 const AdminDashboardPage = () => {
-  const [teachersCount, setTeachersCount] = useState(0);
-  const [studentsCount, setStudentsCount] = useState(0);
+  const [stats, setStats] = useState({ teachers_count: 0, students_count: 0, questions_count: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardStats();
+    const fetchStats = async () => {
+      try {
+        const [statsRes, questionsRes] = await Promise.all([
+          userApi.getStats(),
+          questionApi.getSystemQuestions(),
+        ]);
+        if (statsRes?.success) {
+          setStats({
+            teachers_count: statsRes?.data?.teachers_count ?? 0,
+            students_count: statsRes?.data?.students_count ?? 0,
+            questions_count: Array.isArray(questionsRes?.data) ? questionsRes.data.length : 0,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
   }, []);
-
-  const fetchDashboardStats = async () => {
-    try {
-      setLoading(true);
-      const [teachersRes, studentsRes] = await Promise.all([
-        userApi.getTeachers(),
-        userApi.getStudents()
-      ]);
-
-      const teachersList = teachersRes.data || [];
-      const studentsList = studentsRes.data || [];
-
-      setTeachersCount(teachersList.length);
-      setStudentsCount(studentsList.length);
-    } catch (error) {
-      console.error("Lỗi khi tải thống kê admin dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <AdminLayout title="Dashboard">
@@ -45,19 +45,26 @@ const AdminDashboardPage = () => {
           <div style={{ color: '#666', fontSize: '14px' }}>Đang tải số liệu thống kê...</div>
         ) : (
           <div className="admin-stat-cards">
-            <StatCard 
-              title="Tổng số giáo viên" 
-              value={teachersCount.toString()} 
-              icon={<FiUsers />} 
-              bgColor="#e0e7ff" 
-              color="#4f46e5" 
+            <StatCard
+              title="Tổng số giáo viên"
+              value={stats.teachers_count.toString()}
+              icon={<FiUsers />}
+              bgColor="#e0e7ff"
+              color="#4f46e5"
             />
-            <StatCard 
-              title="Tổng số học sinh" 
-              value={studentsCount.toString()} 
-              icon={<FiUsers />} 
-              bgColor="#dcfce7" 
-              color="#16a34a" 
+            <StatCard
+              title="Tổng số học sinh"
+              value={stats.students_count.toString()}
+              icon={<FiUsers />}
+              bgColor="#dcfce7"
+              color="#16a34a"
+            />
+            <StatCard
+              title="Tổng số câu hỏi"
+              value={stats.questions_count.toString()}
+              icon={<FiHelpCircle />}
+              bgColor="#fef3c7"
+              color="#d97706"
             />
           </div>
         )}

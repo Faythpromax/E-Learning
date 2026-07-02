@@ -1,10 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 
-export function MatchingQuestion({ question, onAnswer, showResult = false, userAnswer = null }) {
+const stripNumberPrefix = (text) => {
+  if (typeof text !== "string") return text;
+  return text.replace(/^\s*\d+\.\s*/, "");
+};
+
+export function MatchingQuestion({
+  question,
+  onAnswer,
+  showResult = false,
+  answer = {},
+}) {
   const { left = [], right = [], correct_matches = {} } = question.data || {};
-  const [matches, setMatches] = useState(userAnswer || {});
+  const [matches, setMatches] = useState({});
+  const [selectedLeft, setSelectedLeft] = useState(null);
+
+  useEffect(() => {
+    setMatches(answer ?? {});
+  }, [answer]);
 
   const handleMatch = (leftId, rightId) => {
+    console.log("MATCH", leftId, rightId);
     if (showResult) return;
     const newMatches = { ...matches, [leftId]: rightId };
     setMatches(newMatches);
@@ -15,7 +31,10 @@ export function MatchingQuestion({ question, onAnswer, showResult = false, userA
     return correct_matches[leftId] === rightId;
   };
 
-  const shuffledRight = [...right].sort(() => Math.random() - 0.5);
+  const shuffledRight = right;
+
+  console.log(question.data);
+  console.log(selectedLeft);
 
   return (
     <div className="space-y-4">
@@ -24,7 +43,11 @@ export function MatchingQuestion({ question, onAnswer, showResult = false, userA
       )}
 
       {question.media_image && (
-        <img src={question.media_image} alt="" className="max-w-md rounded-lg" />
+        <img
+          src={question.media_image}
+          alt=""
+          className="max-w-md rounded-lg"
+        />
       )}
 
       <div className="grid grid-cols-2 gap-8">
@@ -33,20 +56,28 @@ export function MatchingQuestion({ question, onAnswer, showResult = false, userA
           {left.map((item, index) => (
             <div
               key={index}
-              className={`p-3 border-2 rounded-lg ${
+              onClick={() => {
+                console.log("LEFT CLICK", index);
+                if (!showResult) {
+                  setSelectedLeft(index);
+                }
+              }}
+              className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                 showResult
                   ? isCorrectMatch(index, matches[index])
-                    ? 'border-green-500 bg-green-50'
+                    ? "border-green-500 bg-green-50"
                     : matches[index] !== undefined
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200'
-                  : matches[index]
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200'
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-200"
+                  : selectedLeft === index
+                    ? "border-blue-600 bg-blue-100"
+                    : matches[index] !== undefined
+                      ? "border-green-500 bg-green-50"
+                      : "border-gray-200 hover:border-blue-300"
               }`}
             >
-              <span className="font-medium mr-2">{index + 1}.</span>
-              <span>{item}</span>
+              {/* <span className="font-medium mr-2">{index + 1}.</span> */}
+              <span>{stripNumberPrefix(item)}</span>
               {showResult && matches[index] !== undefined && (
                 <span className="ml-2 text-sm">
                   → {matches[index] + 1}
@@ -71,18 +102,24 @@ export function MatchingQuestion({ question, onAnswer, showResult = false, userA
                 className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                   showResult
                     ? Object.values(matches).includes(originalIndex)
-                      ? 'border-gray-300 bg-gray-100'
-                      : 'border-gray-200 hover:border-blue-300'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                      ? "border-gray-300 bg-gray-100"
+                      : "border-gray-200 hover:border-blue-300"
+                    : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
                 }`}
-                onClick={() => !showResult && handleMatch(
-                  Object.keys(matches).length < left.length ? 
-                    Object.keys(left).find(k => !(k in matches)) || 0 : 0,
-                  originalIndex
-                )}
+                onClick={() => {
+                  console.log("RIGHT CLICK", originalIndex);
+                  console.log("selected =", selectedLeft);
+                  if (showResult) return;
+
+                  if (selectedLeft === null) return;
+
+                  handleMatch(selectedLeft, originalIndex);
+
+                  setSelectedLeft(null);
+                }}
               >
-                <span className="font-medium mr-2">{originalIndex + 1}.</span>
-                <span>{item}</span>
+                {/* <span className="font-medium mr-2">{originalIndex + 1}.</span> */}
+                <span>{stripNumberPrefix(item)}</span>
               </div>
             );
           })}
@@ -91,7 +128,9 @@ export function MatchingQuestion({ question, onAnswer, showResult = false, userA
 
       {showResult && (
         <div className="mt-4">
-          {Object.keys(matches).every(k => isCorrectMatch(parseInt(k), matches[k])) ? (
+          {Object.keys(matches).every((k) =>
+            isCorrectMatch(parseInt(k), matches[k]),
+          ) ? (
             <div className="text-green-600 font-medium">Chính xác!</div>
           ) : (
             <div className="text-red-600 font-medium">

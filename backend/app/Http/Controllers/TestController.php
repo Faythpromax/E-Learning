@@ -252,21 +252,17 @@ class TestController extends Controller
     public function review(int $attemptId): JsonResponse
     {
         try {
+
             $review = $this->testService->getReview($attemptId);
 
-            if (!$review['success']) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $review['error'],
-                ], 400);
-            }
-
             return response()->json([
-                'success' => true,
-                'data' => $review,
+                'success'=>true,
+                'data'=>$review
             ]);
+
         } catch (\Exception $e) {
             \Log::error('FAILED GET REVIEW', ['exception' => $e]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Attempt not found. Error: ' . $e->getMessage(),
@@ -319,6 +315,25 @@ class TestController extends Controller
         return response()->json([
             'success' => true,
             'data' => $tests,
+        ]);
+    }
+
+    public function saveAnswer(Request $request)
+    {
+        $this->testService->saveAnswer(
+
+            $request->attempt_id,
+
+            $request->question_id,
+
+            $request->answer
+
+        );
+
+        return response()->json([
+
+            'success'=>true
+
         ]);
     }
 }

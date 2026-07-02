@@ -199,7 +199,8 @@ export function TeacherTestListPage() {
               <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>Bạn chưa tạo bài kiểm tra nào trên hệ thống này.</p>
               <button
                 onClick={() => navigate('/teacher/tests/create')}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ padding: '10px 20px' }}
               >
                 Tạo bài đầu tiên
               </button>

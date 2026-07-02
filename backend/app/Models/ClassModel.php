@@ -46,6 +46,23 @@ class ClassModel extends Model
         return $this->users()->wherePivot('role', 'teacher');
     }
 
+    protected $appends = [
+        'teacher',
+    ];
+
+    public function getTeacherAttribute()
+    {
+        // ưu tiên giáo viên được thêm vào lớp
+        $teacher = $this->teachers->first();
+
+        if ($teacher) {
+            return $teacher;
+        }
+
+        // nếu chưa có thì lấy người tạo lớp
+        return $this->creator;
+    }
+
     public function materials(): HasMany
     {
         return $this->hasMany(ClassMaterial::class, 'class_id');

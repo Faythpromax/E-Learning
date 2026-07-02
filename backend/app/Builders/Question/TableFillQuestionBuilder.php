@@ -76,6 +76,13 @@ class TableFillQuestionBuilder extends BaseQuestionBuilder
             }
         }
 
+        $leftColumn = array_column($rows, 0);
+        $rightColumn = array_column($rows, $cols - 1);
+        $correctAnswers = [];
+        foreach ($rows as $rowIndex => $row) {
+            $correctAnswers[$rowIndex] = $row[$cols - 1];
+        }
+
         return [
             ...$this->buildCommonFields($data),
 
@@ -85,6 +92,9 @@ class TableFillQuestionBuilder extends BaseQuestionBuilder
                 'headers' => $headers,
                 'rows' => $rows,
                 'cols' => $cols,
+                'left_column' => $leftColumn,
+                'right_column' => $rightColumn,
+                'correct_answers' => $correctAnswers,
             ]
         ];
     }

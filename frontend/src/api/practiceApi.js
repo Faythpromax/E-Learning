@@ -38,6 +38,11 @@ export const practiceApi = {
     return response.data;
   },
 
+  getPracticeQuestions: async (practiceId) => {
+    const response = await apiClient.get(`/practices/${practiceId}/questions`);
+    return response.data;
+  },
+
   submitAnswer: async (data) => {
     const response = await apiClient.post('/practice/check', data);
     return response.data;
@@ -45,6 +50,11 @@ export const practiceApi = {
 
   getProgress: async () => {
     const response = await apiClient.get('/practice/progress');
+    return response.data;
+  },
+
+  getStudentPractices: async () => {
+    const response = await apiClient.get('/student/practices');
     return response.data;
   },
 };

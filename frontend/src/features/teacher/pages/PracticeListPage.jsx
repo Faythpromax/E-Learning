@@ -32,6 +32,10 @@ export function TeacherPracticeListPage() {
     }
   };
 
+  const handleEdit = (practiceId) => {
+    navigate(`/teacher/practice/${practiceId}/edit`);
+  };
+
   const handleView = (practiceId) => {
     navigate(`/teacher/practice/${practiceId}`);
   };
@@ -84,7 +88,7 @@ export function TeacherPracticeListPage() {
     return (
       <TeacherLayout pageTitle="Quản lý bài ôn tập">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '12px' }}>
-          <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
           <div style={{ color: '#6b7280', fontSize: '14px' }}>Đang tải danh sách bài ôn tập...</div>
         </div>
       </TeacherLayout>
@@ -147,7 +151,8 @@ export function TeacherPracticeListPage() {
               <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>Bạn chưa tạo bài ôn tập nào trên hệ thống này.</p>
               <button
                 onClick={() => navigate('/teacher/practice/create')}
-                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ padding: '10px 20px' }}
               >
                 Tạo bài đầu tiên
               </button>
@@ -191,6 +196,13 @@ export function TeacherPracticeListPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleEdit(practice.id)}
+                              className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Chỉnh sửa bài ôn tập"
+                            >
+                              <FiEdit className="text-base" />
+                            </button>
                             <button
                               onClick={() => handleView(practice.id)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

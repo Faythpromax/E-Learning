@@ -1,19 +1,19 @@
-import apiClient from './client';
+import apiClient from "./client";
 
 export const testApi = {
   // Test CRUD
   getTests: async (params = {}) => {
-    const response = await apiClient.get('/tests', { params });
+    const response = await apiClient.get("/tests", { params });
     return response.data;
   },
 
   getAvailableTests: async () => {
-    const response = await apiClient.get('/tests/available');
+    const response = await apiClient.get("/tests/available");
     return response.data;
   },
 
   getSystemTests: async () => {
-    const response = await apiClient.get('/tests/system');
+    const response = await apiClient.get("/tests/system");
     return response.data;
   },
 
@@ -28,7 +28,7 @@ export const testApi = {
   },
 
   createTest: async (data) => {
-    const response = await apiClient.post('/tests', data);
+    const response = await apiClient.post("/tests", data);
     return response.data;
   },
 
@@ -58,7 +58,7 @@ export const testApi = {
 
   // Test Results
   getMyAttempts: async () => {
-    const response = await apiClient.get('/tests/attempts');
+    const response = await apiClient.get("/tests/attempts");
     return response.data;
   },
 
@@ -74,6 +74,23 @@ export const testApi = {
 
   getTestReview: async (attemptId) => {
     const response = await apiClient.get(`/tests/attempts/${attemptId}/review`);
+    return response.data;
+  },
+
+  // Save Answer
+  saveAnswer: async (attemptId, questionId, answer) => {
+    const response = await apiClient.post(
+      "/tests/save-answer",
+
+      {
+        attempt_id: attemptId,
+
+        question_id: questionId,
+
+        answer,
+      },
+    );
+
     return response.data;
   },
 };

@@ -16,24 +16,32 @@ export function TestQuestionNav({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4">
-      <h3 className="font-semibold text-gray-700 mb-3">Danh sach cau hoi</h3>
+    <div style={{
+      backgroundColor: '#ffffff',
+      borderRadius: '12px',
+      border: '1px solid #e5e7eb',
+      padding: '20px',
+      boxSizing: 'border-box',
+    }}>
+      <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
+        Danh sách câu hỏi
+      </h3>
       
       {/* Legend */}
-      <div className="flex flex-wrap gap-3 mb-4 text-xs">
-        <div className="flex items-center gap-1">
-          <span className="w-4 h-4 rounded bg-gray-200 border border-gray-300"></span>
-          <span className="text-gray-600">Chua tra loi</span>
+      <div className="flex flex-wrap gap-3 mb-10 text-xs" style={{marginBottom: '16px'}}>
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded bg-gray-100 border border-gray-300"></span>
+          <span className="text-gray-600">Chưa trả lời</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span className="w-4 h-4 rounded bg-blue-500 border border-blue-600"></span>
-          <span className="text-gray-600">Da tra loi</span>
+          <span className="text-gray-600">Đã trả lời</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span className="w-4 h-4 rounded bg-yellow-400 border border-yellow-500 flex items-center justify-center">
             <FiFlag className="text-xs text-yellow-800" />
           </span>
-          <span className="text-gray-600">Danh dau</span>
+          <span className="text-gray-600">Đánh dấu</span>
         </div>
       </div>
 
@@ -74,10 +82,10 @@ export function TestQuestionNav({
       </div>
 
       {/* Summary */}
-      <div className="mt-4 pt-3 border-t border-gray-200 text-sm text-gray-600">
+      <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #e5e7eb', fontSize: '13px', color: '#6b7280' }}>
         <div className="flex justify-between">
-          <span>Da tra loi: {Object.keys(answers).filter(id => answers[id] !== null && answers[id] !== undefined).length}/{questions.length}</span>
-          <span>Da danh dau: {flaggedQuestions.length}</span>
+          <span>Đã trả lời: {Object.keys(answers).filter(id => answers[id] !== null && answers[id] !== undefined).length}/{questions.length}</span>
+          <span>Đã đánh dấu: {flaggedQuestions.length}</span>
         </div>
       </div>
     </div>

@@ -1,15 +1,44 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiCheckCircle, FiXCircle, FiArrowLeft, FiClock, FiAward } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiArrowLeft, FiClock } from 'react-icons/fi';
 import { testApi } from '../../../api/testApi';
 import { QuestionRenderer } from '../../../components/student/QuestionRenderer';
 import StudentLayout from '../../../components/student/StudentLayout';
+
+const pageContainerStyle = {
+  width: '100%',
+  maxWidth: '768px',
+  margin: '0 auto',
+  padding: '24px',
+  boxSizing: 'border-box',
+};
+
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '12px',
+  border: '1px solid #e5e7eb',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const formatDateTime = (value) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString('vi-VN');
+};
+
+const getSubjectName = (result) => {
+  if (!result?.subject) return 'Không rõ';
+  if (typeof result.subject === 'string') return result.subject;
+  return result.subject?.name || 'Không rõ';
+};
 
 export function TestResultPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [result, setResult] = useState(location.state?.result || null);
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(!location.state?.result);
@@ -45,15 +74,21 @@ export function TestResultPage() {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 80) return '#16a34a';
+    if (score >= 60) return '#d97706';
+    return '#dc2626';
   };
 
   const getScoreBgColor = (score) => {
-    if (score >= 80) return 'bg-green-100';
-    if (score >= 60) return 'bg-yellow-100';
-    return 'bg-red-100';
+    if (score >= 80) return '#f0fdf4';
+    if (score >= 60) return '#fffbeb';
+    return '#fef2f2';
+  };
+
+  const getScoreBorderColor = (score) => {
+    if (score >= 80) return '#bbf7d0';
+    if (score >= 60) return '#fde68a';
+    return '#fecaca';
   };
 
   const getScoreMessage = (score) => {
@@ -91,21 +126,25 @@ export function TestResultPage() {
     );
   }
 
-  const correctCount = review?.questions?.filter(q => q.is_correct).length || 0;
+  const score = result.score ?? 0;
+  const correctCount = review?.questions?.filter((q) => q.is_correct).length || 0;
   const totalCount = review?.questions?.length || result.total_questions || 0;
 
   return (
     <StudentLayout pageTitle="Kết quả bài kiểm tra">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Score Card */}
-        <div className={`${getScoreBgColor(result.score)} rounded-2xl p-8 mb-6 text-center`}>
-          <div className={`text-6xl font-bold mb-2 ${getScoreColor(result.score)}`}>
-            {result.score?.toFixed(1) || 0}%
+        {result.status === 'expired' && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-center text-sm font-medium text-amber-700">
+            Bài kiểm tra đã hết giờ. Bạn không thể làm lại bài này.
           </div>
-          <div className="text-xl font-semibold text-gray-700 mb-4">
-            {getScoreMessage(result.score)}
+        )}
+
+        <div className={`${getScoreBgColor(score)} rounded-2xl p-8 mb-6 text-center`}>
+          <div className={`text-6xl font-bold mb-2 ${getScoreColor(score)}`}>
+            {score.toFixed(1)}%
           </div>
-          <div className="flex justify-center gap-8 text-sm">
+          <div className="text-lg font-semibold text-gray-700">{getScoreMessage(score)}</div>
+          <div className="mt-4 flex flex-wrap justify-center gap-8 text-sm">
             <div className="flex items-center gap-2">
               <FiCheckCircle className="text-green-600" />
               <span className="text-gray-700">
@@ -121,19 +160,18 @@ export function TestResultPage() {
             <div className="flex items-center gap-2">
               <FiClock className="text-gray-600" />
               <span className="text-gray-700">
-                Lần thi thứ <strong>{result.attempt_no}</strong>
+                Lần thi thứ <strong>{result.attempt_no || 1}</strong>
               </span>
             </div>
           </div>
         </div>
 
-        {/* Test Info */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="font-bold text-gray-800 mb-4">Thông tin bài kiểm tra</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-500">Môn học:</span>
-              <span className="ml-2 font-medium text-gray-800">{result.subject || 'Không rõ'}</span>
+              <span className="ml-2 font-medium text-gray-800">{getSubjectName(result)}</span>
             </div>
             <div>
               <span className="text-gray-500">Tổng số câu:</span>
@@ -142,44 +180,43 @@ export function TestResultPage() {
             <div>
               <span className="text-gray-500">Bắt đầu:</span>
               <span className="ml-2 font-medium text-gray-800">
-                {new Date(result.started_at).toLocaleString('vi-VN')}
+                {formatDateTime(result.started_at)}
               </span>
             </div>
             <div>
               <span className="text-gray-500">Nộp bài:</span>
               <span className="ml-2 font-medium text-gray-800">
-                {result.submitted_at ? new Date(result.submitted_at).toLocaleString('vi-VN') : '-'}
+                {formatDateTime(result.submitted_at)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Review Section */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b flex items-center justify-between">
             <h2 className="font-bold text-gray-800">Xem lại đáp án</h2>
-            <button
-              onClick={() => setShowReview(!showReview)}
-              className="px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors"
-            >
-              {showReview ? 'Ẩn đi' : 'Hiển thị'}
-            </button>
-          </div>
 
           {showReview && review?.questions && (
-            <div className="divide-y">
+            <div>
               {review.questions.map((question, index) => (
-                <div key={question.id} className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
+                <div
+                  key={question.id}
+                  style={{
+                    padding: '24px',
+                    borderBottom: index < review.questions.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                     {question.is_correct ? (
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                        <FiCheckCircle className="text-green-600" />
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiCheckCircle style={{ color: '#16a34a' }} />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                        <FiXCircle className="text-red-600" />
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiXCircle style={{ color: '#dc2626' }} />
                       </div>
                     )}
+<<<<<<< HEAD
                     <span className="font-semibold text-gray-800">
                       Câu {index + 1}
                     </span>
@@ -187,6 +224,14 @@ export function TestResultPage() {
                       question.is_correct ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {question.is_correct ? 'Đúng' : 'Sai'}
+=======
+                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>Câu {index + 1}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: question.is_correct ? '#16a34a' : '#dc2626' }}>
+                      {question.is_correct ? 'Đúng' : 'Sai'}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#9ca3af', marginLeft: 'auto' }}>
+                      {question.earned_points ?? (question.is_correct ? 1 : 0)}/{question.max_score ?? 1} điểm
+>>>>>>> a5fefcfbec6425d603c89ed04903ce503e5ea657
                     </span>
                   </div>
 
@@ -207,17 +252,38 @@ export function TestResultPage() {
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-4 mt-6">
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button
             onClick={() => navigate('/student/tests')}
-            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+            style={{
+              flex: 1,
+              padding: '12px 20px',
+              backgroundColor: '#ffffff',
+              color: '#374151',
+              fontWeight: '600',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+              cursor: 'pointer',
+            }}
+            className="hover:bg-gray-50"
           >
             Quay lại danh sách
           </button>
           <button
             onClick={() => navigate('/student/practice')}
-            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+            style={{
+              flex: 1,
+              padding: '12px 20px',
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: '600',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            className="hover:bg-blue-700"
           >
             Luyện tập thêm
           </button>

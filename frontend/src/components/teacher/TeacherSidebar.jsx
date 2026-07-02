@@ -103,6 +103,14 @@ const TeacherSidebar = ({ isOpen }) => {
           <span className="nav-text">Bài kiểm tra</span>
         </div>
 
+        <div
+          className={`nav-item ${isActive("/teacher/questions") ? "active" : ""}`}
+          onClick={() => navigate("/teacher/questions")}
+        >
+          <FiHelpCircle className="nav-icon" />
+          <span className="nav-text">Quản lý câu hỏi</span>
+        </div>
+
         {/* Support */}
         <div
           className={`nav-item ${isActive("/teacher/support") ? "active" : ""}`}

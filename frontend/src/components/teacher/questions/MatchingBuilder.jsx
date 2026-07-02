@@ -1,4 +1,43 @@
 import { useState } from 'react';
+import { FiPlus, FiTrash2 } from 'react-icons/fi';
+
+const inputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  fontSize: '14px',
+  border: '1px solid #d1d5db',
+  borderRadius: '8px',
+  outline: 'none',
+  color: '#111827',
+  backgroundColor: '#ffffff',
+  boxSizing: 'border-box',
+};
+
+const columnCardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '10px',
+  border: '1px solid #e9d5ff',
+  padding: '16px',
+};
+
+const actionButtonStyle = (variant) => {
+  const variants = {
+    default: { backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb' },
+    selected: { backgroundColor: '#2563eb', color: '#ffffff', border: '1px solid #2563eb' },
+    matched: { backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac' },
+    disabled: { backgroundColor: '#f9fafb', color: '#9ca3af', border: '1px solid #e5e7eb', cursor: 'not-allowed' },
+    active: { backgroundColor: '#dbeafe', color: '#1d4ed8', border: '1px solid #93c5fd' },
+  };
+  return {
+    padding: '6px 12px',
+    fontSize: '12px',
+    fontWeight: '600',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    ...variants[variant],
+  };
+};
 
 export function MatchingBuilder({ data, onChange, onSave, onCancel }) {
   const [leftItems, setLeftItems] = useState(data.left || ['', '']);
@@ -10,12 +49,14 @@ export function MatchingBuilder({ data, onChange, onSave, onCancel }) {
     const newLeft = [...leftItems];
     newLeft[index] = value;
     setLeftItems(newLeft);
+    onChange?.({ left: newLeft, right: rightItems, correct_matches: correctMatches });
   };
 
   const updateRight = (index, value) => {
     const newRight = [...rightItems];
     newRight[index] = value;
     setRightItems(newRight);
+    onChange?.({ left: leftItems, right: newRight, correct_matches: correctMatches });
   };
 
   const addPair = () => {
@@ -56,6 +97,7 @@ export function MatchingBuilder({ data, onChange, onSave, onCancel }) {
       const newMatches = { ...correctMatches, [matchStep.left]: index };
       setCorrectMatches(newMatches);
       setMatchStep({ left: null, right: null });
+      onChange?.({ left: leftItems, right: rightItems, correct_matches: newMatches });
     } else if (side === 'left') {
       setMatchStep({ left: index, right: null });
     }
@@ -65,10 +107,11 @@ export function MatchingBuilder({ data, onChange, onSave, onCancel }) {
     const newMatches = { ...correctMatches };
     delete newMatches[leftIndex];
     setCorrectMatches(newMatches);
+    onChange?.({ left: leftItems, right: rightItems, correct_matches: newMatches });
   };
 
   const handleSave = () => {
-    if (leftItems.some(l => !l.trim()) || rightItems.some(r => !r.trim())) {
+    if (leftItems.some((l) => !l.trim()) || rightItems.some((r) => !r.trim())) {
       alert('Vui lòng nhập đầy đủ nội dung các cặp');
       return;
     }
@@ -87,87 +130,151 @@ export function MatchingBuilder({ data, onChange, onSave, onCancel }) {
   const isRightMatchable = (index) => matchStep.left !== null && !Object.values(correctMatches).includes(index);
   const isLeftMatched = (index) => index.toString() in correctMatches;
 
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-blue-700">Câu hỏi Nối cột (Matching)</h3>
-      <p className="text-sm text-gray-600">Nhập nội dung, click chọn cột trái trước, sau đó click cột phải để nối</p>
+  const renderLeftRow = (item, index) => (
+    <div key={`left-${index}`} style={{ marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{
+          width: '32px',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f3f4f6',
+          borderRadius: '8px',
+          fontSize: '13px',
+          fontWeight: '700',
+          color: '#6b7280',
+          flexShrink: 0,
+        }}>
+          {index + 1}
+        </span>
+        <input
+          type="text"
+          value={item}
+          onChange={(e) => updateLeft(index, e.target.value)}
+          placeholder={`Mục ${index + 1}`}
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        {leftItems.length > 2 && (
+          <button
+            type="button"
+            onClick={() => removePair(index)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              border: 'none',
+              backgroundColor: '#fee2e2',
+              color: '#dc2626',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+            title="Xóa cặp"
+          >
+            <FiTrash2 size={14} />
+          </button>
+        )}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', marginLeft: '42px' }}>
+        <button
+          type="button"
+          onClick={() => handleMatchClick('left', index)}
+          style={actionButtonStyle(
+            isLeftSelected(index) ? 'selected' : isLeftMatched(index) ? 'matched' : 'default'
+          )}
+        >
+          {isLeftMatched(index) ? 'Đã nối' : isLeftSelected(index) ? 'Đang chọn' : 'Chọn để nối'}
+        </button>
+        {isLeftMatched(index) && (
+          <button
+            type="button"
+            onClick={() => clearMatch(index)}
+            style={{ ...actionButtonStyle('default'), color: '#dc2626' }}
+          >
+            Huỷ nối
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
-      <div className="grid grid-cols-2 gap-8">
-        <div>
-          <h4 className="font-medium mb-3 text-gray-700">Cột trái (click để chọn)</h4>
-          {leftItems.map((item, index) => (
-            <div key={`left-${index}`} className="flex items-center gap-2 mb-2">
-              <span className="w-8 text-center bg-gray-200 px-2 py-1 rounded font-medium">{index + 1}</span>
-              <input
-                type="text"
-                value={item}
-                onChange={(e) => updateLeft(index, e.target.value)}
-                placeholder={`Mục ${index + 1}`}
-                className="flex-1 px-3 py-2 border rounded focus:border-blue-500 focus:outline-none"
-              />
-              {leftItems.length > 2 && (
-                <button
-                  type="button"
-                  onClick={() => removePair(index)}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  Xoá
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => handleMatchClick('left', index)}
-                className={`px-2 py-1 rounded text-sm ${
-                  isLeftSelected(index)
-                    ? 'bg-blue-500 text-white'
-                    : isLeftMatched(index)
-                    ? 'bg-green-100 text-green-700 border border-green-300'
-                    : 'bg-gray-100 hover:bg-blue-100'
-                }`}
-              >
-                {isLeftMatched(index) ? 'Đã nối' : isLeftSelected(index) ? 'Đang chọn' : 'Nối'}
-              </button>
-              {isLeftMatched(index) && (
-                <button
-                  type="button"
-                  onClick={() => clearMatch(index)}
-                  className="text-red-500 text-sm"
-                >
-                  Huỷ
-                </button>
-              )}
-            </div>
-          ))}
+  const renderRightRow = (item, index) => (
+    <div key={`right-${index}`} style={{ marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{
+          width: '32px',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f3f4f6',
+          borderRadius: '8px',
+          fontSize: '13px',
+          fontWeight: '700',
+          color: '#6b7280',
+          flexShrink: 0,
+        }}>
+          {index + 1}
+        </span>
+        <input
+          type="text"
+          value={item}
+          onChange={(e) => updateRight(index, e.target.value)}
+          placeholder={`Đáp án ${index + 1}`}
+          style={{ ...inputStyle, flex: 1 }}
+        />
+      </div>
+      <div style={{ marginTop: '8px', marginLeft: '42px' }}>
+        <button
+          type="button"
+          onClick={() => handleMatchClick('right', index)}
+          disabled={!isRightMatchable(index) && !Object.values(correctMatches).includes(index)}
+          style={actionButtonStyle(
+            Object.values(correctMatches).includes(index)
+              ? 'matched'
+              : isRightMatchable(index)
+              ? 'active'
+              : 'disabled'
+          )}
+        >
+          {Object.values(correctMatches).includes(index) ? 'Đã nối' : 'Nối vào đây'}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ width: '100%' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#6d28d9', margin: '0 0 6px 0' }}>
+          Câu hỏi nối cột (Matching)
+        </h3>
+        <p style={{ fontSize: '13px', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
+          Nhập nội dung, chọn mục ở cột trái trước, sau đó bấm &quot;Nối vào đây&quot; ở cột phải tương ứng.
+        </p>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+        marginBottom: '20px',
+      }}>
+        <div style={columnCardStyle}>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#374151', margin: '0 0 16px 0' }}>
+            Cột trái
+          </h4>
+          {leftItems.map(renderLeftRow)}
         </div>
 
-        <div>
-          <h4 className="font-medium mb-3 text-gray-700">Cột phải (click để nối)</h4>
-          {rightItems.map((item, index) => (
-            <div key={`right-${index}`} className="flex items-center gap-2 mb-2">
-              <span className="w-8 text-center bg-gray-200 px-2 py-1 rounded font-medium">{index + 1}</span>
-              <input
-                type="text"
-                value={item}
-                onChange={(e) => updateRight(index, e.target.value)}
-                placeholder={`Đáp án ${index + 1}`}
-                className="flex-1 px-3 py-2 border rounded focus:border-blue-500 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => handleMatchClick('right', index)}
-                disabled={!isRightMatchable(index) && !Object.values(correctMatches).includes(index)}
-                className={`px-2 py-1 rounded text-sm ${
-                  Object.values(correctMatches).includes(index)
-                    ? 'bg-green-100 text-green-700 border border-green-300'
-                    : isRightMatchable(index)
-                    ? 'bg-blue-100 hover:bg-blue-200'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                {Object.values(correctMatches).includes(index) ? 'Đã nối' : 'Nối'}
-              </button>
-            </div>
-          ))}
+        <div style={columnCardStyle}>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#374151', margin: '0 0 16px 0' }}>
+            Cột phải
+          </h4>
+          {rightItems.map(renderRightRow)}
         </div>
       </div>
 
@@ -175,29 +282,74 @@ export function MatchingBuilder({ data, onChange, onSave, onCancel }) {
         type="button"
         onClick={addPair}
         disabled={leftItems.length >= 8}
-        className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 0',
+          marginBottom: '16px',
+          background: 'none',
+          border: 'none',
+          color: leftItems.length >= 8 ? '#9ca3af' : '#7c3aed',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: leftItems.length >= 8 ? 'not-allowed' : 'pointer',
+        }}
       >
-        + Thêm cặp
+        <FiPlus size={16} />
+        Thêm cặp
       </button>
 
-      <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
-        <p className="text-sm text-yellow-800">
+      <div style={{
+        backgroundColor: '#fffbeb',
+        border: '1px solid #fde68a',
+        borderRadius: '10px',
+        padding: '12px 16px',
+        marginBottom: '20px',
+      }}>
+        <p style={{ fontSize: '13px', color: '#92400e', margin: 0 }}>
           <strong>Đã nối:</strong> {Object.keys(correctMatches).length}/{leftItems.length} cặp
         </p>
       </div>
 
-      <div className="flex gap-3 pt-4 border-t">
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        paddingTop: '16px',
+        borderTop: '1px solid #e9d5ff',
+        flexWrap: 'wrap',
+      }}>
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#2563eb',
+            color: '#ffffff',
+            fontWeight: '600',
+            fontSize: '14px',
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          className="hover:bg-blue-700"
         >
           Lưu cấu hình
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#ffffff',
+            color: '#374151',
+            fontWeight: '600',
+            fontSize: '14px',
+            borderRadius: '8px',
+            border: '1px solid #d1d5db',
+            cursor: 'pointer',
+          }}
+          className="hover:bg-gray-50"
         >
           Huỷ
         </button>

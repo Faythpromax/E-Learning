@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit, FiTrash2, FiFileText, FiCopy, FiBarChart2, FiSearch, FiEye, FiInbox, FiUser } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiFileText, FiCopy, FiSearch, FiEye, FiInbox, FiUser } from 'react-icons/fi';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { testApi } from '../../../api/testApi';
 
@@ -135,9 +135,9 @@ export function AdminTestListPage() {
 
   return (
     <AdminLayout title="Quản lý bài kiểm tra">
-      <div style={{ display: 'block', width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '24px', boxSizing: 'border-box', textAlign: 'left' }}>
+      <div style={{ display: 'block', width: '100%', maxWidth: '1152px', margin: '0 auto', padding: '24px', boxSizing: 'border-box', textAlign: 'left' }}>
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f3f4f6' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f3f4f6' }} className="justify-between">
           <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0' }}>Quản lý bài kiểm tra</h1>
           <button
             onClick={() => navigate('/admin/tests/create')}
@@ -187,19 +187,20 @@ export function AdminTestListPage() {
         <div style={{ display: 'block', width: '100%' }}>
           {tests.length === 0 ? (
             <div style={{ backgroundColor: '#ffffff', padding: '48px', borderRadius: '12px', border: '1px solid #e5e7eb', textAlign: 'center' }}>
-              <FiFileText style={{ fontSize: '60px', color: '#d1d5db', marginLeft: 'auto', marginRight: 'auto', marginBottom: '16px' }} />
+              <FiFileText style={{ fontSize: '60px', color: '#d1d5db', marginLeft: 'auto', marginRight: 'auto', marginBottom: '16px', display: 'block' }} />
               <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#374151', marginBottom: '4px' }}>Chưa có bài kiểm tra nào</h3>
               <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>Chưa có bài kiểm tra nào trên hệ thống.</p>
               <button
                 onClick={() => navigate('/admin/tests/create')}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ padding: '10px 20px' }}
               >
                 Tạo bài đầu tiên
               </button>
             </div>
           ) : filteredTests.length === 0 ? (
             <div style={{ backgroundColor: '#ffffff', padding: '48px', borderRadius: '12px', border: '1px solid #e5e7eb', textAlign: 'center' }}>
-              <FiInbox style={{ fontSize: '60px', color: '#d1d5db', marginLeft: 'auto', marginRight: 'auto', marginBottom: '16px' }} />
+              <FiInbox style={{ fontSize: '60px', color: '#d1d5db', marginLeft: 'auto', marginRight: 'auto', marginBottom: '16px', display: 'block' }} />
               <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#374151', marginBottom: '4px' }}>Không tìm thấy kết quả</h3>
               <p style={{ color: '#6b7280', fontSize: '14px' }}>Không có bài kiểm tra nào khớp với tiêu chí tìm kiếm.</p>
             </div>
@@ -209,45 +210,45 @@ export function AdminTestListPage() {
                 <table className="w-full border-collapse text-left">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu đề bài thi</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Môn học</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Người tạo</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Câu hỏi</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hình thức</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu đề bài thi</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Môn học</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Người tạo</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Số câu hỏi</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hình thức</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {filteredTests.map((test) => (
                       <tr key={test.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-semibold text-gray-900 text-sm">{test.title}</div>
                           {test.test_code && (
                             <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                              <span>Mã:</span>
+                              <span>Mã đề:</span>
                               <code className="bg-gray-100 px-1.5 py-0.2 rounded font-mono text-blue-600 font-bold text-[11px]">
                                 {test.test_code}
                               </code>
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 font-medium whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
                           {test.subject?.name || '-'}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2 text-sm">
                             <FiUser style={{ color: '#9ca3af' }} />
                             <span className="text-gray-600">{test.creator?.name || test.created_by || 'N/A'}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-center font-semibold whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-center font-semibold">
                           {test.questions_count || test.questions?.length || 0}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {getAccessTypeLabel(test.access_type)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() => handleToggleStatus(test)}
                             disabled={updatingStatusId === test.id}
@@ -256,11 +257,12 @@ export function AdminTestListPage() {
                                 ? 'bg-green-100 text-green-800 hover:bg-green-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             } ${updatingStatusId === test.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title="Click để đổi trạng thái đóng/mở đề"
                           >
-                            {test.is_active ? 'Đang mở' : 'Đang đóng'}
+                            {test.is_active ? 'Đang mở đề' : 'Đang đóng đề'}
                           </button>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => handleView(test.id)}

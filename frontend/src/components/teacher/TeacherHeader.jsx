@@ -1,6 +1,6 @@
-import { useAuth } from '../../contexts/AuthContext';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../../contexts/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiBell,
   FiMessageSquare,
@@ -9,7 +9,9 @@ import {
   FiLogOut,
   FiChevronDown,
   FiMenu,
-} from 'react-icons/fi';
+} from "react-icons/fi";
+import NotificationBell from "../common/NotificationBell";
+import { getEcho } from "../../realtime/echo";
 
 const TeacherHeader = ({ title, onMenuClick }) => {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ const TeacherHeader = ({ title, onMenuClick }) => {
   };
 
   const handleSettings = () => {
-    navigate('/teacher/settings');
+    navigate("/teacher/settings");
     setAccountDropdownOpen(false);
   };
 
@@ -45,9 +47,7 @@ const TeacherHeader = ({ title, onMenuClick }) => {
 
       {/* Right: Actions */}
       <div className="teacher-header-right">
-        <button className="teacher-header-btn">
-          <FiBell />
-        </button>
+        <NotificationBell />
         <button className="teacher-header-btn">
           <FiMessageSquare />
         </button>
@@ -58,18 +58,16 @@ const TeacherHeader = ({ title, onMenuClick }) => {
             className="teacher-account-btn"
             onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
           >
-              <div className="teacher-avatar">
-                {(user?.full_name || user?.name || 'T').charAt(0).toUpperCase()}
-              </div>
+            <div className="teacher-avatar">
+              {(user?.full_name || user?.name || "T").charAt(0).toUpperCase()}
+            </div>
 
-              <span className="teacher-account-name">
-                {user?.full_name || user?.name || 'Teacher'}
-              </span>
+            <span className="teacher-account-name">
+              {user?.full_name || user?.name || "Teacher"}
+            </span>
 
             <FiChevronDown
-              className={`account-chevron ${
-                accountDropdownOpen ? 'open' : ''
-              }`}
+              className={`account-chevron ${accountDropdownOpen ? "open" : ""}`}
             />
           </button>
 

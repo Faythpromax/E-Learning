@@ -17,7 +17,7 @@ class TestRepository implements TestRepositoryInterface
 {
     public function getAll(array $filters = [], User $user): Collection
     {
-        $query = Test::with(['subject', 'creator', 'questions']);
+        $query = Test::with(['subject', 'creator', 'questions'])->withCount('questions');
 
         if (isset($filters['subject_id'])) {
             $query->where('subject_id', $filters['subject_id']);
@@ -75,7 +75,7 @@ class TestRepository implements TestRepositoryInterface
     public function getAttempts(int $userId, ?int $testId = null): Collection
     {
         $query = TestAttempt::where('user_id', $userId)
-            ->with(['test', 'test.subject']);
+            ->with(['test', 'test.subject', 'answers', 'test.questions']);
 
         if ($testId) {
             $query->where('test_id', $testId);
@@ -90,6 +90,14 @@ class TestRepository implements TestRepositoryInterface
             ->with(['user', 'test.subject'])
             ->orderBy('submitted_at', 'desc')
             ->get();
+    }
+
+    public function findLatestAttempt(int $userId, int $testId)
+    {
+        return TestAttempt::where('user_id', $userId)
+            ->where('test_id', $testId)
+            ->latest()
+            ->first();
     }
 
     public function getTestWithQuestions(int $id): Model
@@ -112,7 +120,7 @@ class TestRepository implements TestRepositoryInterface
             'subject',
             'creator',
             'classes'
-        ])
+        ])->withCount('questions')
             ->where('is_active', true)
 
             ->where(function ($q) {
@@ -161,7 +169,7 @@ class TestRepository implements TestRepositoryInterface
     }
     public function getSystemTests(): Collection
     {
-        return Test::with(['subject', 'creator', 'testQuestions'])
+        return Test::with(['subject', 'creator', 'testQuestions'])->withCount('questions')
             ->where('scope', 'system')
             ->where('is_active', true)
             ->where(function ($q) {
@@ -253,9 +261,18 @@ class TestRepository implements TestRepositoryInterface
         $test = Test::findOrFail($testId);
 
         // Count existing attempts
-        $attemptNo = TestAttempt::where('user_id', $userId)
-            ->where('test_id', $testId)
-            ->max('attempt_no') + 1;
+        $attemptNo = TestAttempt::where(
+            'user_id',
+            $userId
+        )
+        ->where(
+            'test_id',
+            $testId
+        )
+        ->lockForUpdate()
+        ->max('attempt_no');
+
+        $attemptNo = ($attemptNo ?? 0) + 1;
 
         // Calculate expiration time
         $expiredAt = null;

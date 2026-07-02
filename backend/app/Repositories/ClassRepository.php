@@ -15,7 +15,7 @@ class ClassRepository implements ClassRepositoryInterface
 {
     public function getAll(array $filters = [], ?int $userId = null): Collection
     {
-        $query = ClassModel::with(['creator', 'users']);
+        $query = ClassModel::with(['creator', 'users', 'teachers']);
 
         if ($userId) {
             $query->whereHas('users', function ($q) use ($userId) {

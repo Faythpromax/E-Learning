@@ -2,31 +2,83 @@ import { useNavigate } from 'react-router-dom';
 import { FiCheckCircle } from 'react-icons/fi';
 import StudentLayout from '../../../components/student/StudentLayout';
 
+const pageContainerStyle = {
+  width: '100%',
+  maxWidth: '480px',
+  margin: '0 auto',
+  padding: '24px',
+  boxSizing: 'border-box',
+};
+
 const PracticeCompletePage = () => {
   const navigate = useNavigate();
 
   return (
-    <StudentLayout pageTitle="Hoan thanh luyen tap">
-      <div className="max-w-xl mx-auto text-center">
-        <div className="bg-white rounded-xl shadow p-8">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FiCheckCircle className="text-green-600 text-4xl" />
+    <StudentLayout pageTitle="Hoàn thành luyện tập">
+      <div style={pageContainerStyle}>
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          border: '1px solid #e5e7eb',
+          padding: '48px 32px',
+          textAlign: 'center',
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            backgroundColor: '#f0fdf4',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+          }}>
+            <FiCheckCircle style={{ fontSize: '40px', color: '#16a34a' }} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Chuc mung!</h2>
-          <p className="text-gray-600 mb-8">Ban da hoan thanh buoi luyen tap</p>
 
-          <div className="flex items-center justify-center gap-4">
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>
+            Chúc mừng!
+          </h2>
+          <p style={{ fontSize: '15px', color: '#6b7280', margin: '0 0 32px 0', lineHeight: '1.6' }}>
+            Bạn đã hoàn thành buổi luyện tập.
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => navigate('/student/practice')}
-              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+              style={{
+                flex: 1,
+                minWidth: '140px',
+                padding: '12px 20px',
+                backgroundColor: '#ffffff',
+                color: '#374151',
+                fontWeight: '600',
+                fontSize: '14px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                cursor: 'pointer',
+              }}
+              className="hover:bg-gray-50"
             >
-              Quay lai
+              Quay lại
             </button>
             <button
-              onClick={() => navigate('/student/practice/random')}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              onClick={() => navigate('/student/practice')}
+              style={{
+                flex: 1,
+                minWidth: '140px',
+                padding: '12px 20px',
+                backgroundColor: '#7c3aed',
+                color: '#ffffff',
+                fontWeight: '600',
+                fontSize: '14px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              className="hover:bg-purple-700"
             >
-              Luyen tap tiep
+              Luyện tập tiếp
             </button>
           </div>
         </div>
