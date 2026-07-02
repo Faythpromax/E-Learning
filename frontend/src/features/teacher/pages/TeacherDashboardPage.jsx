@@ -85,34 +85,6 @@ const TeacherDashboardPage = () => {
     navigate('/teacher/tests/create');
   };
 
-  // Định nghĩa CSS Inline thuần để cưỡng chế giao diện cân đối tuyệt đối
-  const cardStyle = {
-    height: '160px',
-    minHeight: '160px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    padding: '20px',
-    boxSizing: 'border-box'
-  };
-
-  const rowTopStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%'
-  };
-
-  const rowBottomStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    marginTop: 'auto',
-    paddingTop: '8px',
-    borderTop: '1px solid rgba(255, 255, 255, 0.15)',
-    fontSize: '12px'
-  };
-
   return (
     <TeacherLayout pageTitle="Trang chủ giáo viên">
       {loading ? (
@@ -126,44 +98,32 @@ const TeacherDashboardPage = () => {
         <>
           
           {/* Welcome */}
-          <div className="mb-8 rounded-3xl bg-white shadow-lg" style={{ padding: '32px', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', width: '100%' }}>
+          <div className="mb-8 rounded-3xl bg-white shadow-sm border border-gray-100 p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               
-              {/* Bên trái: Lời chào (Đã xử lý giãn dòng, không lo dính chữ) */}
-              <div style={{ flex: '1', minWidth: '250px', display: 'block', textAlign: 'left' }}>
-                <p className="text-sm text-gray-500" style={{ display: 'block', margin: '0 0 8px 0', padding: '0', lineHeight: '1.5', lg: 'text-base' }}>
-                  Xin chào
+              {/* Bên trái: Lời chào */}
+              <div className="flex-1 min-w-[250px] text-left">
+                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                  Xin chào,
                 </p>
-                <h1 className="text-3xl font-bold text-gray-900" style={{ display: 'block', margin: '0 0 12px 0', padding: '0', lineHeight: '1.3', letterSpacing: '-0.02em' }}>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
                   {user?.full_name || user?.name || 'Giáo viên'}
                 </h1>
-                <p className="text-gray-500" style={{ display: 'block', margin: '0', padding: '0', lineHeight: '1.5', fontSize: '15px' }}>
-                  Tổng quan nhanh về lớp, học sinh và bài kiểm tra.
+                <p className="text-gray-500 mt-2 text-[15px]">
+                  Tổng quan nhanh về lớp học, học sinh và bài kiểm tra của bạn.
                 </p>
               </div>
               
-              {/* Bên phải: Khối tổng học sinh (Đẩy lên cao chuẩn hàng ngang) */}
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'row',
-                alignItems: 'center', 
-                gap: '14px', 
-                backgroundColor: '#f0f6ff', 
-                padding: '14px 20px', 
-                borderRadius: '18px',
-                minWidth: '180px',
-                height: '68px',
-                boxSizing: 'border-box',
-                marginTop: '4px' /* Định tiến nhẹ xuống để cân bằng với dòng Xin chào */
-              }}>
-                <FiUsers className="text-blue-600" style={{ fontSize: '26px', flexShrink: 0, display: 'block' }} />
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', flex: '1' }}>
-                  <p className="text-xs uppercase tracking-wide text-blue-600" 
-                     style={{ display: 'block', margin: '0 0 4px 0', padding: '0', fontWeight: '600', lineHeight: '1', whiteSpace: 'nowrap' }}>
+              {/* Bên phải: Khối tổng học sinh */}
+              <div className="flex items-center gap-4 bg-blue-50/50 border border-blue-100/50 p-4 px-6 rounded-2xl min-w-[200px] h-[72px] self-start sm:self-center">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                  <FiUsers className="text-xl" />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-blue-500 font-bold">
                     Tổng học sinh
                   </p>
-                  <p className="text-2xl font-bold text-blue-900" 
-                     style={{ display: 'block', margin: '0', padding: '0', lineHeight: '1' }}>
+                  <p className="text-2xl font-bold text-blue-900 leading-none mt-0.5">
                     {stats.totalStudents}
                   </p>
                 </div>
@@ -172,82 +132,69 @@ const TeacherDashboardPage = () => {
             </div>
           </div>
 
-          {/* Stats Cards - ÉP DÀN HÀNG NGANG CHỐNG TRÀN DỌC */}
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: '20px', 
-            marginBottom: '32px',
-            width: '100%',
-            boxSizing: 'border-box',
-            marginTop: '16px',
-          }}>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             
             {/* Thẻ 1: Tổng số bài kiểm tra */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg" 
-                 style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box'}}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-100">
                 <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số bài kiểm tra</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalTests || 7}</h3>
+                  <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số bài kiểm tra</p>
+                  <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalTests}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <FiFileText style={{ fontSize: '18px' }} />
+                  <FiFileText className="text-lg" />
                 </div>
               </div>
-              <p style={{ margin: 'auto 0 0 0', fontSize: '11px', opacity: 0.85, paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
                 <FiTrendingUp /> Tăng 12% tháng này
               </p>
             </div>
 
             {/* Thẻ 2: Tổng số câu hỏi */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg" 
-                 style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-100">
                 <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số câu hỏi</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalQuestions || 10}</h3>
+                  <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số câu hỏi</p>
+                  <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalQuestions}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <FiBookOpen style={{ fontSize: '18px' }} />
+                  <FiBookOpen className="text-lg" />
                 </div>
               </div>
-              <p style={{ margin: 'auto 0 0 0', fontSize: '11px', opacity: 0.85, paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
                 <FiTrendingUp /> Tăng 8% tháng này
               </p>
             </div>
 
             {/* Thẻ 3: Tổng số học sinh */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg" 
-                 style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-100">
                 <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số học sinh</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalStudents || 7}</h3>
+                  <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số học sinh</p>
+                  <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalStudents}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <FiUsers style={{ fontSize: '18px' }} />
+                  <FiUsers className="text-lg" />
                 </div>
               </div>
-              <p style={{ margin: 'auto 0 0 0', fontSize: '11px', opacity: 0.85, paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
                 <FiTrendingUp /> 3 học sinh mới
               </p>
             </div>
 
             {/* Thẻ 4: Số bài nộp */}
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg" 
-                 style={{ flex: '1', minWidth: '220px', height: '145px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg p-6 flex flex-col justify-between h-36 transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+              <div className="flex justify-between items-start w-100">
                 <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Số bài nộp</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalSubmissions || 0}</h3>
+                  <p className="text-xs opacity-90 font-medium tracking-wide">Số bài nộp</p>
+                  <h3 className="text-3xl font-bold mt-1 leading-none">{stats.totalSubmissions}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <FiCheckCircle style={{ fontSize: '18px' }} />
+                  <FiCheckCircle className="text-lg" />
                 </div>
               </div>
-              <p style={{ margin: 'auto 0 0 0', fontSize: '11px', opacity: 0.85, paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <p className="text-xs opacity-80 pt-2.5 border-t border-white/15 flex items-center gap-1">
                 <FiTrendingUp /> 95% hoàn thành
               </p>
             </div>
@@ -258,58 +205,57 @@ const TeacherDashboardPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 button-group">
             <button
               onClick={handleCreateTest}
-              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-blue-200 transition-all group"
             >
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                 <FiPlus className="text-xl text-blue-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Tạo bài kiểm tra mới</h4>
-                <p className="text-sm text-gray-500">Tạo bộ bài kiểm tra nhanh chóng</p>
+                <h4 className="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">Tạo bài kiểm tra mới</h4>
+                <p className="text-xs text-gray-400 mt-0.5">Tạo bộ bài kiểm tra nhanh chóng</p>
               </div>
             </button>
 
             <button
               onClick={handleCreateClass}
-              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-green-200 transition-all group"
             >
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition-colors">
                 <FiUsers className="text-xl text-green-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Tạo lớp học mới</h4>
-                <p className="text-sm text-gray-500">Tạo lớp và thêm học sinh</p>
+                <h4 className="font-bold text-gray-800 text-sm group-hover:text-green-600 transition-colors">Tạo lớp học mới</h4>
+                <p className="text-xs text-gray-400 mt-0.5">Tạo lớp và thêm học sinh</p>
               </div>
             </button>
 
             <button
               onClick={handleManageQuestions}
-              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-yellow-200 transition-all group"
             >
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+              <div className="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center group-hover:bg-yellow-100 transition-colors">
                 <FiHelpCircle className="text-xl text-yellow-600" />
               </div>
               <div className="text-left">
-                <h4 className="font-semibold text-gray-800">Quản lý câu hỏi</h4>
-                <p className="text-sm text-gray-500">Xem và chỉnh sửa ngân hàng câu hỏi</p>
+                <h4 className="font-bold text-gray-800 text-sm group-hover:text-yellow-600 transition-colors">Quản lý câu hỏi</h4>
+                <p className="text-xs text-gray-400 mt-0.5">Xem và chỉnh sửa ngân hàng câu hỏi</p>
               </div>
             </button>
           </div>
 
           {/* Recent Classes Section */}
-          <div style={{ width: '100%', marginTop: '8px', marginBottom: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Lớp học mới nhất</h2>
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-extrabold text-gray-900">Lớp học mới nhất</h2>
               <button
                 onClick={() => navigate('/teacher/classes')}
-                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0 }}
-                className="hover:text-blue-800"
+                className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                Xem tất cả →
+                Xem tất cả &rarr;
               </button>
             </div>
             {classes.length > 0 ? (
-              <div className="dashboard-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {classes.slice(0, 4).map((classItem, index) => (
                   <ClassCard
                     key={classItem.id || index}
@@ -323,26 +269,15 @@ const TeacherDashboardPage = () => {
                 ))}
               </div>
             ) : (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#ffffff',
-                padding: '48px 24px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}>
-                <FiUsers style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>Bạn chưa có lớp học nào</h3>
-                <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 20px 0' }}>Tạo lớp học để bắt đầu quản lý học sinh và giao bài.</p>
+              <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
+                  <FiUsers className="text-2xl" />
+                </div>
+                <h3 className="text-base font-bold text-gray-800 mb-1">Bạn chưa có lớp học nào</h3>
+                <p className="text-gray-400 text-sm max-w-sm mb-6">Tạo lớp học để bắt đầu quản lý học sinh và giao bài.</p>
                 <button
                   onClick={handleCreateClass}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
-                  style={{ padding: '10px 20px' }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md px-6 py-2.5"
                 >
                   Tạo lớp đầu tiên
                 </button>
@@ -351,74 +286,53 @@ const TeacherDashboardPage = () => {
           </div>
 
           {/* Recent Assignments Section */}
-          <div style={{ width: '100%', marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 }}>Bài kiểm tra mới nhất</h2>
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-extrabold text-gray-900">Bài kiểm tra mới nhất</h2>
               <button
                 onClick={() => navigate('/teacher/tests')}
-                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0 }}
-                className="hover:text-blue-800"
+                className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                Xem tất cả →
+                Xem tất cả &rarr;
               </button>
             </div>
             {assignments.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="flex flex-col gap-4">
                 {assignments.map((assignment) => (
                   <div
                     key={assignment.id}
-                    className="hover:shadow-md transition-all"
-                    style={{
-                      backgroundColor: '#ffffff',
-                      padding: '16px 20px',
-                      borderRadius: '12px',
-                      border: '1px solid #e5e7eb',
-                      cursor: 'pointer',
-                    }}
+                    className="flex items-center justify-between p-4 px-6 bg-white border border-gray-100 rounded-2xl hover:shadow-md hover:border-blue-100 transition-all cursor-pointer group"
                     onClick={() => navigate(`/teacher/tests/${assignment.id}`)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <FiFileText className="text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800 text-sm">{assignment.title}</h4>
-                          <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                            <FiClock /> {assignment.duration ? `${assignment.duration} phút` : 'Không giới hạn'}
-                          </p>
-                        </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-50 group-hover:bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
+                        <FiFileText className="text-lg" />
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        assignment.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {assignment.is_active ? 'Đang mở' : 'Đã đóng'}
-                      </span>
+                      <div>
+                        <h4 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors text-sm">{assignment.title}</h4>
+                        <p className="text-xs font-medium text-gray-400 flex items-center gap-1 mt-1">
+                          <FiClock /> {assignment.duration ? `${assignment.duration} phút` : 'Không giới hạn'}
+                        </p>
+                      </div>
                     </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      assignment.is_active ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-50 text-gray-500 border border-gray-100'
+                    }`}>
+                      {assignment.is_active ? 'Đang mở' : 'Đã đóng'}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#ffffff',
-                padding: '48px 24px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}>
-                <FiFileText style={{ fontSize: '48px', color: '#d1d5db', marginBottom: '16px', display: 'block' }} />
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#374151', margin: '0 0 4px 0' }}>Bạn chưa tạo bài kiểm tra nào</h3>
-                <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 20px 0' }}>Tạo bài kiểm tra để giao cho học sinh làm bài.</p>
+              <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
+                  <FiFileText className="text-2xl" />
+                </div>
+                <h3 className="text-base font-bold text-gray-800 mb-1">Bạn chưa tạo bài kiểm tra nào</h3>
+                <p className="text-gray-400 text-sm max-w-sm mb-6">Tạo bài kiểm tra để giao cho học sinh làm bài.</p>
                 <button
                   onClick={handleCreateTest}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
-                  style={{ padding: '10px 20px' }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md px-6 py-2.5"
                 >
                   Tạo bài đầu tiên
                 </button>
