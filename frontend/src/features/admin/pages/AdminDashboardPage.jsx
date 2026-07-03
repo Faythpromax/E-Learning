@@ -17,7 +17,6 @@ const AdminDashboardPage = () => {
           userApi.getStats(),
           questionApi.getSystemQuestions(),
         ]);
-<<<<<<< HEAD
         if (statsRes.success) {
           setStats({
             ...statsRes.data,
@@ -44,33 +43,6 @@ const AdminDashboardPage = () => {
           Thông tin hoạt động thực tế trên hệ thống dạy học trực tuyến.
         </p>
 
-<<<<<<< HEAD
-        {loading ? (
-          <div style={{ color: '#666', fontSize: '14px' }}>Đang tải số liệu thống kê...</div>
-        ) : (
-          <div className="admin-stat-cards">
-            <StatCard
-              title="Tổng số giáo viên"
-              value={stats.teachers_count.toString()}
-              icon={<FiUsers />}
-              bgColor="#e0e7ff"
-              color="#4f46e5"
-            />
-            <StatCard
-              title="Tổng số học sinh"
-              value={stats.students_count.toString()}
-              icon={<FiUsers />}
-              bgColor="#dcfce7"
-              color="#16a34a"
-            />
-            <StatCard
-              title="Tổng số câu hỏi"
-              value={stats.questions_count.toString()}
-              icon={<FiHelpCircle />}
-              bgColor="#fef3c7"
-              color="#d97706"
-            />
-=======
         <div className="admin-stat-cards">
           <StatCard
             title="Tổng số giáo viên"
@@ -131,7 +103,6 @@ const AdminDashboardPage = () => {
                 </ResponsiveContainer>
               </div>
             </div>
->>>>>>> 43bfbf57a54ad724dc5e7a4c75c1a5d4d5d82a0e
           </div>
         )}
       </div>

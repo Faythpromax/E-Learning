@@ -614,5 +614,3 @@ const StudentGradesPage = () => {
 };
 
 export default StudentGradesPage;
-
-export default StudentGradesPage;
