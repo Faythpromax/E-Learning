@@ -10,6 +10,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -63,5 +65,30 @@ class User extends Authenticatable
     public function isStudent(): bool
     {
         return $this->role === 'student';
+    }
+
+    public function classUsers(): HasMany
+    {
+        return $this->hasMany(ClassUser::class, 'user_id');
+    }
+
+    public function classes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ClassModel::class,
+            'class_users',
+            'user_id',
+            'class_id'
+        )->withPivot('role');
+    }
+
+    public function createdClasses(): HasMany
+    {
+        return $this->hasMany(ClassModel::class, 'created_by');
+    }
+
+    public function testAttempts(): HasMany
+    {
+        return $this->hasMany(TestAttempt::class, 'user_id');
     }
 }
