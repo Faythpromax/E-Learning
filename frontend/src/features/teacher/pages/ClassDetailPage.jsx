@@ -5,6 +5,8 @@ import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import classApi from '../../../api/classApi';
 import { testApi } from '../../../api/testApi';
 import { practiceApi } from '../../../api/practiceApi';
+import { exportToExcel } from '../../../utils/exportHelper';
+import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const pageContainerStyle = {
   display: 'block',
@@ -234,13 +236,13 @@ const ClassDetailPage = () => {  const { classId } = useParams();
   try {
     const response = await classApi.addStudent(classId, parseInt(studentId));
     
-    alert('Them hoc sinh thanh cong!');
+    alert('Thêm học sinh thành công!');
     setStudentId('');
     setShowAddModal(false);
     fetchClassDetail();
   } catch (error) {
     console.error('Failed to add student:', error);
-    alert(error.response?.data?.message || 'Them that bai');
+    alert(error.response?.data?.message || 'Thêm thất bại');
   }
 };
 
@@ -569,54 +571,133 @@ const ClassDetailPage = () => {  const { classId } = useParams();
           <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Chưa có học sinh nào nộp bài.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6' }}>
-            <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: 0 }}>
-              {scoreData.test?.title} — {scoreData.scores.length} học sinh
-              {scoreData.test?.max_points ? ` (Tối đa: ${scoreData.test.max_points} điểm)` : ''}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Phổ điểm BarChart */}
+          <div style={{ ...cardStyle, padding: '24px' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>
+              Biểu đồ phổ điểm bài kiểm tra
             </h4>
+            <div style={{ width: '100%', height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={(() => {
+                    const ranges = [
+                      { name: '0 - 2 điểm', count: 0, fill: '#ef4444' },
+                      { name: '2 - 4 điểm', count: 0, fill: '#f97316' },
+                      { name: '4 - 6 điểm', count: 0, fill: '#eab308' },
+                      { name: '6 - 8 điểm', count: 0, fill: '#3b82f6' },
+                      { name: '8 - 10 điểm', count: 0, fill: '#22c55e' },
+                    ];
+                    scoreData.scores.forEach(item => {
+                      const pct = scoreData.test?.max_points > 0 ? (item.earned_points / scoreData.test.max_points) * 100 : 0;
+                      const score10 = (pct / 100) * 10;
+                      if (score10 < 2) ranges[0].count++;
+                      else if (score10 < 4) ranges[1].count++;
+                      else if (score10 < 6) ranges[2].count++;
+                      else if (score10 < 8) ranges[3].count++;
+                      else ranges[4].count++;
+                    });
+                    return ranges;
+                  })()}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
+                  <Bar dataKey="count" name="Số học sinh">
+                    {
+                      [
+                        { fill: '#ef4444' },
+                        { fill: '#f97316' },
+                        { fill: '#eab308' },
+                        { fill: '#3b82f6' },
+                        { fill: '#22c55e' }
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))
+                    }
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="overflow-x-auto w-full">
-            <table className="w-full border-collapse text-left">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và tên</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Số điện thoại</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Điểm</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {scoreData.scores.map((item) => (
-                  <tr key={item.student_id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.student_name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{item.phone || '—'}</td>
-                    <td className="px-6 py-4 text-sm text-center">
-                      <span style={{
-                        fontWeight: '600',
-                        color: item.earned_points / item.max_points >= 0.8 ? '#059669' : item.earned_points / item.max_points >= 0.5 ? '#d97706' : '#dc2626',
-                      }}>
-                        {item.earned_points !== undefined ? `${item.earned_points}` : '—'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center">
-                      <span style={{
-                        padding: '2px 10px',
-                        borderRadius: '99px',
-                        fontSize: '12px',
-                        fontWeight: '500',
-                        backgroundColor: item.status === 'submitted' ? '#ecfdf5' : '#fef3c7',
-                        color: item.status === 'submitted' ? '#059669' : '#d97706',
-                      }}>
-                        {item.status === 'submitted' ? 'Đã nộp' : 'Hết hạn'}
-                      </span>
-                    </td>
+
+          {/* Scores Table */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm w-full">
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                {scoreData.test?.title} — {scoreData.scores.length} học sinh
+                {scoreData.test?.max_points ? ` (Tối đa: ${scoreData.test.max_points} điểm)` : ''}
+              </h4>
+              <button
+                onClick={() => {
+                  const excelData = scoreData.scores.map(item => ({
+                    'Họ và tên': item.student_name,
+                    'Email': item.email,
+                    'Số điện thoại': item.phone || '',
+                    'Điểm số': item.earned_points !== undefined ? item.earned_points : '—',
+                    'Trạng thái': item.status === 'submitted' ? 'Đã nộp' : 'Hết hạn'
+                  }));
+                  exportToExcel(excelData, `Bang_diem_${scoreData.test?.title || 'Lop_hoc'}`);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#16a34a',
+                  color: '#ffffff',
+                  fontWeight: '600',
+                  fontSize: '13px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                className="hover:bg-green-700"
+              >
+                Xuất Excel bảng điểm
+              </button>
+            </div>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full border-collapse text-left">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ và tên</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Số điện thoại</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Điểm</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Trạng thái</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {scoreData.scores.map((item) => (
+                    <tr key={item.student_id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.student_name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{item.phone || '—'}</td>
+                      <td className="px-6 py-4 text-sm text-center">
+                        <span style={{
+                          fontWeight: '600',
+                          color: item.earned_points / item.max_points >= 0.8 ? '#059669' : item.earned_points / item.max_points >= 0.5 ? '#d97706' : '#dc2626',
+                        }}>
+                          {item.earned_points !== undefined ? `${item.earned_points}` : '—'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-center">
+                        <span style={{
+                          padding: '2px 10px',
+                          borderRadius: '99px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          backgroundColor: item.status === 'submitted' ? '#ecfdf5' : '#fef3c7',
+                          color: item.status === 'submitted' ? '#059669' : '#d97706',
+                        }}>
+                          {item.status === 'submitted' ? 'Đã nộp' : 'Hết hạn'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

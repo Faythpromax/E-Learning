@@ -242,7 +242,7 @@ export function AppRoutes() {
           }
         />
         <Route
-          path="/student/tests/:attemptId/results"
+          path="/student/tests/results/:attemptId"
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <TestResultPage />

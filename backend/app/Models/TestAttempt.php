@@ -20,6 +20,7 @@ class TestAttempt extends Model
         'expired_at',
         'status',
         'score',
+        'tab_switch_count',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class TestAttempt extends Model
         'submitted_at' => 'datetime',
         'expired_at' => 'datetime',
         'score' => 'float',
+        'tab_switch_count' => 'integer',
     ];
 
     public const STATUS_IN_PROGRESS = 'in_progress';
@@ -40,7 +42,7 @@ class TestAttempt extends Model
 
     public function test(): BelongsTo
     {
-        return $this->belongsTo(Test::class);
+        return $this->belongsTo(Test::class)->withTrashed();
     }
 
     public function answers(): HasMany

@@ -23,7 +23,8 @@ class QuestionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $questions->items(),
+            'message' => 'Lấy danh sách câu hỏi hệ thống thành công',
+            'data' => \App\Http\Resources\QuestionResource::collection($questions->items()),
             'meta' => [
                 'current_page' => $questions->currentPage(),
                 'last_page' => $questions->lastPage(),
@@ -39,16 +40,13 @@ class QuestionController extends Controller
             $data = $request->validated();
             $data['scope'] = 'system';
             $question = $this->questionService->createQuestion($data, $request->user()->id);
-            return response()->json([
-                'success' => true,
-                'message' => 'Tạo câu hỏi hệ thống thành công',
-                'data' => $question,
-            ], 201);
+            return $this->successResponse(
+                new \App\Http\Resources\QuestionResource($question),
+                'Tạo câu hỏi hệ thống thành công',
+                201
+            );
         } catch (\InvalidArgumentException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->errorResponse($e->getMessage(), 422);
         }
     }
 
@@ -57,22 +55,15 @@ class QuestionController extends Controller
         try {
             $question = $this->questionService->getQuestion($id);
             if ($question->scope !== 'system') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Không thể cập nhật câu hỏi không thuộc hệ thống',
-                ], 403);
+                return $this->errorResponse('Không thể cập nhật câu hỏi không thuộc hệ thống', 403);
             }
-            $question = $this->questionService->updateQuestion($id, $request->validated());
-            return response()->json([
-                'success' => true,
-                'message' => 'Cập nhật câu hỏi hệ thống thành công',
-                'data' => $question,
-            ]);
+            $updatedQuestion = $this->questionService->updateQuestion($id, $request->validated());
+            return $this->successResponse(
+                new \App\Http\Resources\QuestionResource($updatedQuestion),
+                'Cập nhật câu hỏi hệ thống thành công'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -90,16 +81,10 @@ class QuestionController extends Controller
         ]);
         
         if ($question->scope !== 'system') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không thể xóa câu hỏi không thuộc hệ thống',
-            ], 403);
+            return $this->errorResponse('Không thể xóa câu hỏi không thuộc hệ thống', 403);
         }
         $this->questionService->deleteQuestion($id);
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoá câu hỏi hệ thống thành công',
-        ]);
+        return $this->successResponse(null, 'Xoá câu hỏi hệ thống thành công');
     }
 
     // Class Questions (Teacher + Admin)
@@ -112,7 +97,8 @@ class QuestionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $questions->items(),
+            'message' => 'Lấy danh sách câu hỏi lớp học thành công',
+            'data' => \App\Http\Resources\QuestionResource::collection($questions->items()),
             'meta' => [
                 'current_page' => $questions->currentPage(),
                 'last_page' => $questions->lastPage(),
@@ -128,16 +114,13 @@ class QuestionController extends Controller
             $data = $request->validated();
             $data['scope'] = 'class';
             $question = $this->questionService->createQuestion($data, $request->user()->id);
-            return response()->json([
-                'success' => true,
-                'message' => 'Tạo câu hỏi lớp học thành công',
-                'data' => $question,
-            ], 201);
+            return $this->successResponse(
+                new \App\Http\Resources\QuestionResource($question),
+                'Tạo câu hỏi lớp học thành công',
+                201
+            );
         } catch (\InvalidArgumentException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
+            return $this->errorResponse($e->getMessage(), 422);
         }
     }
 
@@ -147,22 +130,15 @@ class QuestionController extends Controller
             $question = $this->questionService->getQuestion($id);
             // Teacher can only update their own class questions
             if ($question->scope === 'class' && $question->created_by !== $request->user()->id && $request->user()->role !== 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Không có quyền cập nhật câu hỏi này',
-                ], 403);
+                return $this->errorResponse('Không có quyền cập nhật câu hỏi này', 403);
             }
-            $question = $this->questionService->updateQuestion($id, $request->validated());
-            return response()->json([
-                'success' => true,
-                'message' => 'Cập nhật câu hỏi thành công',
-                'data' => $question,
-            ]);
+            $updatedQuestion = $this->questionService->updateQuestion($id, $request->validated());
+            return $this->successResponse(
+                new \App\Http\Resources\QuestionResource($updatedQuestion),
+                'Cập nhật câu hỏi thành công'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -171,31 +147,22 @@ class QuestionController extends Controller
         $question = $this->questionService->getQuestion($id);
         // Teacher can only delete their own class questions
         if ($question->scope === 'class' && $question->created_by !== auth()->id() && auth()->user()->role !== 'admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không có quyền xóa câu hỏi này',
-            ], 403);
+            return $this->errorResponse('Không có quyền xóa câu hỏi này', 403);
         }
         $this->questionService->deleteQuestion($id);
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoá câu hỏi thành công',
-        ]);
+        return $this->successResponse(null, 'Xoá câu hỏi thành công');
     }
 
     public function show(int $id): JsonResponse
     {
         try {
             $question = $this->questionService->getQuestion($id);
-            return response()->json([
-                'success' => true,
-                'data' => $question,
-            ]);
+            return $this->successResponse(
+                new \App\Http\Resources\QuestionResource($question),
+                'Lấy chi tiết câu hỏi thành công'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy câu hỏi',
-            ], 404);
+            return $this->errorResponse('Không tìm thấy câu hỏi', 404);
         }
     }
 

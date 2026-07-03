@@ -16,20 +16,20 @@ export function AnswerFeedback({ result }) {
         <span className={`font-bold ${
           result.is_correct ? 'text-green-700' : 'text-red-700'
         }`}>
-          {result.is_correct ? 'Chinh xac!' : 'Chua dung'}
+          {result.is_correct ? 'Chính xác!' : 'Chưa đúng'}
         </span>
       </div>
 
       {result.explanation && (
         <div className="mt-3 text-gray-700">
-          <strong>Giai thich:</strong>
+          <strong>Giải thích:</strong>
           <p className="mt-1">{result.explanation}</p>
         </div>
       )}
 
       {result.correct_answer && !result.is_correct && (
         <div className="mt-2 text-gray-700">
-          <strong>Dap an dung:</strong>
+          <strong>Đáp án đúng:</strong>
           <p className="mt-1">
             {typeof result.correct_answer === 'object'
               ? JSON.stringify(result.correct_answer)

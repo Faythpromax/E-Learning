@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { McqQuestion } from "../common/questions/McqQuestion";
+import { McqQuestion } from "./McqQuestion";
 import { FillBlankQuestion } from "./FillBlankQuestion";
 import { MatchingQuestion } from "./MatchingQuestion";
 import { TableFillQuestion } from "./TableFillQuestion";
@@ -26,28 +26,34 @@ export function QuestionRenderer({
     setAnswer(initialAnswer ?? userAnswer ?? null);
   }, [initialAnswer, userAnswer]);
 
-  const handleAnswer = (userAnswer) => {
-    setAnswer(userAnswer);
-    onAnswer(userAnswer);
+  const handleAnswer = (newAnswer) => {
+    setAnswer(newAnswer);
+    onAnswer(newAnswer);
   };
 
   if (!QuestionComponent) {
-    return <div className="text-red-500">Loai cau hoi khong xac dinh</div>;
+    return (
+      <div style={{
+        padding: '16px',
+        backgroundColor: '#fef2f2',
+        border: '1px solid #fecaca',
+        borderRadius: '8px',
+        color: '#dc2626',
+        fontSize: '14px',
+      }}>
+        Loại câu hỏi không được hỗ trợ: <strong>{question.type}</strong>
+      </div>
+    );
   }
 
-  console.log(question);
-  console.log(answer);
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <QuestionComponent
-        question={question}
-        onAnswer={handleAnswer}
-        answer={answer}
-        showResult={showResult}
-        result={result}
-      />
-    </div>
+    <QuestionComponent
+      question={question}
+      onAnswer={handleAnswer}
+      answer={answer}
+      showResult={showResult}
+      result={result}
+    />
   );
 }
 

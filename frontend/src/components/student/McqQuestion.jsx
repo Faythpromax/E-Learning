@@ -1,10 +1,70 @@
 import { useState, useEffect } from 'react';
+import { FiCheck, FiX, FiAlertCircle } from 'react-icons/fi';
+
+// Styles dùng chung
+const optionBase = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  width: '100%',
+  textAlign: 'left',
+  padding: '12px 16px',
+  borderRadius: '10px',
+  border: '1.5px solid #e5e7eb',
+  backgroundColor: '#ffffff',
+  cursor: 'pointer',
+  transition: 'all 0.15s',
+  marginBottom: '0',
+};
+
+const getOptionStyle = (option, selectedAnswers, showResult, correctAnswers) => {
+  const isSelected = selectedAnswers.includes(option.id);
+  const isCorrectOption = correctAnswers.includes(option.id);
+
+  if (!showResult) {
+    if (isSelected) {
+      return { ...optionBase, borderColor: '#2563eb', backgroundColor: '#eff6ff' };
+    }
+    return { ...optionBase };
+  }
+
+  // showResult mode
+  if (isCorrectOption && isSelected) return { ...optionBase, borderColor: '#16a34a', backgroundColor: '#f0fdf4' };
+  if (!isCorrectOption && isSelected) return { ...optionBase, borderColor: '#dc2626', backgroundColor: '#fef2f2' };
+  if (isCorrectOption && !isSelected) return { ...optionBase, borderColor: '#d97706', backgroundColor: '#fffbeb' };
+  return { ...optionBase, opacity: 0.6 };
+};
+
+const getCircleStyle = (option, selectedAnswers, showResult, correctAnswers) => {
+  const isSelected = selectedAnswers.includes(option.id);
+  const isCorrectOption = correctAnswers.includes(option.id);
+
+  const base = {
+    width: '32px', height: '32px', borderRadius: '50%',
+    border: '2px solid',
+    flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontWeight: '700', fontSize: '13px',
+    transition: 'all 0.15s',
+  };
+
+  if (!showResult) {
+    if (isSelected) return { ...base, borderColor: '#2563eb', backgroundColor: '#2563eb', color: '#fff' };
+    return { ...base, borderColor: '#d1d5db', backgroundColor: '#fff', color: '#6b7280' };
+  }
+
+  if (isCorrectOption && isSelected) return { ...base, borderColor: '#16a34a', backgroundColor: '#16a34a', color: '#fff' };
+  if (!isCorrectOption && isSelected) return { ...base, borderColor: '#dc2626', backgroundColor: '#dc2626', color: '#fff' };
+  if (isCorrectOption && !isSelected) return { ...base, borderColor: '#d97706', backgroundColor: '#fffbeb', color: '#d97706' };
+  return { ...base, borderColor: '#d1d5db', backgroundColor: '#f9fafb', color: '#9ca3af' };
+};
 
 export function McqQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
   const [selectedAnswers, setSelectedAnswers] = useState(
     Array.isArray(answer) ? answer : (answer ? [answer] : [])
   );
   const { options = [], correct_answers: correctAnswers = [] } = question.data || {};
+  const isMultiple = correctAnswers.length > 1;
 
   useEffect(() => {
     setSelectedAnswers(Array.isArray(answer) ? answer : (answer ? [answer] : []));
@@ -12,94 +72,120 @@ export function McqQuestion({ question, onAnswer, answer = null, showResult = fa
 
   const handleToggle = (optionId) => {
     if (showResult) return;
-    const newSelected = selectedAnswers.includes(optionId)
-      ? selectedAnswers.filter(id => id !== optionId)
-      : [...selectedAnswers, optionId];
+    let newSelected;
+    if (isMultiple) {
+      newSelected = selectedAnswers.includes(optionId)
+        ? selectedAnswers.filter(id => id !== optionId)
+        : [...selectedAnswers, optionId];
+    } else {
+      newSelected = selectedAnswers.includes(optionId) ? [] : [optionId];
+    }
     setSelectedAnswers(newSelected);
-    onAnswer(newSelected);
-  };
-
-  const getOptionClass = (option) => {
-    if (!showResult) {
-      return selectedAnswers.includes(option.id)
-        ? 'bg-blue-50/50'
-        : 'hover:bg-gray-50';
-    }
-
-    const isSelected = selectedAnswers.includes(option.id);
-    const isCorrectOption = correctAnswers.includes(option.id);
-    if (isCorrectOption && isSelected) return 'bg-green-50/50';
-    if (!isCorrectOption && isSelected) return 'bg-red-50/50';
-    if (isCorrectOption && !isSelected) return 'bg-yellow-50/50';
-    return '';
-  };
-
-  const getCheckboxCircleClass = (option) => {
-    const isSelected = selectedAnswers.includes(option.id);
-    
-    if (!showResult) {
-      return isSelected
-        ? 'bg-blue-600 border-blue-600 text-white'
-        : 'border-gray-300 bg-white text-gray-600 group-hover:border-blue-400';
-    }
-
-    const isCorrectOption = correctAnswers.includes(option.id);
-    if (isCorrectOption && isSelected) {
-      return 'bg-green-600 border-green-600 text-white';
-    }
-    if (!isCorrectOption && isSelected) {
-      return 'bg-red-600 border-red-600 text-white';
-    }
-    if (isCorrectOption && !isSelected) {
-      return 'bg-green-100 border-green-500 text-green-700';
-    }
-    return 'border-gray-300 bg-white text-gray-400';
+    onAnswer(newSelected.length === 1 ? newSelected[0] : newSelected);
   };
 
   const correctAnswerDisplay = result?.correct_answer_display
-    ?? (Array.isArray(correctAnswers) ? correctAnswers.join(', ').toUpperCase() : (correctAnswers ?? '').toUpperCase());
+    ?? (Array.isArray(correctAnswers) ? correctAnswers.map(a => a.toUpperCase()).join(', ') : '');
+
+  const getResultIcon = (option) => {
+    const isSelected = selectedAnswers.includes(option.id);
+    const isCorrectOption = correctAnswers.includes(option.id);
+    if (isCorrectOption && isSelected) return <FiCheck style={{ color: '#16a34a', flexShrink: 0 }} />;
+    if (!isCorrectOption && isSelected) return <FiX style={{ color: '#dc2626', flexShrink: 0 }} />;
+    if (isCorrectOption && !isSelected) return <FiAlertCircle style={{ color: '#d97706', flexShrink: 0 }} />;
+    return null;
+  };
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+      {/* Question content */}
       {question.content && (
-        <p className="text-lg font-medium text-gray-800">{question.content}</p>
+        <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '20px', lineHeight: '1.6' }}>
+          {question.content}
+        </p>
       )}
 
       {question.media_image && (
-        <img src={question.media_image} alt="" className="max-w-md rounded-lg" />
+        <img
+          src={question.media_image}
+          alt="Hình minh họa"
+          style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e5e7eb' }}
+        />
       )}
 
       {question.media_audio && (
-        <audio controls src={question.media_audio} className="w-full" />
+        <audio
+          controls
+          src={question.media_audio}
+          style={{ width: '100%', marginBottom: '16px' }}
+        />
       )}
 
-      <div className="space-y-3">
+      {/* Type hint */}
+      {isMultiple && !showResult && (
+        <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px', fontStyle: 'italic' }}>
+          Có thể chọn nhiều đáp án
+        </p>
+      )}
+
+      {/* Options */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {options.map((option) => (
           <button
             key={option.id}
             onClick={() => handleToggle(option.id)}
             disabled={showResult}
-            className={`w-full text-left p-3.5 rounded-lg transition-all flex items-center gap-4 group ${getOptionClass(option)}`}
+            style={getOptionStyle(option, selectedAnswers, showResult, correctAnswers)}
+            onMouseEnter={e => {
+              if (!showResult && !selectedAnswers.includes(option.id)) {
+                e.currentTarget.style.borderColor = '#93c5fd';
+                e.currentTarget.style.backgroundColor = '#f8faff';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!showResult && !selectedAnswers.includes(option.id)) {
+                e.currentTarget.style.borderColor = '#e5e7eb';
+                e.currentTarget.style.backgroundColor = '#ffffff';
+              }
+            }}
           >
-            <input
-              type="checkbox"
-              checked={selectedAnswers.includes(option.id)}
-              onChange={() => handleToggle(option.id)}
-              disabled={showResult}
-              className="sr-only"
-            />
-            <span className={`w-8 h-8 rounded-full border-2 flex-shrink-0 flex items-center justify-center font-semibold text-sm transition-all ${getCheckboxCircleClass(option)}`}>
+            <span style={getCircleStyle(option, selectedAnswers, showResult, correctAnswers)}>
               {option.id.toUpperCase()}
             </span>
-            <span className="text-gray-800 font-medium">{option.text}</span>
+            <span style={{ fontSize: '15px', color: '#111827', fontWeight: '500', flex: 1 }}>
+              {option.text}
+            </span>
+            {showResult && getResultIcon(option)}
           </button>
         ))}
       </div>
 
+      {/* Correct answer display */}
       {showResult && correctAnswerDisplay && (
-        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-700">
-            <strong>Dap an dung:</strong> {correctAnswerDisplay}
+        <div style={{
+          marginTop: '16px',
+          padding: '12px 16px',
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '8px',
+        }}>
+          <p style={{ fontSize: '13px', color: '#166534', margin: 0 }}>
+            <strong>Đáp án đúng:</strong> {correctAnswerDisplay}
+          </p>
+        </div>
+      )}
+
+      {/* Explanation */}
+      {showResult && question.explanation && (
+        <div style={{
+          marginTop: '8px',
+          padding: '12px 16px',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: '8px',
+        }}>
+          <p style={{ fontSize: '13px', color: '#1e40af', margin: 0 }}>
+            <strong>Giải thích:</strong> {question.explanation}
           </p>
         </div>
       )}

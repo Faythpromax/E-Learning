@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,16 +16,16 @@ class UserController extends Controller
     public function index(Request $request): JsonResponse
     {
         $filters = $request->only(['role', 'search', 'per_page']);
-        $users = $this->userService->getUsers($filters);
+        $users   = $this->userService->getUsers($filters);
 
         return response()->json([
             'success' => true,
-            'data' => $users->items(),
-            'meta' => [
+            'data'    => $users->items(),
+            'meta'    => [
                 'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
+                'last_page'    => $users->lastPage(),
+                'per_page'     => $users->perPage(),
+                'total'        => $users->total(),
             ],
         ]);
     }
@@ -35,19 +35,13 @@ class UserController extends Controller
         $user = $this->userService->getUser($id);
 
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Khong tim thay nguoi dung',
-            ], 404);
+            return $this->errorResponse('Không tìm thấy người dùng.', 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $user,
-        ]);
+        return $this->successResponse($user);
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -60,17 +54,10 @@ class UserController extends Controller
         $result = $this->userService->updateUser($id, $validated);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Cap nhat thanh cong',
-            'data' => $result['user'],
-        ]);
+        return $this->successResponse($result['user'], 'Cập nhật thành công.');
     }
 
     public function destroy(int $id): JsonResponse
@@ -78,35 +65,19 @@ class UserController extends Controller
         $result = $this->userService->deleteUser($id);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoa nguoi dung thanh cong',
-        ]);
+        return $this->successResponse(null, 'Xóa người dùng thành công.');
     }
 
     public function teachers(): JsonResponse
     {
-        $teachers = $this->userService->getTeachers();
-
-        return response()->json([
-            'success' => true,
-            'data' => $teachers,
-        ]);
+        return $this->successResponse($this->userService->getTeachers());
     }
 
     public function students(): JsonResponse
     {
-        $students = $this->userService->getStudents();
-
-        return response()->json([
-            'success' => true,
-            'data' => $students,
-        ]);
+        return $this->successResponse($this->userService->getStudents());
     }
 }

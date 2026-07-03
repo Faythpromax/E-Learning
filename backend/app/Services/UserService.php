@@ -3,105 +3,102 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository
+    ) {}
+
     public function getUsers(array $filters = []): LengthAwarePaginator
     {
-        $query = User::query();
-
-        if (!empty($filters['role'])) {
-            $query->where('role', $filters['role']);
-        }
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        $perPage = $filters['per_page'] ?? 15;
-
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $this->userRepository->getAll($filters);
     }
 
     public function getUser(int $id): ?User
     {
-        return User::find($id);
+        return $this->userRepository->getById($id);
     }
 
     public function updateUser(int $id, array $data): array
     {
-        $user = User::find($id);
+        if (isset($data['password']) && !empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
+        }
+
+        $user = $this->userRepository->update($id, $data);
 
         if (!$user) {
             return [
                 'success' => false,
-                'message' => 'Khong tim thay nguoi dung',
+                'message' => 'Không tìm thấy người dùng.',
             ];
         }
 
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        }
-
-        $user->update($data);
+        app(ActivityLogService::class)->log(
+            'update_user',
+            User::class,
+            $id,
+            "Admin updated user \"{$user->name}\" (ID: {$id})"
+        );
 
         return [
             'success' => true,
-            'user' => $user->fresh(),
+            'user'    => $user,
         ];
     }
 
     public function deleteUser(int $id): array
     {
-        $user = User::find($id);
+        $user = $this->userRepository->getById($id);
 
         if (!$user) {
             return [
                 'success' => false,
-                'message' => 'Khong tim thay nguoi dung',
+                'message' => 'Không tìm thấy người dùng.',
             ];
         }
 
         if ($user->role === 'admin') {
             return [
                 'success' => false,
-                'message' => 'Khong the xoa tai khoan quan tri',
+                'message' => 'Không thể xóa tài khoản quản trị.',
             ];
         }
 
-        $user->delete();
+        $name = $user->name;
+        $this->userRepository->delete($id);
+
+        app(ActivityLogService::class)->log(
+            'delete_user',
+            User::class,
+            $id,
+            "Admin deleted user \"{$name}\" (ID: {$id})"
+        );
 
         return [
             'success' => true,
-            'message' => 'Xoa nguoi dung thanh cong',
+            'message' => 'Xóa người dùng thành công.',
         ];
     }
 
     public function getTeachers(): \Illuminate\Database\Eloquent\Collection
     {
-        return User::where('role', 'teacher')
-            ->orderBy('name')
-            ->get();
+        return $this->userRepository->getByRole('teacher');
     }
 
     public function getStudents(): \Illuminate\Database\Eloquent\Collection
     {
-        return User::where('role', 'student')
-            ->orderBy('name')
-            ->get();
+        return $this->userRepository->getByRole('student');
     }
 
     public function getCounts(): array
     {
-        return [
-            'teachers_count' => User::where('role', 'teacher')->orWhere('role', 'admin')->count(),
-            'students_count' => User::where('role', 'student')->count(),
-        ];
+        return $this->userRepository->getCounts();
     }
 }

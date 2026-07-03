@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FeedbackController;
 
 // Provide a friendly JSON response for accidental GET requests to /api/login
 // This prevents the default 405 HTML response when someone navigates to /api/login
@@ -84,6 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tests/attempts', [TestController::class, 'myAttempts']);
     Route::get('/tests/attempts/{attemptId}', [TestController::class, 'results']);
     Route::get('/tests/attempts/{attemptId}/review', [TestController::class, 'review']);
+    Route::post('/tests/attempts/{attemptId}/tab-switch', [TestController::class, 'reportTabSwitch']);
 
     // Test Taking
     Route::get('/tests/{id}/attempts', [TestController::class, 'allAttempts']);
@@ -159,6 +161,17 @@ Route::middleware('auth:sanctum')->group(function () {
         '/notifications/{id}/read',
         [NotificationController::class, 'markAsRead']
     );
+
+    // Feedbacks (User: gửi và xem phản hồi của mình)
+    Route::post('/feedbacks', [FeedbackController::class, 'store']);
+    Route::get('/feedbacks/mine', [FeedbackController::class, 'mine']);
+
+    // Feedbacks (Admin only)
+    Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+        Route::get('/admin/feedbacks', [FeedbackController::class, 'index']);
+        Route::post('/admin/feedbacks/{id}/reply', [FeedbackController::class, 'reply']);
+        Route::patch('/admin/feedbacks/{id}/status', [FeedbackController::class, 'updateStatus']);
+    });
 });
 
 // Broadcasting auth với Sanctum token (Bearer token từ frontend Echo client)

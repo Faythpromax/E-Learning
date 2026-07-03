@@ -2,33 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
+        $notifications = $request->user()
+            ->notifications()
+            ->latest()
+            ->take(20)
+            ->get();
+
+        return $this->successResponse($notifications);
+    }
+
+    public function unreadCount(Request $request): JsonResponse
+    {
+        $count = $request->user()
+            ->unreadNotifications()
+            ->count();
+
         return response()->json([
             'success' => true,
-            'data' => $request->user()
-                ->notifications()
-                ->latest()
-                ->take(20)
-                ->get()
+            'count'   => $count,
         ]);
     }
 
-    public function unreadCount(Request $request)
-    {
-        return response()->json([
-            'success' => true,
-            'count' => $request->user()
-                ->unreadNotifications()
-                ->count()
-        ]);
-    }
-
-    public function markAsRead(Request $request, string $id)
+    public function markAsRead(Request $request, string $id): JsonResponse
     {
         $notification = $request->user()
             ->notifications()
@@ -36,8 +38,6 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        return response()->json([
-            'success' => true
-        ]);
+        return $this->successResponse(null, 'Đã đánh dấu là đã đọc.');
     }
 }

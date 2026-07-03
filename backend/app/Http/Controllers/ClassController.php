@@ -26,20 +26,20 @@ class ClassController extends Controller
 
         $classes = $this->classService->getAllClasses($filters, $user->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $classes,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\ClassResource::collection($classes),
+            'Lấy danh sách lớp học thành công'
+        );
     }
 
     public function search(Request $request): JsonResponse
     {
         $classes = $this->classService->searchClasses((string) $request->query('q', ''));
 
-        return response()->json([
-            'success' => true,
-            'data' => $classes,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\ClassResource::collection($classes),
+            'Tìm kiếm lớp học thành công'
+        );
     }
 
     public function show(int $classId): JsonResponse
@@ -47,16 +47,13 @@ class ClassController extends Controller
         $class = $this->classService->getClassDetail($classId);
 
         if (!$class) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Lop khong ton tai.',
-            ], 404);
+            return $this->errorResponse('Lớp học không tồn tại.', 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $class,
-        ]);
+        return $this->successResponse(
+            new \App\Http\Resources\ClassResource($class),
+            'Lấy chi tiết lớp học thành công'
+        );
     }
 
     public function store(StoreClassRequest $request): JsonResponse
@@ -68,11 +65,11 @@ class ClassController extends Controller
             $request->validated()
         );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tao lop thanh cong.',
-            'data' => $class,
-        ], 201);
+        return $this->successResponse(
+            new \App\Http\Resources\ClassResource($class),
+            'Tao lớp học thành công.',
+            201
+        );
     }
 
     public function update(UpdateClassRequest $request, int $classId): JsonResponse
@@ -80,25 +77,18 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen chinh sua lop nay.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền chỉnh sửa lớp học này.', 403);
         }
 
         try {
             $class = $this->classService->updateClass($classId, $request->validated());
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Cap nhat lop thanh cong.',
-                'data' => $class,
-            ]);
+            return $this->successResponse(
+                new \App\Http\Resources\ClassResource($class),
+                'Cập nhật lớp học thành công.'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -107,18 +97,12 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen xoa lop nay.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền xóa lớp học này.', 403);
         }
 
         $this->classService->deleteClass($classId);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoa lop thanh cong.',
-        ]);
+        return $this->successResponse(null, 'Xóa lớp học thành công.');
     }
 
     public function join(JoinClassRequest $request): JsonResponse
@@ -131,17 +115,13 @@ class ClassController extends Controller
         );
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-            'data' => $result['class'],
-        ]);
+        return $this->successResponse(
+            new \App\Http\Resources\ClassResource($result['class']),
+            $result['message']
+        );
     }
 
     public function leave(Request $request, int $classId): JsonResponse
@@ -151,26 +131,20 @@ class ClassController extends Controller
         $result = $this->classService->leaveClass($user->id, $classId);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function students(int $classId): JsonResponse
     {
         $students = $this->classService->getStudents($classId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $students,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\UserResource::collection($students),
+            'Lấy danh sách học sinh thành công'
+        );
     }
 
     public function addStudent(AddMemberRequest $request, int $classId): JsonResponse
@@ -178,25 +152,16 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen them hoc sinh.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền thêm học sinh.', 403);
         }
 
         $result = $this->classService->addStudent($classId, $request->input('user_id'));
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function removeStudent(Request $request, int $classId, int $userId): JsonResponse
@@ -204,35 +169,26 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen xoa hoc sinh.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền xóa học sinh.', 403);
         }
 
         $result = $this->classService->removeStudent($classId, $userId);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function teachers(int $classId): JsonResponse
     {
         $teachers = $this->classService->getTeachers($classId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $teachers,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\UserResource::collection($teachers),
+            'Lấy danh sách giáo viên thành công'
+        );
     }
 
     public function addTeacher(AddMemberRequest $request, int $classId): JsonResponse
@@ -240,25 +196,16 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen them giao vien.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền thêm giáo viên.', 403);
         }
 
         $result = $this->classService->addTeacher($classId, $request->input('user_id'));
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function removeTeacher(Request $request, int $classId, int $userId): JsonResponse
@@ -266,35 +213,23 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen xoa giao vien.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền xóa giáo viên.', 403);
         }
 
         $result = $this->classService->removeTeacher($classId, $userId);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function materials(int $classId): JsonResponse
     {
         $materials = $this->classService->getMaterials($classId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $materials,
-        ]);
+        return $this->successResponse($materials, 'Lấy danh sách tài liệu thành công');
     }
 
     public function storeMaterial(StoreMaterialRequest $request, int $classId): JsonResponse
@@ -302,19 +237,12 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen them tai lieu.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền thêm tài liệu.', 403);
         }
 
         $material = $this->classService->addMaterial($classId, $request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Them tai lieu thanh cong.',
-            'data' => $material,
-        ], 201);
+        return $this->successResponse($material, 'Thêm tài liệu thành công.', 201);
     }
 
     public function removeMaterial(Request $request, int $classId, int $materialId): JsonResponse
@@ -322,28 +250,22 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen xoa tai lieu.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền xóa tài liệu.', 403);
         }
 
         $this->classService->removeMaterial($classId, $materialId);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoa tai lieu thanh cong.',
-        ]);
+        return $this->successResponse(null, 'Xóa tài liệu thành công.');
     }
 
     public function tests(int $classId): JsonResponse
     {
         $tests = $this->classService->getTests($classId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $tests,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\TestResource::collection($tests),
+            'Lấy danh sách bài test của lớp học thành công'
+        );
     }
 
     public function assignTest(AssignTestRequest $request, int $classId): JsonResponse
@@ -351,25 +273,16 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen gan bai kiem tra.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền gán bài kiểm tra.', 403);
         }
 
         $result = $this->classService->assignTest($classId, $request->input('test_id'));
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function removeTest(Request $request, int $classId, int $testId): JsonResponse
@@ -377,28 +290,19 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen xoa bai kiem tra.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền xóa bài kiểm tra.', 403);
         }
 
         $this->classService->removeTest($classId, $testId);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoa bai kiem tra thanh cong.',
-        ]);
+        return $this->successResponse(null, 'Xóa bài kiểm tra thành công.');
     }
 
     public function practices(int $classId): JsonResponse
     {
         $practices = $this->classService->getPractices($classId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $practices,
-        ]);
+        return $this->successResponse($practices, 'Lấy danh sách bài ôn tập thành công');
     }
 
     public function assignPractice(AssignPracticeRequest $request, int $classId): JsonResponse
@@ -406,25 +310,16 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen gan bai on tap.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền gán bài ôn tập.', 403);
         }
 
         $result = $this->classService->assignPractice($classId, $request->input('practice_id'));
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-            ], 400);
+            return $this->errorResponse($result['message'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse(null, $result['message']);
     }
 
     public function removePractice(Request $request, int $classId, int $practiceId): JsonResponse
@@ -432,17 +327,11 @@ class ClassController extends Controller
         $user = $request->user();
 
         if (!$this->classService->canManageClass($user->id, $classId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ban khong co quyen xoa bai on tap.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền xóa bài ôn tập.', 403);
         }
 
         $this->classService->removePractice($classId, $practiceId);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Xoa bai on tap thanh cong.',
-        ]);
+        return $this->successResponse(null, 'Xóa bài ôn tập thành công.');
     }
 }

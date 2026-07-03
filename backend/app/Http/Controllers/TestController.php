@@ -44,28 +44,25 @@ class TestController extends Controller
             $user
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $tests,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\TestResource::collection($tests),
+            'Lấy danh sách bài test thành công'
+        );
     }
 
     public function show(int $id): JsonResponse
     {
         try {
             $test = $this->testService->getTestWithQuestions($id);
-            $test->load(['subject', 'classes',]);
+            $test->load(['subject', 'classes']);
             $test->attempts_count = $test->attempts()->count();
 
-            return response()->json([
-                'success' => true,
-                'data' => $test,
-            ]);
+            return $this->successResponse(
+                new \App\Http\Resources\TestResource($test),
+                'Lấy chi tiết bài test thành công'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Test not found.',
-            ], 404);
+            return $this->errorResponse('Bài test không tồn tại', 404);
         }
     }
 
@@ -77,19 +74,16 @@ class TestController extends Controller
 
         // Only teachers and admins can create tests
         if (!in_array($user->role, ['teacher', 'admin'])) {
-            return response()->json([
-                'success' => false,
-                'error' => 'You do not have permission to create tests.',
-            ], 403);
+            return $this->errorResponse('Bạn không có quyền tạo bài test', 403);
         }
 
         $test = $this->testService->createTest($user->id, $request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Test created successfully.',
-            'data' => $test,
-        ], 201);
+        return $this->successResponse(
+            new \App\Http\Resources\TestResource($test),
+            'Tạo bài test thành công',
+            201
+        );
     }
 
     public function update(UpdateTestRequest $request, int $id): JsonResponse
@@ -101,24 +95,17 @@ class TestController extends Controller
 
             // Only creator or admin can update
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'You do not have permission to update this test.',
-                ], 403);
+                return $this->errorResponse('Bạn không có quyền cập nhật bài test này', 403);
             }
 
             $updatedTest = $this->testService->updateTest($id, $request->validated());
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Test updated successfully.',
-                'data' => $updatedTest,
-            ]);
+            return $this->successResponse(
+                new \App\Http\Resources\TestResource($updatedTest),
+                'Cập nhật bài test thành công'
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Test not found.',
-            ], 404);
+            return $this->errorResponse('Bài test không tồn tại', 404);
         }
     }
 
@@ -131,23 +118,14 @@ class TestController extends Controller
 
             // Only creator or admin can delete
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'You do not have permission to delete this test.',
-                ], 403);
+                return $this->errorResponse('Bạn không có quyền xóa bài test này', 403);
             }
 
             $this->testService->deleteTest($id);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Test deleted successfully.',
-            ]);
+            return $this->successResponse(null, 'Xóa bài test thành công');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Test not found.',
-            ], 404);
+            return $this->errorResponse('Bài test không tồn tại', 404);
         }
     }
 
@@ -158,16 +136,10 @@ class TestController extends Controller
         $result = $this->testService->startTest($user->id, $id);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'error' => $result['error'],
-            ], 400);
+            return $this->errorResponse($result['error'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $result,
-        ]);
+        return $this->successResponse($result, 'Bắt đầu làm bài test thành công');
     }
 
     public function submit(SubmitTestRequest $request, int $id): JsonResponse
@@ -179,16 +151,10 @@ class TestController extends Controller
         $result = $this->testService->submitTest($attemptId, $answers);
 
         if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'error' => $result['error'],
-            ], 400);
+            return $this->errorResponse($result['error'], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $result,
-        ]);
+        return $this->successResponse($result, 'Nộp bài test thành công');
     }
 
     public function allAttempts(Request $request, int $id): JsonResponse
@@ -200,23 +166,14 @@ class TestController extends Controller
 
             // Only creator or admin can view all attempts
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'You do not have permission to view attempts for this test.',
-                ], 403);
+                return $this->errorResponse('Bạn không có quyền xem lượt làm bài của bài test này', 403);
             }
 
             $attempts = $this->testService->getAllAttemptsForTest($id);
 
-            return response()->json([
-                'success' => true,
-                'data' => $attempts,
-            ]);
+            return $this->successResponse($attempts, 'Lấy danh sách lượt làm bài thành công');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Test not found.',
-            ], 404);
+            return $this->errorResponse('Bài test không tồn tại', 404);
         }
     }
 
@@ -226,10 +183,7 @@ class TestController extends Controller
 
         $attempts = $this->testService->getMyAttempts($user->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $attempts,
-        ]);
+        return $this->successResponse($attempts, 'Lấy lịch sử làm bài thành công');
     }
 
     public function results(int $attemptId): JsonResponse
@@ -237,36 +191,21 @@ class TestController extends Controller
         try {
             $results = $this->testService->getResults($attemptId);
 
-            return response()->json([
-                'success' => true,
-                'data' => $results,
-            ]);
+            return $this->successResponse($results, 'Lấy kết quả làm bài thành công');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Attempt not found.',
-            ], 404);
+            return $this->errorResponse('Lượt làm bài không tồn tại', 404);
         }
     }
 
     public function review(int $attemptId): JsonResponse
     {
         try {
-
             $review = $this->testService->getReview($attemptId);
-
-            return response()->json([
-                'success'=>true,
-                'data'=>$review
-            ]);
-
+            return $this->successResponse($review, 'Lấy bài làm chi tiết thành công');
         } catch (\Exception $e) {
             \Log::error('FAILED GET REVIEW', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'error' => 'Attempt not found. Error: ' . $e->getMessage(),
-            ], 404);
+            return $this->errorResponse($e->getMessage(), 404);
         }
     }
 
@@ -275,23 +214,17 @@ class TestController extends Controller
         $test = $this->testService->getTestByCode($code);
 
         if (!$test) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Test not found with this code.',
-            ], 404);
+            return $this->errorResponse('Không tìm thấy bài test với mã code này', 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $test->id,
-                'title' => $test->title,
-                'subject' => $test->subject->name ?? null,
-                'duration' => $test->duration,
-                'question_count' => $test->questions->count(),
-                'access_type' => $test->access_type,
-            ],
-        ]);
+        return $this->successResponse([
+            'id' => $test->id,
+            'title' => $test->title,
+            'subject' => $test->subject->name ?? null,
+            'duration' => $test->duration,
+            'question_count' => $test->questions->count(),
+            'access_type' => $test->access_type,
+        ], 'Tìm thấy bài test');
     }
 
     public function available(Request $request): JsonResponse
@@ -300,22 +233,20 @@ class TestController extends Controller
 
         $tests = $this->testService->getAvailableTests($user->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $tests,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\TestResource::collection($tests),
+            'Lấy danh sách bài test có sẵn thành công'
+        );
     }
 
     public function systemTests(Request $request): JsonResponse
     {
-        $user = $request->user();
-
         $tests = $this->testService->getSystemTests();
 
-        return response()->json([
-            'success' => true,
-            'data' => $tests,
-        ]);
+        return $this->successResponse(
+            \App\Http\Resources\TestResource::collection($tests),
+            'Lấy danh sách bài test hệ thống thành công'
+        );
     }
 
     public function saveAnswer(Request $request)
@@ -325,9 +256,7 @@ class TestController extends Controller
             $request->question_id,
             $request->answer
         );
-        return response()->json([
-            'success'=>true
-        ]);
+        return $this->successResponse(null, 'Lưu câu trả lời thành công');
     }
 
     public function classScores(Request $request, int $classId, int $testId): JsonResponse
@@ -337,23 +266,30 @@ class TestController extends Controller
         try {
             $test = $this->testService->getTestById($testId);
             if ($test->created_by !== $user->id && $user->role !== 'admin') {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'You do not have permission to view scores for this test.',
-                ], 403);
+                return $this->errorResponse('Bạn không có quyền xem điểm lớp học cho bài test này', 403);
             }
 
             $data = $this->testService->getClassScores($classId, $testId);
 
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-            ]);
+            return $this->successResponse($data, 'Lấy bảng điểm lớp học thành công');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Test not found.',
-            ], 404);
+            return $this->errorResponse('Bài test không tồn tại', 404);
         }
+    }
+
+    public function reportTabSwitch(Request $request, int $attemptId): JsonResponse
+    {
+        $attempt = \App\Models\TestAttempt::findOrFail($attemptId);
+        
+        // Chỉ cho phép học sinh sở hữu lượt thi và lượt thi đang in_progress ghi nhận
+        if ($attempt->user_id !== $request->user()->id || $attempt->status !== \App\Models\TestAttempt::STATUS_IN_PROGRESS) {
+            return $this->errorResponse('Yêu cầu không hợp lệ hoặc lượt thi đã kết thúc.', 400);
+        }
+
+        $attempt->increment('tab_switch_count');
+
+        return $this->successResponse([
+            'tab_switch_count' => $attempt->tab_switch_count
+        ], 'Ghi nhận chuyển tab thành công.');
     }
 }

@@ -1,40 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 const stripNumberPrefix = (text) => {
   if (typeof text !== 'string') return text;
   return text.replace(/^\s*\d+\.\s*/, '');
 };
 
+// Shuffle một lần và giữ nguyên
+const useShuffledRight = (right) => {
+  return useMemo(() => {
+    if (!right || right.length === 0) return [];
+    const itemsWithOriginalIndex = right.map((item, index) => ({ item, index }));
+    return [...itemsWithOriginalIndex].sort(() => Math.random() - 0.5);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+};
+
 export function MatchingQuestion({ question, onAnswer, answer = null, showResult = false, result = null }) {
   const { left = [], right = [], correct_matches = {} } = question.data || {};
   const [matches, setMatches] = useState(answer || {});
   const [selectedLeft, setSelectedLeft] = useState(null);
-  const [shuffledRight, setShuffledRight] = useState([]);
   const [lines, setLines] = useState([]);
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    if (answer) {
-      setMatches(answer);
-    } else {
-      setMatches({});
-    }
-  }, [answer]);
+  // Shuffle chỉ 1 lần khi mount
+  const shuffledRight = useShuffledRight(right);
 
   useEffect(() => {
-    if (right && right.length > 0) {
-      const itemsWithOriginalIndex = right.map((item, index) => ({ item, index }));
-      const shuffled = [...itemsWithOriginalIndex].sort(() => Math.random() - 0.5);
-      setShuffledRight(shuffled);
-    } else {
-      setShuffledRight([]);
-    }
-  }, [right]);
+    setMatches(answer || {});
+  }, [answer]);
 
   const handleMatch = (leftId, rightId) => {
     if (showResult) return;
-    
-    // Strict 1-to-1 matching: remove any other left item matched to the same rightId
     const newMatches = {};
     Object.entries(matches).forEach(([k, v]) => {
       if (v !== rightId && parseInt(k) !== leftId) {
@@ -42,236 +37,284 @@ export function MatchingQuestion({ question, onAnswer, answer = null, showResult
       }
     });
     newMatches[leftId] = rightId;
-    
     setMatches(newMatches);
     onAnswer(newMatches);
     setSelectedLeft(null);
   };
 
-  const isCorrectMatch = (leftId, rightId) => {
-    return correct_matches[leftId] === rightId;
+  const removeMatch = (leftId) => {
+    if (showResult) return;
+    const newMatches = { ...matches };
+    delete newMatches[leftId];
+    setMatches(newMatches);
+    onAnswer(newMatches);
+    setSelectedLeft(null);
   };
+
+  const isCorrectMatch = (leftId, rightId) => correct_matches[leftId] === rightId;
 
   const updateLines = () => {
     if (!containerRef.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
     const newLines = [];
-
     Object.entries(matches).forEach(([leftIdx, rightIdx]) => {
       if (rightIdx === undefined || rightIdx === null) return;
       const leftDotEl = containerRef.current.querySelector(`[data-left-dot="${leftIdx}"]`);
       const rightDotEl = containerRef.current.querySelector(`[data-right-dot="${rightIdx}"]`);
-
       if (leftDotEl && rightDotEl) {
-        const leftRect = leftDotEl.getBoundingClientRect();
-        const rightRect = rightDotEl.getBoundingClientRect();
-
-        const x1 = leftRect.left + leftRect.width / 2 - containerRect.left;
-        const y1 = leftRect.top + leftRect.height / 2 - containerRect.top;
-        
-        const x2 = rightRect.left + rightRect.width / 2 - containerRect.left;
-        const y2 = rightRect.top + rightRect.height / 2 - containerRect.top;
-
-        let color = '#3b82f6';
+        const l = leftDotEl.getBoundingClientRect();
+        const r = rightDotEl.getBoundingClientRect();
+        const x1 = l.left + l.width / 2 - containerRect.left;
+        const y1 = l.top + l.height / 2 - containerRect.top;
+        const x2 = r.left + r.width / 2 - containerRect.left;
+        const y2 = r.top + r.height / 2 - containerRect.top;
+        let color = '#2563eb';
         if (showResult) {
-          color = isCorrectMatch(parseInt(leftIdx), rightIdx) ? '#10b981' : '#ef4444';
+          color = isCorrectMatch(parseInt(leftIdx), rightIdx) ? '#16a34a' : '#dc2626';
         }
-
-        newLines.push({
-          x1,
-          y1,
-          x2,
-          y2,
-          color,
-        });
+        newLines.push({ x1, y1, x2, y2, color });
       }
     });
-
     setLines(newLines);
   };
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
     updateLines();
-
-    const observer = new ResizeObserver(() => {
-      updateLines();
-    });
+    const observer = new ResizeObserver(updateLines);
     observer.observe(containerRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, [matches, showResult, shuffledRight]);
 
-  const getCardClass = (index, side) => {
+  const getLeftCardStyle = (index) => {
     const isSelected = selectedLeft === index;
-    const isMatched = side === 'left' ? matches[index] !== undefined : Object.values(matches).includes(index);
-    
+    const isMatched = matches[index] !== undefined;
+    const base = {
+      position: 'relative',
+      padding: '10px 44px 10px 14px',
+      backgroundColor: '#ffffff',
+      border: '1.5px solid',
+      borderRadius: '10px',
+      cursor: showResult ? 'default' : 'pointer',
+      transition: 'all 0.15s',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      userSelect: 'none',
+      minHeight: '48px',
+    };
     if (!showResult) {
-      if (side === 'left') {
-        if (isSelected) return 'border-blue-400 bg-blue-50/40 shadow-blue-100/30';
-        if (isMatched) return 'border-blue-100 bg-blue-50/5';
-        return 'border-gray-200/60 hover:border-blue-200 hover:bg-gray-50/50';
-      } else {
-        const leftIdxForThisRight = Object.keys(matches).find(k => matches[k] === index);
-        if (leftIdxForThisRight !== undefined) {
-          return 'border-blue-100 bg-blue-50/5';
-        }
-        return 'border-gray-200/60 hover:border-blue-200 hover:bg-gray-50/50';
-      }
+      if (isSelected) return { ...base, borderColor: '#2563eb', backgroundColor: '#eff6ff', boxShadow: '0 0 0 3px rgba(37,99,235,0.15)' };
+      if (isMatched) return { ...base, borderColor: '#93c5fd', backgroundColor: '#f8faff' };
+      return { ...base, borderColor: '#e5e7eb' };
     }
-
-    if (side === 'left') {
-      const rightIdx = matches[index];
-      if (rightIdx === undefined) return 'border-gray-100 opacity-60';
-      return isCorrectMatch(index, rightIdx)
-        ? 'border-green-300 bg-green-50/30'
-        : 'border-red-300 bg-red-50/30';
-    } else {
-      const leftIdx = Object.keys(matches).find(k => matches[k] === index);
-      if (leftIdx === undefined) return 'border-gray-100 opacity-60';
-      return isCorrectMatch(parseInt(leftIdx), index)
-        ? 'border-green-300 bg-green-50/30'
-        : 'border-red-300 bg-red-50/30';
-    }
+    const rightIdx = matches[index];
+    if (rightIdx === undefined) return { ...base, borderColor: '#e5e7eb', opacity: 0.5 };
+    if (isCorrectMatch(index, rightIdx)) return { ...base, borderColor: '#16a34a', backgroundColor: '#f0fdf4' };
+    return { ...base, borderColor: '#dc2626', backgroundColor: '#fef2f2' };
   };
 
-  const getDotClass = (index, side) => {
-    const isSelected = selectedLeft === index;
-    const isMatched = side === 'left' ? matches[index] !== undefined : Object.values(matches).includes(index);
+  const getRightCardStyle = (originalIndex) => {
+    const leftIdxForThis = Object.keys(matches).find(k => matches[k] === originalIndex);
+    const isMatched = leftIdxForThis !== undefined;
+    const base = {
+      position: 'relative',
+      padding: '10px 14px 10px 44px',
+      backgroundColor: '#ffffff',
+      border: '1.5px solid',
+      borderRadius: '10px',
+      cursor: showResult ? 'default' : 'pointer',
+      transition: 'all 0.15s',
+      display: 'flex',
+      alignItems: 'center',
+      userSelect: 'none',
+      minHeight: '48px',
+    };
+    if (!showResult) {
+      if (isMatched) return { ...base, borderColor: '#93c5fd', backgroundColor: '#f8faff' };
+      return { ...base, borderColor: '#e5e7eb' };
+    }
+    if (!isMatched) return { ...base, borderColor: '#e5e7eb', opacity: 0.5 };
+    if (isCorrectMatch(parseInt(leftIdxForThis), originalIndex)) return { ...base, borderColor: '#16a34a', backgroundColor: '#f0fdf4' };
+    return { ...base, borderColor: '#dc2626', backgroundColor: '#fef2f2' };
+  };
+
+  const getDotStyle = (index, side) => {
+    const base = {
+      position: 'absolute',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      width: '12px', height: '12px',
+      borderRadius: '50%',
+      border: '2px solid',
+      transition: 'all 0.15s',
+    };
+    const isMatched = side === 'left'
+      ? matches[index] !== undefined
+      : Object.values(matches).includes(index);
 
     if (!showResult) {
-      if (side === 'left' && isSelected) {
-        return 'border-blue-500 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]';
+      if (side === 'left' && selectedLeft === index) {
+        return { ...base, right: '14px', borderColor: '#2563eb', backgroundColor: '#2563eb', boxShadow: '0 0 0 4px rgba(37,99,235,0.2)' };
       }
-      return isMatched
-        ? 'border-blue-500 bg-blue-500'
-        : 'border-gray-300 bg-white group-hover:border-blue-400';
+      if (isMatched) return {
+        ...base,
+        [side === 'left' ? 'right' : 'left']: '14px',
+        borderColor: '#2563eb', backgroundColor: '#2563eb',
+      };
+      return {
+        ...base,
+        [side === 'left' ? 'right' : 'left']: '14px',
+        borderColor: '#d1d5db', backgroundColor: '#fff',
+      };
     }
 
-    if (side === 'left') {
-      const rightIdx = matches[index];
-      if (rightIdx === undefined) return 'border-gray-300 bg-white';
-      return isCorrectMatch(index, rightIdx)
-        ? 'border-green-500 bg-green-500'
-        : 'border-red-500 bg-red-500';
-    } else {
-      const leftIdx = Object.keys(matches).find(k => matches[k] === index);
-      if (leftIdx === undefined) return 'border-gray-300 bg-white';
-      return isCorrectMatch(parseInt(leftIdx), index)
-        ? 'border-green-500 bg-green-500'
-        : 'border-red-500 bg-red-500';
-    }
+    // showResult
+    const isCorrect = side === 'left'
+      ? (matches[index] !== undefined && isCorrectMatch(index, matches[index]))
+      : (() => {
+          const leftIdx = Object.keys(matches).find(k => matches[k] === index);
+          return leftIdx !== undefined && isCorrectMatch(parseInt(leftIdx), index);
+        })();
+
+    const color = isMatched ? (isCorrect ? '#16a34a' : '#dc2626') : '#d1d5db';
+    return {
+      ...base,
+      [side === 'left' ? 'right' : 'left']: '14px',
+      borderColor: color,
+      backgroundColor: isMatched ? color : '#fff',
+    };
   };
+
+  const correctCount = Object.keys(matches).filter(k => isCorrectMatch(parseInt(k), matches[k])).length;
+  const totalLeft = left.length;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {question.content && (
-        <p className="text-lg font-medium text-gray-800">{question.content}</p>
+        <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '16px', lineHeight: '1.6' }}>
+          {question.content}
+        </p>
       )}
 
-      <div ref={containerRef} className="relative grid grid-cols-2 gap-12 p-2">
-        {/* SVG connection lines overlay */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10, overflow: 'visible' }}>
+      {/* Instruction */}
+      {!showResult && (
+        <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '16px', fontStyle: 'italic' }}>
+          {selectedLeft !== null
+            ? 'Chọn một mục ở cột phải để nối'
+            : 'Nhấn vào mục ở cột trái để bắt đầu nối'}
+        </p>
+      )}
+
+      <div ref={containerRef} style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', padding: '4px 0' }}>
+        {/* SVG lines */}
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10, overflow: 'visible' }}
+        >
           {lines.map((line, idx) => (
             <g key={idx}>
               <path
                 d={`M ${line.x1} ${line.y1} C ${(line.x1 + line.x2) / 2} ${line.y1}, ${(line.x1 + line.x2) / 2} ${line.y2}, ${line.x2} ${line.y2}`}
                 fill="none"
                 stroke={line.color}
-                strokeWidth="6"
-                strokeOpacity="0.15"
+                strokeWidth="5"
+                strokeOpacity="0.12"
               />
               <path
                 d={`M ${line.x1} ${line.y1} C ${(line.x1 + line.x2) / 2} ${line.y1}, ${(line.x1 + line.x2) / 2} ${line.y2}, ${line.x2} ${line.y2}`}
                 fill="none"
                 stroke={line.color}
-                strokeWidth="3"
-                className="transition-all duration-300"
+                strokeWidth="2.5"
               />
-              <circle cx={line.x1} cy={line.y1} r="4" fill={line.color} />
-              <circle cx={line.x2} cy={line.y2} r="4" fill={line.color} />
             </g>
           ))}
         </svg>
 
-        {/* Left Column */}
-        <div className="space-y-4" style={{ zIndex: 20 }}>
-          <h4 className="font-semibold text-gray-700 text-sm tracking-wider uppercase">Cột trái</h4>
+        {/* Left column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20 }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            Cột A
+          </div>
           {left.map((item, index) => (
             <div
               key={index}
-              data-left-id={index}
               onClick={() => {
-                if (!showResult) {
-                  if (matches[index] !== undefined) {
-                    const newMatches = { ...matches };
-                    delete newMatches[index];
-                    setMatches(newMatches);
-                    onAnswer(newMatches);
-                    setSelectedLeft(null);
-                  } else {
-                    setSelectedLeft(selectedLeft === index ? null : index);
-                  }
+                if (showResult) return;
+                if (matches[index] !== undefined) {
+                  removeMatch(index);
+                } else {
+                  setSelectedLeft(selectedLeft === index ? null : index);
                 }
               }}
-              className={`relative pr-12 pl-6 py-3.5 bg-white border rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-between select-none shadow-sm group ${getCardClass(index, 'left')}`}
+              style={getLeftCardStyle(index)}
             >
-              <span className="text-gray-800 font-medium leading-relaxed">{stripNumberPrefix(item)}</span>
-              <span
-                data-left-dot={index}
-                className={`w-3 h-3 rounded-full border-2 absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${getDotClass(index, 'left')}`}
-              />
+              <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827', flex: 1, paddingRight: '8px' }}>
+                {stripNumberPrefix(item)}
+              </span>
+              <span data-left-dot={index} style={getDotStyle(index, 'left')} />
             </div>
           ))}
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-4" style={{ zIndex: 20 }}>
-          <h4 className="font-semibold text-gray-700 text-sm tracking-wider uppercase">Cột phải</h4>
+        {/* Right column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 20 }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            Cột B
+          </div>
           {shuffledRight.map(({ item, index: originalIndex }, shuffledIndex) => (
             <div
               key={shuffledIndex}
-              data-right-id={originalIndex}
               onClick={() => {
                 if (showResult) return;
-
                 let targetLeft = selectedLeft;
                 if (targetLeft === null) {
-                  const leftItems = Array.isArray(left) ? left : [];
-                  targetLeft = leftItems.findIndex((_, idx) => matches[idx] === undefined);
+                  targetLeft = left.findIndex((_, idx) => matches[idx] === undefined);
                   if (targetLeft === -1) return;
                 } else {
                   setSelectedLeft(null);
                 }
-
                 handleMatch(targetLeft, originalIndex);
               }}
-              className={`relative pl-12 pr-6 py-3.5 bg-white border rounded-xl cursor-pointer transition-all duration-200 flex items-center select-none shadow-sm group ${getCardClass(originalIndex, 'right')}`}
+              style={getRightCardStyle(originalIndex)}
             >
-              <span
-                data-right-dot={originalIndex}
-                className={`w-3 h-3 rounded-full border-2 absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${getDotClass(originalIndex, 'right')}`}
-              />
-              <span className="text-gray-800 font-medium leading-relaxed">{stripNumberPrefix(item)}</span>
+              <span data-right-dot={originalIndex} style={getDotStyle(originalIndex, 'right')} />
+              <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827', flex: 1, paddingLeft: '8px' }}>
+                {stripNumberPrefix(item)}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Result summary */}
       {showResult && (
-        <div className="mt-4">
-          {Object.keys(matches).every((k) =>
-            isCorrectMatch(parseInt(k), matches[k]),
-          ) ? (
-            <div className="text-green-600 font-medium">Chính xác!</div>
-          ) : (
-            <div className="text-red-600 font-medium">
-              Còn một số cặp chưa đúng. Hãy kiểm tra lại.
-            </div>
-          )}
+        <div style={{
+          marginTop: '20px',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          backgroundColor: correctCount === totalLeft ? '#f0fdf4' : '#fef2f2',
+          border: `1px solid ${correctCount === totalLeft ? '#bbf7d0' : '#fecaca'}`,
+          fontSize: '13px',
+          fontWeight: '600',
+          color: correctCount === totalLeft ? '#166534' : '#991b1b',
+        }}>
+          {correctCount === totalLeft
+            ? 'Tất cả các cặp đều chính xác!'
+            : `Đúng ${correctCount}/${totalLeft} cặp — hãy xem lại các đường nối màu đỏ.`}
+        </div>
+      )}
+
+      {showResult && question.explanation && (
+        <div style={{
+          marginTop: '8px',
+          padding: '12px 16px',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: '8px',
+        }}>
+          <p style={{ fontSize: '13px', color: '#1e40af', margin: 0 }}>
+            <strong>Giải thích:</strong> {question.explanation}
+          </p>
         </div>
       )}
     </div>
