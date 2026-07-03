@@ -188,7 +188,7 @@ const TeacherDashboardPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số bài kiểm tra</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalTests || 7}</h3>
+                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalTests ?? 0}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FiFileText style={{ fontSize: '18px' }} />
@@ -205,7 +205,7 @@ const TeacherDashboardPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số câu hỏi</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalQuestions || 10}</h3>
+                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalQuestions ?? 0}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FiBookOpen style={{ fontSize: '18px' }} />
@@ -222,7 +222,7 @@ const TeacherDashboardPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Tổng số học sinh</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalStudents || 7}</h3>
+                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalStudents ?? 0}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FiUsers style={{ fontSize: '18px' }} />
@@ -239,7 +239,7 @@ const TeacherDashboardPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '13px', opacity: 0.9, fontWeight: 500 }}>Số bài nộp</p>
-                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalSubmissions || 0}</h3>
+                  <h3 style={{ margin: '0', fontSize: '32px', fontWeight: 'bold', lineHeight: '1' }}>{stats.totalSubmissions ?? 0}</h3>
                 </div>
                 <div className="w-9 h-9 bg-white/25 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FiCheckCircle style={{ fontSize: '18px' }} />
