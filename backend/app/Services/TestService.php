@@ -629,7 +629,7 @@ class TestService
         }
     }
 
-    public function saveAnswer(int $attemptId, int $questionId, $answer): void
+    public function saveAnswer(int $attemptId, int $questionId, mixed $answer): void
     {
         $attempt = TestAttempt::findOrFail($attemptId);
 

@@ -8,6 +8,7 @@ use App\Http\Requests\Test\SubmitTestRequest;
 use App\Services\TestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TestController extends Controller
 {
