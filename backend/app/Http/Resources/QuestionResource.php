@@ -28,6 +28,9 @@ class QuestionResource extends JsonResource
             'created_by' => $this->created_by,
             'creator' => new UserResource($this->whenLoaded('creator')),
             'scope' => $this->scope,
+            'pivot' => $this->when($this->pivot, function () {
+                return $this->pivot;
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

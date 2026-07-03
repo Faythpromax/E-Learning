@@ -19,6 +19,9 @@ class UserResource extends JsonResource
             'level' => $this->level ?? 1,
             'school' => $this->school,
             'avatar' => $this->avatar,
+            'pivot' => $this->when($this->pivot, function () {
+                return $this->pivot;
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

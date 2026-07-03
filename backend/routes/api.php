@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\TeacherDashboardController;
 
 // Provide a friendly JSON response for accidental GET requests to /api/login
 // This prevents the default 405 HTML response when someone navigates to /api/login
@@ -50,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/teacher/questions', [QuestionController::class, 'storeClass']);
         Route::put('/teacher/questions/{id}', [QuestionController::class, 'updateClass']);
         Route::delete('/teacher/questions/{id}', [QuestionController::class, 'destroyClass']);
+        Route::get('/teacher/dashboard/stats', [TeacherDashboardController::class, 'getStats']);
     });
 
     // Question details and check answer - All authenticated users
