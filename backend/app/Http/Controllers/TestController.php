@@ -71,7 +71,7 @@ class TestController extends Controller
     {
         $user = $request->user();
 
-        \Log::info('STORE TEST', $request->validated());
+        Log::info('STORE TEST', $request->validated());
 
         // Only teachers and admins can create tests
         if (!in_array($user->role, ['teacher', 'admin'])) {
@@ -204,7 +204,7 @@ class TestController extends Controller
             $review = $this->testService->getReview($attemptId);
             return $this->successResponse($review, 'Lấy bài làm chi tiết thành công');
         } catch (\Exception $e) {
-            \Log::error('FAILED GET REVIEW', ['exception' => $e]);
+            Log::error('FAILED GET REVIEW', ['exception' => $e]);
 
             return $this->errorResponse($e->getMessage(), 404);
         }
