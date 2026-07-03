@@ -35,6 +35,11 @@ export const userApi = {
     const response = await apiClient.get('/admin/stats');
     return response.data;
   },
+
+  getTeacherStats: async () => {
+    const response = await apiClient.get('/teacher/dashboard/stats');
+    return response.data;
+  },
 };
 
 export default userApi;

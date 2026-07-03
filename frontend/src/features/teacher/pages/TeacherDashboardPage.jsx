@@ -42,11 +42,10 @@ const TeacherDashboardPage = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [testsRes, classesRes, studentsRes, questionsRes] = await Promise.all([
+      const [testsRes, classesRes, statsRes] = await Promise.all([
         testApi.getTests(),
         classApi.getClasses(),
-        userApi.getStudents(),
-        questionApi.getClassQuestions(),
+        userApi.getTeacherStats(),
       ]);
 
       const tests = (testsRes.data || []).map(test => ({
@@ -54,14 +53,13 @@ const TeacherDashboardPage = () => {
         is_active: calculateExamStatus(test)
       }));
       const classesData = classesRes.data || [];
-      const students = studentsRes.data || [];
-      const questions = questionsRes.data || [];
+      const statsData = statsRes.data || {};
 
       setStats({
-        totalTests: tests.length,
-        totalQuestions: questions.length,
-        totalStudents: students.length,
-        totalSubmissions: tests.reduce((sum, test) => sum + (test.attempts?.length || 0), 0),
+        totalTests: statsData.tests_count ?? tests.length,
+        totalQuestions: statsData.questions_count ?? 0,
+        totalStudents: statsData.students_count ?? 0,
+        totalSubmissions: statsData.total_attempts ?? 0,
       });
 
       setClasses(classesData);
