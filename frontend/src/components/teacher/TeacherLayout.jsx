@@ -19,7 +19,7 @@ const TeacherLayout = ({ children, pageTitle }) => {
   }, []);
 
   return (
-    <div className="teacher-layout">
+    <div className="teacher-layout flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
       <TeacherSidebar isOpen={sidebarOpen} />
       
       {/* Mobile Sidebar Overlay */}
@@ -30,12 +30,14 @@ const TeacherLayout = ({ children, pageTitle }) => {
         />
       )}
 
-      <div className="teacher-main">
+      {/* Thay đổi class ở đây để ép main area luôn tự co giãn theo chiều dọc */}
+      <div className="teacher-main flex-1 flex flex-col min-h-screen w-full h-auto min-w-0 overflow-y-auto">
         <TeacherHeader 
           title={pageTitle} 
           onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
         />
-        <div className="teacher-content">
+        {/* Ép vùng nội dung phải tự kéo dài (h-auto), hiển thị dạng block dòng chảy tự nhiên */}
+        <div className="teacher-content flex-1 p-4 md:p-6 block w-full h-auto clear-both overflow-visible">
           {children}
         </div>
       </div>

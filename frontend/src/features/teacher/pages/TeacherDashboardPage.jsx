@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiTrendingUp, FiBookOpen, FiClock, FiHelpCircle } from 'react-icons/fi';
+import { FiPlus, FiFileText, FiUsers, FiCheckCircle, FiBookOpen, FiClock, FiHelpCircle } from 'react-icons/fi';
 import { useAuth } from '../../../contexts/AuthContext';
 import TeacherLayout from '../../../components/teacher/TeacherLayout';
 import ClassCard from '../../../components/teacher/ClassCard';
-import AssignmentCard from '../../../components/teacher/AssignmentCard';
 import { testApi } from '../../../api/testApi';
 import { classApi } from '../../../api/classApi';
 import { userApi } from '../../../api/userApi';
@@ -104,12 +103,11 @@ const TeacherDashboardPage = () => {
           </div>
         </div>
       ) : (
-        <>
+        <div className="flex flex-col gap-6 w-full text-left">
           
           {/* Welcome */}
-          <div className="mb-6 rounded-3xl bg-white shadow-sm border border-gray-100 p-6">
-            {/* Lời chào */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-left">
+          <div className="block rounded-3xl bg-white shadow-sm border border-gray-100 p-6 relative z-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
                   Chào mừng trở lại 👋
@@ -121,7 +119,7 @@ const TeacherDashboardPage = () => {
                   Tổng quan nhanh về lớp học, học sinh và bài kiểm tra của bạn.
                 </p>
               </div>
-              <div className="text-left md:text-right">
+              <div className="md:text-right">
                 <span className="inline-flex items-center px-4 py-2 bg-slate-50 text-slate-600 rounded-2xl text-sm font-semibold border border-slate-100 shadow-sm">
                   {getFormattedDate()}
                 </span>
@@ -129,11 +127,11 @@ const TeacherDashboardPage = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+          {/* Stats Cards - Đã sửa lỗi co giãn và khoảng cách */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full h-auto relative z-10">
             
             {/* Thẻ 1: Tổng số bài kiểm tra */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg p-5 flex flex-col justify-between min-h-[140px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
               <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số bài kiểm tra</p>
@@ -143,13 +141,13 @@ const TeacherDashboardPage = () => {
                   <FiFileText className="text-lg" />
                 </div>
               </div>
-              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15 mt-4">
                 Đã tạo
               </p>
             </div>
 
             {/* Thẻ 2: Tổng số câu hỏi */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white shadow-lg p-5 flex flex-col justify-between min-h-[140px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
               <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số câu hỏi</p>
@@ -159,13 +157,13 @@ const TeacherDashboardPage = () => {
                   <FiBookOpen className="text-lg" />
                 </div>
               </div>
-              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15 mt-4">
                 Đã lưu
               </p>
             </div>
 
             {/* Thẻ 3: Tổng số học sinh */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-lg p-5 flex flex-col justify-between min-h-[140px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
               <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Tổng số học sinh</p>
@@ -175,13 +173,13 @@ const TeacherDashboardPage = () => {
                   <FiUsers className="text-lg" />
                 </div>
               </div>
-              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15 mt-4">
                 Học sinh
               </p>
             </div>
 
             {/* Thẻ 4: Số bài nộp */}
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg p-4 md:p-5 flex flex-col justify-between min-h-[120px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white shadow-lg p-5 flex flex-col justify-between min-h-[140px] transition-all hover:shadow-xl hover:-translate-y-1 duration-200">
               <div className="flex justify-between items-start w-full">
                 <div>
                   <p className="text-xs opacity-90 font-medium tracking-wide">Số bài nộp</p>
@@ -191,23 +189,23 @@ const TeacherDashboardPage = () => {
                   <FiCheckCircle className="text-lg" />
                 </div>
               </div>
-              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15">
+              <p className="text-[11px] opacity-80 pt-2 border-t border-white/15 mt-4">
                 Cập nhật gần nhất
               </p>
             </div>
 
           </div>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 button-group">
+          {/* Quick Actions - Thêm clear-both và ép dòng chảy relative để chống bị đè */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full h-auto relative z-10 clear-both mt-2">
             <button
               onClick={handleCreateTest}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-blue-200 transition-all duration-300 hover:-translate-y-[3px] group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-2xl hover:shadow-md hover:border-blue-200 transition-all duration-300 hover:-translate-y-[3px] group"
             >
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                 <FiPlus className="text-xl text-blue-600" />
               </div>
-              <div className="text-left">
+              <div>
                 <h4 className="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">Tạo bài kiểm tra mới</h4>
                 <p className="text-xs text-gray-400 mt-0.5">Tạo bộ bài kiểm tra nhanh chóng</p>
               </div>
@@ -215,12 +213,12 @@ const TeacherDashboardPage = () => {
 
             <button
               onClick={handleCreateClass}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-green-200 transition-all duration-300 hover:-translate-y-[3px] group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-2xl hover:shadow-md hover:border-green-200 transition-all duration-300 hover:-translate-y-[3px] group"
             >
               <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition-colors">
                 <FiUsers className="text-xl text-green-600" />
               </div>
-              <div className="text-left">
+              <div>
                 <h4 className="font-bold text-gray-800 text-sm group-hover:text-green-600 transition-colors">Tạo lớp học mới</h4>
                 <p className="text-xs text-gray-400 mt-0.5">Tạo lớp và thêm học sinh</p>
               </div>
@@ -228,12 +226,12 @@ const TeacherDashboardPage = () => {
 
             <button
               onClick={handleManageQuestions}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200/80 rounded-2xl hover:shadow-md hover:border-yellow-200 transition-all duration-300 hover:-translate-y-[3px] group"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-2xl hover:shadow-md hover:border-yellow-200 transition-all duration-300 hover:-translate-y-[3px] group"
             >
               <div className="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center group-hover:bg-yellow-100 transition-colors">
                 <FiHelpCircle className="text-xl text-yellow-600" />
               </div>
-              <div className="text-left">
+              <div>
                 <h4 className="font-bold text-gray-800 text-sm group-hover:text-yellow-600 transition-colors">Quản lý câu hỏi</h4>
                 <p className="text-xs text-gray-400 mt-0.5">Xem và chỉnh sửa ngân hàng câu hỏi</p>
               </div>
@@ -241,7 +239,7 @@ const TeacherDashboardPage = () => {
           </div>
 
           {/* Recent Classes Section */}
-          <div className="mb-8">
+          <div className="block w-full relative z-10 mt-2">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-extrabold text-gray-900 m-0">Lớp học mới nhất</h2>
               <button
@@ -266,7 +264,7 @@ const TeacherDashboardPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm">
+              <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm w-full">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
                   <FiUsers className="text-2xl" />
                 </div>
@@ -283,7 +281,7 @@ const TeacherDashboardPage = () => {
           </div>
 
           {/* Recent Assignments Section */}
-          <div className="mb-6">
+          <div className="block w-full relative z-10 mt-2 mb-4">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-extrabold text-gray-900 m-0">Bài kiểm tra mới nhất</h2>
               <button
@@ -294,7 +292,7 @@ const TeacherDashboardPage = () => {
               </button>
             </div>
             {assignments.length > 0 ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 w-full">
                 {assignments.map((assignment) => (
                   <div
                     key={assignment.id}
@@ -321,7 +319,7 @@ const TeacherDashboardPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm">
+              <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm w-full">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
                   <FiFileText className="text-2xl" />
                 </div>
@@ -336,7 +334,7 @@ const TeacherDashboardPage = () => {
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
     </TeacherLayout>
   );
