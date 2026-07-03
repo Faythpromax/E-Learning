@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        return;
         // Xóa các môn học bị trùng tên, chỉ giữ lại môn có ID nhỏ nhất
         $duplicates = DB::table('subjects')
             ->select('name')
@@ -47,6 +48,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        return;
         Schema::table('subjects', function (Blueprint $table) {
             $indexes = DB::select("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='subjects'");
             $indexNames = array_column($indexes, 'name');

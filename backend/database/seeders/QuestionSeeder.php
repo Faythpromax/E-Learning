@@ -5,13 +5,45 @@ namespace Database\Seeders;
 use App\Models\Question;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class QuestionSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. Kiểm tra giáo viên, nếu chưa có thì tự tạo mới luôn
         $teacher = User::where('role', 'teacher')->first();
 
+        if (!$teacher) {
+            $teacher = User::create([
+                'name' => 'Phan Đức Minh',
+                'email' => 'teacher@gmail.com',
+                'password' => bcrypt('12345678'),
+                'role' => 'teacher',
+            ]);
+        }
+
+        // 2. Tạo nhanh các môn học mẫu ứng với ID trong mảng câu hỏi
+        $subjects = [
+            1 => ['name' => 'Toán Lớp 1', 'class_level' => 1],
+            2 => ['name' => 'Toán Lớp 2', 'class_level' => 2],
+            3 => ['name' => 'Tiếng Việt Lớp 1', 'class_level' => 1],
+            6 => ['name' => 'Tiếng Anh Lớp 1', 'class_level' => 1]
+        ];
+
+        foreach ($subjects as $id => $data) { // Đảm bảo ở đây là $data
+            DB::table('subjects')->updateOrInsert(
+                ['id' => $id],
+                [
+                    'name' => $data['name'],
+                    'class_level' => $data['class_level'],
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]
+            );
+        }
+
+        // 3. Danh sách câu hỏi của ông giữ nguyên
         $questions = [
             // MCQ - Toán Lớp 1
             [
@@ -126,9 +158,6 @@ class QuestionSeeder extends Seeder
                 'data' => json_encode([
                     'left'  => ['2 + 3', '5 + 4', '10 - 3'],
                     'right' => ['5', '7', '9'],
-                    // Index 0 (2+3) nối với index 0 (5)
-                    // Index 1 (5+4) nối với index 2 (9)
-                    // Index 2 (10-3) nối với index 1 (7)
                     'correct_matches' => [0, 2, 1],
                 ]),
                 'explanation' => '2+3=5, 5+4=9, 10-3=7',
@@ -136,7 +165,6 @@ class QuestionSeeder extends Seeder
             ],
 
             // Table Fill - Toán Lớp 2
-            // Quy ước: cột cuối cùng là đáp án học sinh cần điền vào
             [
                 'subject_id' => 2,
                 'type' => 'table_fill',
