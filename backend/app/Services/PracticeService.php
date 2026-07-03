@@ -90,7 +90,9 @@ class PracticeService
         return $this->practiceRepository->getStudentPractices($userId)
             ->map(function ($practice) {
                 $practice->class_name = $practice->classes->first()?->name;
-                $practice->classes = null;
+                // Dùng unsetRelation thay vì gán null để tránh crash
+                // getClassIdsAttribute() trong $appends khi serialize JSON
+                $practice->unsetRelation('classes');
                 return $practice;
             });
     }

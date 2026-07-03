@@ -51,7 +51,13 @@ class MatchingQuestionBuilder extends BaseQuestionBuilder
             );
         }
 
-        foreach ($correctMatches as $index) {
+        foreach ($correctMatches as $leftIdx => $index) {
+
+            if (!is_numeric($leftIdx) || (int) $leftIdx < 0 || (int) $leftIdx >= count($left)) {
+                throw new InvalidArgumentException(
+                    "Khóa '{$leftIdx}' của correct_matches phải là index hợp lệ của mảng left"
+                );
+            }
 
             if (!is_int($index)) {
                 throw new InvalidArgumentException(

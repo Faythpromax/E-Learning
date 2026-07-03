@@ -124,56 +124,31 @@ class QuestionSeeder extends Seeder
                 'type' => 'matching',
                 'content' => 'Nối phép tính với kết quả đúng:',
                 'data' => json_encode([
-                    'left_items' => [
-                        ['id' => 'l1', 'text' => '2 + 3'],
-                        ['id' => 'l2', 'text' => '5 + 4'],
-                        ['id' => 'l3', 'text' => '10 - 3'],
-                    ],
-                    'right_items' => [
-                        ['id' => 'r1', 'text' => '5'],
-                        ['id' => 'r2', 'text' => '7'],
-                        ['id' => 'r3', 'text' => '9'],
-                    ],
-                    'correct_matches' => [
-                        'l1' => 'r1',
-                        'l2' => 'r3',
-                        'l3' => 'r2',
-                    ],
+                    'left'  => ['2 + 3', '5 + 4', '10 - 3'],
+                    'right' => ['5', '7', '9'],
+                    // Index 0 (2+3) nối với index 0 (5)
+                    // Index 1 (5+4) nối với index 2 (9)
+                    // Index 2 (10-3) nối với index 1 (7)
+                    'correct_matches' => [0, 2, 1],
                 ]),
                 'explanation' => '2+3=5, 5+4=9, 10-3=7',
                 'created_by' => $teacher->id,
             ],
 
             // Table Fill - Toán Lớp 2
+            // Quy ước: cột cuối cùng là đáp án học sinh cần điền vào
             [
                 'subject_id' => 2,
                 'type' => 'table_fill',
-                'content' => 'Điền số vào bảng cộng:',
+                'content' => 'Điền tổng còn thiếu vào bảng cộng:',
                 'data' => json_encode([
-                    'headers' => ['Số hạng', 'Số hạng', 'Tổng'],
+                    'headers' => ['Số hạng 1', 'Số hạng 2', 'Tổng'],
                     'rows' => [
-                        [
-                            'cells' => [
-                                ['value' => '5', 'editable' => false],
-                                ['value' => '3', 'editable' => false],
-                                ['value' => '', 'editable' => true, 'correct' => '8'],
-                            ],
-                        ],
-                        [
-                            'cells' => [
-                                ['value' => '7', 'editable' => false],
-                                ['value' => '', 'editable' => true, 'correct' => '2'],
-                                ['value' => '9', 'editable' => false],
-                            ],
-                        ],
-                        [
-                            'cells' => [
-                                ['value' => '', 'editable' => true, 'correct' => '4'],
-                                ['value' => '6', 'editable' => false],
-                                ['value' => '10', 'editable' => false],
-                            ],
-                        ],
+                        ['5', '3', '8'],
+                        ['7', '2', '9'],
+                        ['4', '6', '10'],
                     ],
+                    'cols' => 3,
                 ]),
                 'explanation' => '5+3=8, 7+2=9, 4+6=10',
                 'created_by' => $teacher->id,
